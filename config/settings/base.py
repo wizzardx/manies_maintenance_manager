@@ -273,7 +273,9 @@ ACCOUNT_FORMS = {"signup": "manies_maintenance_manager.users.forms.UserSignupFor
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
 SOCIALACCOUNT_ADAPTER = "manies_maintenance_manager.users.adapters.SocialAccountAdapter"
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_FORMS = {"signup": "manies_maintenance_manager.users.forms.UserSocialSignupForm"}
+SOCIALACCOUNT_FORMS = {
+    "signup": "manies_maintenance_manager.users.forms.UserSocialSignupForm",
+}
 
 
 # Your stuff...
