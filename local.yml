@@ -1,5 +1,3 @@
-version: '3'
-
 volumes:
   manies_maintenance_manager_local_postgres_data: {}
   manies_maintenance_manager_local_postgres_data_backups: {}
@@ -14,6 +12,7 @@ services:
     depends_on:
       - postgres
       - mailpit
+      - chrome
     volumes:
       - .:/app:z
     env_file:
@@ -40,3 +39,9 @@ services:
     container_name: manies_maintenance_manager_local_mailpit
     ports:
       - "8025:8025"
+
+  chrome:
+    image: selenium/standalone-chrome-debug
+    ports:
+      - "4444:4444"  # Selenium port
+      - "5900:5900"  # VNC port
