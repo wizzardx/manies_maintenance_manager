@@ -1,3 +1,4 @@
+import pytest
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -18,35 +19,46 @@ class CustomStaticLiveServerTestCase(StaticLiveServerTestCase):
         return f"http://django:{self.server_thread.port}"
 
 
-class ExistingAgentCreatesMaintenanceJobTest(CustomStaticLiveServerTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        options = Options()
-        # You can add more options here if needed
-        cls.browser = webdriver.Remote(
-            command_executor="http://chrome:4444/wd/hub",
-            options=options,
-        )
+@pytest.fixture(scope="class")
+def live_server(request):
+    # Set up the custom live server
+    live_server = CustomStaticLiveServerTestCase()
+    live_server.setUpClass()
+    request.cls.live_server = live_server
 
-    @classmethod
-    def tearDownClass(cls):
-        cls.browser.quit()
-        super().tearDownClass()
+    yield live_server
 
+    live_server.tearDownClass()
+
+
+@pytest.fixture(scope="class")
+def browser(request):
+    options = Options()
+    # You can add more options here if needed
+    driver = webdriver.Remote(
+        command_executor="http://chrome:4444/wd/hub",
+        options=options,
+    )
+    request.cls.browser = driver
+
+    yield driver
+
+    driver.quit()
+
+
+@pytest.mark.usefixtures("live_server", "browser")
+class TestExistingAgentCreatesMaintenanceJob:
     def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logout(
         self,
     ):
-        # One of Manies property manager contacts, Bob, an `Agent`, has heard of a cool
-        # new webpage that's for helping to coordinate Manies Maintenance jobs with him.
-        # He goes to check out its homepage
-        self.browser.get(f"{self.live_server_url}")
+        # Use the live_server_url from the modified fixture
+        self.browser.get(self.live_server.live_server_url)
 
-        # He notices the page title and the navbar mention Manies Maintenance Manager
-        self.assertIn("Manies Maintenance Manager", self.browser.title)
+        # Continue with the test steps
+        assert "Manies Maintenance Manager" in self.browser.title
 
         # He sees the Sign In button in the navbar
-        self.fail("Finish the test!")
+        pytest.fail("Finish the test!")
 
         # He clicks on the Sign In button
 
@@ -55,7 +67,7 @@ class ExistingAgentCreatesMaintenanceJobTest(CustomStaticLiveServerTestCase):
 
         # He types "bob" into the Username field
 
-        # He types "bob" into the Password field
+        # He types "secret" into the Password field
 
         # He clicks the "Sign In" button
 
