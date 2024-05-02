@@ -65,3 +65,6 @@ INSTALLED_APPS += ["django_extensions"]
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+# https://github.com/boxed/django-fastdev#usage
+INSTALLED_APPS += ["django_fastdev"]
