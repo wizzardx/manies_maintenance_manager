@@ -33,6 +33,8 @@ services:
       - manies_maintenance_manager_local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres
+    ports:
+      - '5433:5432'  # Maps TCP port 5432 inside the container to port 5433 on the host
 
   mailpit:
     image: docker.io/axllent/mailpit:latest
