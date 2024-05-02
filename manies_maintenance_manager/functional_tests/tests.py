@@ -4,14 +4,18 @@ from selenium.webdriver.chrome.options import Options
 
 
 class CustomStaticLiveServerTestCase(StaticLiveServerTestCase):
-    host = "0.0.0.0"  # Bind to all interfaces
+    # Bind to all interfaces. This is so that in our dev environment, Chrome
+    # running under Selenium in another Docker container, can connect to
+    # our container. This is a bit of an ugly workaround to the default
+    # `StaticLiveServerTestCase` behavior.
+    host = "0.0.0.0"  # noqa: S104
 
     @property
     def live_server_url(self):
         """
         Returns the live server URL with the internal Docker service name.
         """
-        return "http://django:%s" % (self.server_thread.port)
+        return f"http://django:{self.server_thread.port}"
 
 
 class MySeleniumTests(CustomStaticLiveServerTestCase):
