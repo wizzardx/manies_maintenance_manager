@@ -82,6 +82,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "manies_maintenance_manager.users",
     # Your stuff: custom apps go here
+    "manies_maintenance_manager.jobs",  # Maintenance Jobs
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
