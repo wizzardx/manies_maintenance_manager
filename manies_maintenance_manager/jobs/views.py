@@ -20,7 +20,7 @@ def job_list(request):
     This view returns the job list page, which displays all current maintenance jobs
     registered in the system. It uses the 'pages/job_list.html' template.
     """
-    return render(request, "pages/job_list.html")
+    return render(request, "jobs/job_list.html")
 
 
 def job_create(request):
@@ -30,4 +30,4 @@ def job_create(request):
     This view returns the job creation page, where users can enter details for a new
     maintenance job. It uses the 'pages/job_create.html' template to render the form.
     """
-    return render(request, "pages/job_create.html")
+    return render(request, "jobs/job_create.html")
