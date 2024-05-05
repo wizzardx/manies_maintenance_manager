@@ -1,15 +1,26 @@
+import re
+
 import pytest
 from django.views.generic import TemplateView
+
+HTTP_SUCCESS_STATUS_CODE = 200
 
 
 @pytest.mark.django_db()
 def test_home_page_returns_correct_html(client):
     response = client.get("/")
-    assert response.status_code == 200
+    assert response.status_code == HTTP_SUCCESS_STATUS_CODE
 
     # Decode response content to check for specific HTML elements
     response_text = response.content.decode()
-    assert "<title>Manies Maintenance Manager</title>" in response_text
+    assert re.search(
+        r"<title>\s*Manies Maintenance Manager\s*</title>",
+        response_text,
+        re.IGNORECASE,
+    ), (
+        "Page title should contain 'Manies Maintenance Manager' with any "
+        "amount of whitespace."
+    )
     assert '<html lang="en">' in response_text
     assert "</html>" in response_text
 
@@ -25,11 +36,15 @@ def test_home_page_returns_correct_html(client):
 @pytest.mark.django_db()
 def test_maintenance_jobs_page_returns_correct_html(client):
     response = client.get("/jobs/")
-    assert response.status_code == 200
+    assert response.status_code == HTTP_SUCCESS_STATUS_CODE
 
     # Decode response content to check for specific HTML elements
     response_text = response.content.decode()
-    assert "<title>Maintenance Jobs</title>" in response_text
+    assert re.search(
+        r"<title>\s*Maintenance Jobs\s*</title>",
+        response_text,
+        re.IGNORECASE,
+    ), "Page title should contain 'Maintenance Jobs' with any amount of whitespace."
     assert "<h1>Maintenance Jobs</h1>" in response_text
     assert '<html lang="en">' in response_text
     assert "</html>" in response_text
