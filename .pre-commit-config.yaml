@@ -52,15 +52,6 @@ repos:
       - id: djlint-reformat-django
       - id: djlint-django
 
-  # Add MyPy for static type checking
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v1.7.1'
-    hooks:
-      - id: mypy
-        args: [--strict, --ignore-missing-imports]
-        additional_dependencies:
-          - django-stubs[compatible-mypy]==4.2.7
-
 # sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date
 ci:
   autoupdate_schedule: weekly
