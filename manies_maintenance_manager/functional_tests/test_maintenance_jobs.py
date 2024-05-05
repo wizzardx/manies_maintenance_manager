@@ -1,3 +1,10 @@
+"""
+Functional tests for the 'Maintenance Jobs' feature.
+
+These tests ensure that the job maintenance functionalities work as expected
+from a user's perspective in the Manies Maintenance Manager application.
+"""
+
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -6,6 +13,11 @@ from selenium.webdriver.common.by import By
 
 @pytest.fixture()
 def browser():
+    """
+    Provide a configured Selenium WebDriver for testing in a Docker environment.
+
+    Yields a WebDriver instance for use in tests, ensuring it's closed afterward.
+    """
     options = Options()
     # You can add more options here if needed
     driver = webdriver.Remote(
@@ -21,14 +33,22 @@ def browser():
 @pytest.fixture()
 def live_server_url(live_server):
     """
-    Modify the live_server URL to use 'django' instead of '0.0.0.0', which supports
-    Docker inter-container communication when testing.
+    Modify the live_server URL to use 'django' instead of '0.0.0.0'.
+
+    This change supports Docker inter-container communication during testing.
+    Returns the modified URL as a string.
     """
     return live_server.url.replace("0.0.0.0", "django")  # noqa: S104
 
 
 @pytest.fixture()
 def bob_agent_user(django_user_model):
+    """
+    Create a user fixture named 'bob' for testing job creation and login.
+
+    This fixture uses the Django user model to create a user and associated
+    email address, setting up a typical user environment for tests.
+    """
     user_ = django_user_model.objects.create_user(
         username="bob",
         password="password",  # noqa: S106
@@ -47,6 +67,12 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     live_server_url,
     bob_agent_user,
 ):
+    """
+    Ensure a user can log in, create a job, and log out.
+
+    This test simulates a user logging into the system, creating a new
+    maintenance job, and logging out, verifying each critical step.
+    """
     # Use the live_server_url from the live_server fixture
     browser.get(live_server_url)
 
@@ -57,17 +83,7 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     sign_in_button = browser.find_element(By.LINK_TEXT, "Sign In")
 
     # He clicks on the Sign In button
-
-    ## Note: Django-FastDev causes a DeprecationWarning to be logged when using the
-    ## {% if %} template tag. This is somewhere deep within the Django-Allauth package,
-    ## while handling a GET request to the /accounts/login/ URL. We can ignore this
-    ## for the purpose of our testing.
-    with pytest.warns(
-        DeprecationWarning,
-        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
-        "{% if %}",
-    ):
-        sign_in_button.click()
+    sign_in_button.click()
 
     # This sends him to the Sign In page, where he notices that the page title and
     # the header mention Sign In

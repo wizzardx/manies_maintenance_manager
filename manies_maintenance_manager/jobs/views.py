@@ -4,30 +4,36 @@ View functions for the jobs module in the Manies Maintenance Manager application
 This module contains view functions that handle requests for listing maintenance jobs
 and creating new maintenance jobs. Each view function renders an HTML template that
 corresponds to its specific functionality.
-
-Functions:
-- job_list: Renders the list of maintenance jobs.
-- job_create: Provides the form for creating a new maintenance job.
 """
 
-from django.shortcuts import render
+from django.urls import reverse_lazy
+from django.views.generic import ListView
+from django.views.generic.edit import CreateView
+
+from .models import Job
 
 
-def job_list(request):
+class JobListView(ListView):
     """
-    Render the list of maintenance jobs.
+    Display a list of all Maintenance Jobs.
 
-    This view returns the job list page, which displays all current maintenance jobs
-    registered in the system. It uses the 'pages/job_list.html' template.
+    This view extends Django's ListView class to display a list of all maintenance jobs
+    in the system. It uses the 'jobs/job_list.html' template.
     """
-    return render(request, "jobs/job_list.html")
+
+    model = Job
+    template_name = "jobs/job_list.html"
 
 
-def job_create(request):
+class JobCreateView(CreateView):
     """
-    Provide a form to create a new maintenance job.
+    Provide a form to create a new Maintenance Job.
 
-    This view returns the job creation page, where users can enter details for a new
-    maintenance job. It uses the 'pages/job_create.html' template to render the form.
+    This view extends Django's CreateView class to create a form for users to input
+    details for a new maintenance job. It uses the 'jobs/job_create.html' template.
     """
-    return render(request, "jobs/job_create.html")
+
+    model = Job
+    fields = ["date", "address_details", "gps_link", "quote_request_details"]
+    template_name = "jobs/job_create.html"
+    success_url = reverse_lazy("jobs:job_list")

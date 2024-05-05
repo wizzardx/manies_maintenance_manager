@@ -19,6 +19,9 @@ import pytest
 from bs4 import BeautifulSoup
 from django.views.generic import TemplateView
 
+from manies_maintenance_manager.jobs.views import JobCreateView
+from manies_maintenance_manager.jobs.views import JobListView
+
 HTTP_SUCCESS_STATUS_CODE = 200
 
 
@@ -102,9 +105,9 @@ def test_maintenance_jobs_page_returns_correct_html(client):
         expected_title="Maintenance Jobs",
         expected_h1_text="Maintenance Jobs",
         expected_template_name="jobs/job_list.html",
-        expected_func_name="job_list",
+        expected_func_name="view",
         expected_url_name="job_list",
-        expected_view_class=None,
+        expected_view_class=JobListView,
     )
 
 
@@ -124,7 +127,7 @@ def test_create_maintenance_job_page_returns_correct_html(client):
         expected_title="Create Maintenance Job",
         expected_h1_text="Create Maintenance Job",
         expected_template_name="jobs/job_create.html",
-        expected_func_name="job_create",
+        expected_func_name="view",
         expected_url_name="job_create",
-        expected_view_class=None,
+        expected_view_class=JobCreateView,
     )
