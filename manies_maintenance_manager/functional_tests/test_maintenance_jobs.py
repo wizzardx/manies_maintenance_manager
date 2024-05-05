@@ -41,26 +41,6 @@ def live_server_url(live_server):
     return live_server.url.replace("0.0.0.0", "django")  # noqa: S104
 
 
-@pytest.fixture()
-def bob_agent_user(django_user_model):
-    """
-    Create a user fixture named 'bob' for testing job creation and login.
-
-    This fixture uses the Django user model to create a user and associated
-    email address, setting up a typical user environment for tests.
-    """
-    user_ = django_user_model.objects.create_user(
-        username="bob",
-        password="password",  # noqa: S106
-    )
-    user_.emailaddress_set.create(
-        email="bob@example.com",
-        primary=True,
-        verified=True,
-    )
-    return user_
-
-
 @pytest.mark.django_db()
 def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logout(
     browser,
