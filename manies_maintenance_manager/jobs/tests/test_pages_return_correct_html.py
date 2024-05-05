@@ -1,12 +1,24 @@
 import pytest
+from django.views.generic import TemplateView
 
 
 @pytest.mark.django_db()
 def test_home_page_returns_correct_html(client):
     response = client.get("/")
+    assert response.status_code == 200
+
+    # Decode response content to check for specific HTML elements
     response_text = response.content.decode()
     assert "<title>Manies Maintenance Manager</title>" in response_text
     assert '<html lang="en">' in response_text
     assert "</html>" in response_text
-    # Check the first template if multiple are used
-    assert response.template_name[0] == "pages/home.html"
+
+    # Verify that the correct template was used
+    assert "pages/home.html" in [t.name for t in response.templates]
+
+    # Validate details about the view function used to handle the route
+    assert response.resolver_match.func.__name__ == "view"
+    assert response.resolver_match.url_name == "home"
+    assert response.resolver_match.func.view_class == TemplateView
+
+
