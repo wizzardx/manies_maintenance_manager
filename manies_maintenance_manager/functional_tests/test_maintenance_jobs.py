@@ -27,10 +27,25 @@ def live_server_url(live_server):
     return live_server.url.replace("0.0.0.0", "django")  # noqa: S104
 
 
+@pytest.fixture()
+def bob_agent_user(django_user_model):
+    user_ = django_user_model.objects.create_user(
+        username="bob",
+        password="password",  # noqa: S106
+    )
+    user_.emailaddress_set.create(
+        email="bob@example.com",
+        primary=True,
+        verified=True,
+    )
+    return user_
+
+
 @pytest.mark.django_db()
 def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logout(
     browser,
     live_server_url,
+    bob_agent_user,
 ):
     # Use the live_server_url from the live_server fixture
     browser.get(live_server_url)
