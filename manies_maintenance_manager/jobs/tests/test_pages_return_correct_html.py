@@ -15,13 +15,53 @@ To execute these tests, run the following command:
     manies_maintenance_manager/jobs/tests/test_pages_return_correct_html.py`
 """
 
-import re
-
 import pytest
 from bs4 import BeautifulSoup
 from django.views.generic import TemplateView
 
 HTTP_SUCCESS_STATUS_CODE = 200
+
+
+def _run_shared_logic(  # noqa: PLR0913
+    client,
+    url,
+    expected_title,
+    expected_template_name,
+    expected_h1_text,
+    expected_func_name,
+    expected_url_name,
+    expected_view_class,
+):
+    response = client.get(url)
+    assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+
+    # Parse HTML so that we can check for specific elements
+    response_text = response.content.decode()
+    soup = BeautifulSoup(response_text, "html.parser")
+
+    # Check the title tag
+    title_tag = soup.find("title")
+    assert title_tag, "Title tag should exist in the HTML"
+    assert title_tag.get_text(strip=True) == expected_title
+
+    # Check a h1 tag
+    if expected_h1_text is not None:
+        h1_tag = soup.find("h1")
+        assert h1_tag, "H1 tag should exist in the HTML"
+        assert h1_tag.get_text(strip=True) == expected_h1_text
+
+    # Check additional expected HTML strings:
+    assert '<html lang="en">' in response_text
+    assert "</html>" in response_text
+
+    # Verify that the correct template was used
+    assert expected_template_name in [t.name for t in response.templates]
+
+    # Validate details about the view function used to handle the route
+    assert response.resolver_match.func.__name__ == expected_func_name
+    assert response.resolver_match.url_name == expected_url_name
+    if expected_view_class is not None:
+        assert response.resolver_match.func.view_class == expected_view_class
 
 
 @pytest.mark.django_db()
@@ -34,29 +74,16 @@ def test_home_page_returns_correct_html(client):
     HTML structure, and utilizes the designated template.
     It also validates the view function linked to this page.
     """
-    response = client.get("/")
-    assert response.status_code == HTTP_SUCCESS_STATUS_CODE
-
-    # Decode response content to check for specific HTML elements
-    response_text = response.content.decode()
-    assert re.search(
-        r"<title>\s*Manies Maintenance Manager\s*</title>",
-        response_text,
-        re.IGNORECASE,
-    ), (
-        "Page title should contain 'Manies Maintenance Manager' with any "
-        "amount of whitespace."
+    _run_shared_logic(
+        client=client,
+        url="/",
+        expected_title="Manies Maintenance Manager",
+        expected_h1_text=None,
+        expected_template_name="pages/home.html",
+        expected_func_name="view",
+        expected_url_name="home",
+        expected_view_class=TemplateView,
     )
-    assert '<html lang="en">' in response_text
-    assert "</html>" in response_text
-
-    # Verify that the correct template was used
-    assert "pages/home.html" in [t.name for t in response.templates]
-
-    # Validate details about the view function used to handle the route
-    assert response.resolver_match.func.__name__ == "view"
-    assert response.resolver_match.url_name == "home"
-    assert response.resolver_match.func.view_class == TemplateView
 
 
 @pytest.mark.django_db()
@@ -69,26 +96,16 @@ def test_maintenance_jobs_page_returns_correct_html(client):
     It also verifies the use of the correct template and checks the associated view
     function for this route.
     """
-    response = client.get("/jobs/")
-    assert response.status_code == HTTP_SUCCESS_STATUS_CODE
-
-    # Decode response content to check for specific HTML elements
-    response_text = response.content.decode()
-    assert re.search(
-        r"<title>\s*Maintenance Jobs\s*</title>",
-        response_text,
-        re.IGNORECASE,
-    ), "Page title should contain 'Maintenance Jobs' with any amount of whitespace."
-    assert "<h1>Maintenance Jobs</h1>" in response_text
-    assert '<html lang="en">' in response_text
-    assert "</html>" in response_text
-
-    # Verify that the correct template was used
-    assert "pages/job_list.html" in [t.name for t in response.templates]
-
-    # Validate details about the view function used to handle the route
-    assert response.resolver_match.func.__name__ == "job_list"
-    assert response.resolver_match.url_name == "job_list"
+    _run_shared_logic(
+        client=client,
+        url="/jobs/",
+        expected_title="Maintenance Jobs",
+        expected_h1_text="Maintenance Jobs",
+        expected_template_name="pages/job_list.html",
+        expected_func_name="job_list",
+        expected_url_name="job_list",
+        expected_view_class=None,
+    )
 
 
 @pytest.mark.django_db()
@@ -101,30 +118,13 @@ def test_create_maintenance_job_page_returns_correct_html(client):
     confirms that the designated template is used.
     It also verifies the correct view function is managing this route.
     """
-    response = client.get("/jobs/create/")
-    assert response.status_code == HTTP_SUCCESS_STATUS_CODE
-
-    # Check the for <html> opening and closing tags:
-    response_text = response.content.decode()
-    assert '<html lang="en">' in response_text
-    assert "</html>" in response_text
-
-    # Parse HTML so that we can check for specific elements
-    soup = BeautifulSoup(response_text, "html.parser")
-
-    # Check the title tag
-    title_tag = soup.find("title")
-    assert title_tag, "Title tag should exist in the HTML"
-    assert title_tag.get_text(strip=True) == "Create Maintenance Job"
-
-    # Check a h1 tag
-    h1_tag = soup.find("h1")
-    assert h1_tag, "H1 tag should exist in the HTML"
-    assert h1_tag.get_text(strip=True) == "Create Maintenance Job"
-
-    # Verify that the correct template was usedd
-    assert "pages/job_create.html" in [t.name for t in response.templates]
-
-    # Validate details about the view function used to handle the route
-    assert response.resolver_match.func.__name__ == "job_create"
-    assert response.resolver_match.url_name == "job_create"
+    _run_shared_logic(
+        client=client,
+        url="/jobs/create/",
+        expected_title="Create Maintenance Job",
+        expected_h1_text="Create Maintenance Job",
+        expected_template_name="pages/job_create.html",
+        expected_func_name="job_create",
+        expected_url_name="job_create",
+        expected_view_class=None,
+    )
