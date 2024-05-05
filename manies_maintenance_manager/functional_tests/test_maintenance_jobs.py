@@ -85,6 +85,16 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     sign_in_button = browser.find_element(By.CLASS_NAME, "btn-primary")
     sign_in_button.click()
 
+    # This takes him to his user page (where he can manage his user further). He
+    # also sees this in the page title bar
+    assert "User: bob" in browser.title
+
+    # He sees the "Maintenance Jobs" link in the navbar
+    maintenance_jobs_link = browser.find_element(By.LINK_TEXT, "Maintenance Jobs")
+
+    # He clicks on the "Maintenance Jobs" link
+    maintenance_jobs_link.click()
+
     # This sends him to the "Maintenance Jobs" page, where he notices that the page
     # title and the header mention Jobs
     assert "Maintenance Jobs" in browser.title
