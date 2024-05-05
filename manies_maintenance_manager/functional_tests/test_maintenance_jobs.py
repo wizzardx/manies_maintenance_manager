@@ -73,10 +73,11 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     This test simulates a user logging into the system, creating a new
     maintenance job, and logging out, verifying each critical step.
     """
-    # Use the live_server_url from the live_server fixture
+    # Manies client Bob has heard of Manies cool new maintenance management site.
+    # He goes to check out its homepage.
     browser.get(live_server_url)
 
-    # Continue with the test steps
+    # He notices the page title
     assert "Manies Maintenance Manager" in browser.title
 
     # He sees the Sign In button in the navbar
@@ -177,7 +178,7 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     ## Grab the cell text contents from the row
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
 
-    # Make sure the cell text contents match the expected values. We also
+    ## Make sure the cell text contents match the expected values.
     assert cell_texts == [
         "1",  # This is for the row number, automatically added by the system.
         "2021-01-01",
@@ -191,4 +192,3 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     sign_out_button.click()
 
     # Satisfied, he goes back to sleep
-    pytest.fail("Finish the test!")
