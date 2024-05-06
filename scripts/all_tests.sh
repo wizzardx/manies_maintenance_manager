@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-#
 
 echo "Type checks..."
 docker compose -f local.yml exec django mypy manies_maintenance_manager
