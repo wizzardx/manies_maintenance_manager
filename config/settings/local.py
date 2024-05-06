@@ -68,3 +68,9 @@ INSTALLED_APPS += ["django_extensions"]
 
 # https://github.com/boxed/django-fastdev#usage
 INSTALLED_APPS += ["django_fastdev"]
+
+# Enable template debugging:
+from .base import TEMPLATES
+
+for template in TEMPLATES:
+    template["OPTIONS"]["debug"] = True

@@ -64,7 +64,17 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     sign_in_button = browser.find_element(By.LINK_TEXT, "Sign In")
 
     # He clicks on the Sign In button
-    sign_in_button.click()
+
+    ## Note: Django-FastDev causes a DeprecationWarning to be logged when using the
+    ## {% if %} template tag. This is somewhere deep within the Django-Allauth package,
+    ## while handling a GET request to the /accounts/login/ URL. We can ignore this
+    ## for the purpose of our testing.
+    with pytest.warns(
+        DeprecationWarning,
+        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
+        "{% if %}",
+    ):
+        sign_in_button.click()
 
     # This sends him to the Sign In page, where he notices that the page title and
     # the header mention Sign In
@@ -169,6 +179,16 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
 
     # He clicks on the Sign Out button
     sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")
-    sign_out_button.click()
+
+    ## Note: Django-FastDev causes a DeprecationWarning to be logged when using the
+    ## {% if %} template tag. This is somewhere deep within the Django-Allauth package,
+    ## most likely while processing the templates for /accounts/logout/. We can also
+    # ignore this for the purpose of our testing.
+    with pytest.warns(
+        DeprecationWarning,
+        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
+        "{% if %}",
+    ):
+        sign_out_button.click()
 
     # Satisfied, he goes back to sleep

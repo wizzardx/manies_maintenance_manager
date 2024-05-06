@@ -62,7 +62,7 @@
                 <li class="nav-item active">
                   <a class="nav-link" href="{% url 'home' %}">Home <span class="visually-hidden">(current)</span></a>
                 </li>
-                {% if request.user.is_agent %}
+                {% if request.user.is_authenticated and request.user.is_agent %}
                   <li class="nav-item">
                     <a class="nav-link" href="{% url 'jobs:job_list' %}">Maintenance Jobs</a>
                   </li>
