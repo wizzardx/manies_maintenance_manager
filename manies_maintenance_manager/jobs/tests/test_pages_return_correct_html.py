@@ -63,8 +63,7 @@ def _run_shared_logic(  # noqa: PLR0913
     # Validate details about the view function used to handle the route
     assert response.resolver_match.func.__name__ == expected_func_name
     assert response.resolver_match.url_name == expected_url_name
-    if expected_view_class is not None:
-        assert response.resolver_match.func.view_class == expected_view_class
+    assert response.resolver_match.func.view_class == expected_view_class
 
 
 @pytest.mark.django_db()
