@@ -118,7 +118,9 @@ def test_maintenance_jobs_page_returns_correct_html(
 
 
 @pytest.mark.django_db()
-def test_create_maintenance_job_page_returns_correct_html(client: Client) -> None:
+def test_create_maintenance_job_page_returns_correct_html(
+    bob_agent_user_client: Client,
+) -> None:
     """
     Ensure the create maintenance job page returns the expected HTML content.
 
@@ -128,7 +130,7 @@ def test_create_maintenance_job_page_returns_correct_html(client: Client) -> Non
     It also verifies the correct view function is managing this route.
     """
     _run_shared_logic(
-        client=client,
+        client=bob_agent_user_client,
         url="/jobs/create/",
         expected_title="Create Maintenance Job",
         expected_h1_text="Create Maintenance Job",

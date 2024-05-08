@@ -158,3 +158,24 @@ def test_creating_a_new_job_sets_an_agent_from_the_request(
     job = Job.objects.first()
     assert job is not None
     assert job.agent == bob_agent_user
+
+
+class TestOnlyLoggedInUsersCanAccessJobCreateView:
+    """Test access control for the job create view."""
+
+    @pytest.mark.django_db()
+    def test_anonymous_login_fails_to_access_job_create_view(
+        self,
+        client: Client,
+    ) -> None:
+        """Anonymous users should not be able to access the job create view."""
+        response = client.get(reverse("jobs:job_create"))
+        assert response.status_code == status.HTTP_302_FOUND
+
+    def test_bob_agent_user_can_access_job_create_view(
+        self,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Bob the agent should be able to access the job create view."""
+        response = bob_agent_user_client.get(reverse("jobs:job_create"))
+        assert response.status_code == status.HTTP_200_OK

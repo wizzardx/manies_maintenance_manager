@@ -50,7 +50,7 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
         return Job.objects.filter(agent=user)
 
 
-class JobCreateView(CreateView):  # type: ignore[type-arg]
+class JobCreateView(LoginRequiredMixin, CreateView):  # type: ignore[type-arg]
     """
     Provide a form to create a new Maintenance Job.
 
