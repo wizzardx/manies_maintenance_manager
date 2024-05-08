@@ -82,22 +82,6 @@ class TestOnlyAgentUsersCanAccessJobListView:
         response = client.get(reverse("jobs:job_list"))
         assert response.status_code == status.HTTP_302_FOUND  # Redirect
 
-    def test_marnie_user_cannot_access_job_list_view(
-        self,
-        marnie_user_client: Client,
-    ) -> None:
-        """
-        Check that user 'Marnie' cannot access the job list view.
-
-        Args:
-            marnie_user_client (Client): A test client for user Marnie.
-
-        Returns:
-            None
-        """
-        response = marnie_user_client.get(reverse("jobs:job_list"))
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-
     def test_superuser_can_access_job_list_view(self, superuser_client: Client) -> None:
         """
         Validate that a superuser can access the job list view.
@@ -179,3 +163,80 @@ class TestOnlyLoggedInUsersCanAccessJobCreateView:
         """Bob the agent should be able to access the job create view."""
         response = bob_agent_user_client.get(reverse("jobs:job_create"))
         assert response.status_code == status.HTTP_200_OK
+
+
+class TestMarnieAccessingJobListView:
+    """Test Marnie's ability to access and filter job listings."""
+
+    def test_with_agent_username_url_param_filters_by_agent(
+        self,
+        bob_agent_user: User,
+        marnie_user_client: Client,
+        job_created_by_bob: Job,
+    ) -> None:
+        """Test filtering job list by agent for Marnie with agent username parameter."""
+        response = marnie_user_client.get(
+            reverse("jobs:job_list") + f"?agent={bob_agent_user.username}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert job_created_by_bob in response.context["job_list"]
+
+    def test_without_agent_username_url_param_returns_bad_request_response(
+        self,
+        marnie_user_client: Client,
+        job_created_by_bob: Job,
+    ) -> None:
+        """Test that Marnie receives a bad request status without agent parameter."""
+        response = marnie_user_client.get(reverse("jobs:job_list"))
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.content.decode() == "Agent username parameter is missing"
+
+    def test_with_nonexistent_agent_username_url_param_returns_not_found(
+        self,
+        marnie_user_client: Client,
+    ) -> None:
+        """Test response when Marnie uses a non-existent agent username."""
+        response = marnie_user_client.get(
+            reverse("jobs:job_list") + "?agent=nonexistent",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.content.decode() == "Agent username not found"
+
+
+class TestSuperUserAccessingJobListView:
+    """Test superuser's access to the job list view with different agent parameters."""
+
+    def test_without_agent_username_url_param_returns_all_jobs(
+        self,
+        superuser_client: Client,
+        job_created_by_bob: Job,
+        job_created_by_peter: Job,
+    ) -> None:
+        """Test that a superuser sees all jobs if no agent username is provided."""
+        response = superuser_client.get(reverse("jobs:job_list"))
+        assert response.status_code == status.HTTP_200_OK
+        assert job_created_by_bob in response.context["job_list"]
+        assert job_created_by_peter in response.context["job_list"]
+
+    def test_with_good_agent_username_url_param_returns_just_the_agents_jobs(
+        self,
+        superuser_client: Client,
+        job_created_by_bob: Job,
+        job_created_by_peter: Job,
+    ) -> None:
+        """Test superuser sees only the specified agent's jobs."""
+        response = superuser_client.get(
+            reverse("jobs:job_list") + f"?agent={job_created_by_bob.agent.username}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert job_created_by_bob in response.context["job_list"]
+        assert job_created_by_peter not in response.context["job_list"]
+
+    def test_with_nonexistent_agent_username_url_param_returns_bad_request(
+        self,
+        superuser_client: Client,
+    ) -> None:
+        """Test response when a superuser uses a non-existent agent username."""
+        response = superuser_client.get(reverse("jobs:job_list") + "?agent=nonexistent")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.content.decode() == "Agent username not found"

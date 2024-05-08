@@ -11,9 +11,11 @@ from typing import cast
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.contrib.auth.models import AnonymousUser
 from django.db.models.query import QuerySet
+from django.http import HttpRequest
 from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBase
 from django.urls import reverse_lazy
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
@@ -35,19 +37,67 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
     template_name = "jobs/job_list.html"
 
     def test_func(self) -> bool:
-        """Check if the user is an agent, or a superuser."""
+        """Check if the user is an agent, or Marnie, or a superuser."""
         user = cast(User, self.request.user)
-        return user.is_agent or user.is_superuser
+        return user.is_agent or user.is_superuser or user.is_marnie
+
+    def dispatch(
+        self,
+        request: HttpRequest,
+        *args: int,
+        **kwargs: int,
+    ) -> HttpResponseBase:
+        """Handle exceptions in dispatch and provide appropriate responses.
+
+        Enhances the default dispatch method by catching ValueError exceptions
+        and returning a bad request response with the error message.
+        """
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except ValueError as e:
+            return HttpResponseBadRequest(str(e))
 
     def get_queryset(self) -> QuerySet[Job]:
-        """Return a queryset of all users."""
-        user = self.request.user
-        if isinstance(user, AnonymousUser):  # pragma: no cover
-            # This should never happen, because our class inherits from
-            # LoginRequiredMixin
-            msg = "User is not logged in"
-            raise TypeError(msg)
-        return Job.objects.filter(agent=user)
+        """Filter Job instances by user's role and optional query parameters.
+
+        Customizes the queryset based on user type. Marnie or superusers can filter
+        jobs by agent. Agents see only their jobs. Raises ValueError if conditions
+        are not met or parameters are missing.
+        """
+        user = cast(User, self.request.user)
+
+        if user.is_marnie:
+            agent_username = self.request.GET.get("agent")
+            if not agent_username:
+                msg = "Agent username parameter is missing"
+                raise ValueError(msg)
+            try:
+                agent = User.objects.get(username=agent_username)
+                return Job.objects.filter(agent=agent)
+            except User.DoesNotExist as err:
+                msg = "Agent username not found"
+                raise ValueError(msg) from err
+        elif user.is_agent:
+            # For agents, we return all jobs that they initially created
+            return Job.objects.filter(agent=user)
+        elif user.is_superuser:
+            agent_username = self.request.GET.get("agent")
+            if not agent_username:
+                # Agent username parameter not provided, so for superuser, return all
+                # jobs.
+                return Job.objects.all()
+            try:
+                agent = User.objects.get(username=agent_username)
+                return Job.objects.filter(agent=agent)
+            except User.DoesNotExist as err:
+                msg = "Agent username not found"
+                raise ValueError(msg) from err
+
+        # There's no known use cases past this point (they should have been caught
+        # in various other logic branches before logic reaches this point), but
+        # just in case we do somehow reach this point, raise an error:
+        msg = "Unknown user type"
+        raise ValueError(msg)
 
 
 class JobCreateView(LoginRequiredMixin, CreateView):  # type: ignore[type-arg]

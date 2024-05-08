@@ -32,6 +32,9 @@ class User(AbstractUser):
     # can create new Maintenance Jobs.
     is_agent = BooleanField(default=False)
 
+    # If this is set to True, it means that this is Marnie's user.
+    is_marnie = BooleanField(default=False)
+
     def get_absolute_url(self) -> str:
         """Get URL for user's detail view.
 

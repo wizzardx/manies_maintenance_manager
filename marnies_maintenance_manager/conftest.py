@@ -41,6 +41,7 @@ def _make_user(
     *,
     is_agent: bool = False,
     is_superuser: bool = False,
+    is_marnie: bool = False,
 ) -> User:
     """
     Create and return a new user with optional agent and superuser status.
@@ -54,6 +55,7 @@ def _make_user(
         username (str): The username for the new user.
         is_agent (bool): Flag to indicate if the user is an agent.
         is_superuser (bool): Flag to indicate if the user is a superuser.
+        is_marnie (bool): Flag to indicate if the user is Marnie.
 
     Returns:
         User: The newly created user instance.
@@ -63,6 +65,7 @@ def _make_user(
         password="password",  # noqa: S106
         is_agent=is_agent,
         is_superuser=is_superuser,
+        is_marnie=is_marnie,
     )
     user_.emailaddress_set.create(  # type: ignore[attr-defined]
         email=f"{username}@example.com",
@@ -102,7 +105,7 @@ def marnie_user(django_user_model: type[User]) -> User:
     This fixture uses the Django user model to create a user and associated
     email address, setting up a typical user environment for tests.
     """
-    return _make_user(django_user_model, "marnie")
+    return _make_user(django_user_model, "marnie", is_marnie=True)
 
 
 @pytest.fixture()
