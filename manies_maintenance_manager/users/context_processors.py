@@ -1,3 +1,5 @@
+"""Provide context processors for user-related settings."""
+
 from django.conf import settings
 
 

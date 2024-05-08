@@ -1,3 +1,5 @@
+"""Provide adapters for account and social account handling."""
+
 from __future__ import annotations
 
 import typing
@@ -14,16 +16,22 @@ if typing.TYPE_CHECKING:
 
 
 class AccountAdapter(DefaultAccountAdapter):
+    """Determine if the site is currently open for new user registrations."""
+
     def is_open_for_signup(self, request: HttpRequest) -> bool:
+        """Check if the site is accepting new registrations."""
         return getattr(settings, "ACCOUNT_ALLOW_REGISTRATION", True)
 
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
+    """Handle signup conditions and user population for social accounts."""
+
     def is_open_for_signup(
         self,
         request: HttpRequest,
         sociallogin: SocialLogin,
     ) -> bool:
+        """Check if the site is accepting new registrations via social accounts."""
         return getattr(settings, "ACCOUNT_ALLOW_REGISTRATION", True)
 
     def populate_user(
@@ -33,7 +41,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         data: dict[str, typing.Any],
     ) -> User:
         """
-        Populates user information from social provider info.
+        Populate user information from social provider info.
 
         See: https://docs.allauth.org/en/latest/socialaccount/advanced.html#creating-and-populating-user-instances
         """

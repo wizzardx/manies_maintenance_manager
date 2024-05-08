@@ -1,3 +1,11 @@
+"""
+Unit tests for user views in Manie's Maintenance Manager.
+
+This module provides tests for various user-related views, ensuring that
+redirection, detail viewing, and profile updating operate as expected
+within the application's user interface.
+"""
+
 from http import HTTPStatus
 
 import pytest
@@ -24,6 +32,12 @@ pytestmark = pytest.mark.django_db
 
 class TestUserUpdateView:
     """
+    Tests for the user profile update functionality.
+
+    This class contains tests to verify the behavior of the UserUpdateView,
+    focusing on URL redirection, object retrieval, and form processing within
+    the view.
+
     TODO:
         extracting view initialization code as class-scoped fixture
         would be great if only pytest-django supported non-function-scoped
@@ -33,8 +47,25 @@ class TestUserUpdateView:
 
     def dummy_get_response(self, request: HttpRequest):
         return None
+        """
+        Provide a dummy response for middleware usage.
 
     def test_get_success_url(self, user: User, rf: RequestFactory):
+        Args:
+            request (HttpRequest): The incoming HTTP request.
+
+        Returns:
+            None
+        """
+        """
+        Ensure the URL to redirect to after a successful update is correct.
+
+        Args:
+            user (User): The user object for which the URL is generated.
+            rf (RequestFactory): Factory for creating request instances.
+
+        Tests the get_success_url method of the UserUpdateView.
+        """
         view = UserUpdateView()
         request = rf.get("/fake-url/")
         request.user = user
@@ -43,6 +74,15 @@ class TestUserUpdateView:
         assert view.get_success_url() == f"/users/{user.username}/"
 
     def test_get_object(self, user: User, rf: RequestFactory):
+        """
+        Test that the correct user object is retrieved for update.
+
+        Args:
+            user (User): The user instance expected to be retrieved.
+            rf (RequestFactory): Factory for creating request instances.
+
+        Tests the get_object method of the UserUpdateView.
+        """
         view = UserUpdateView()
         request = rf.get("/fake-url/")
         request.user = user
@@ -52,6 +92,15 @@ class TestUserUpdateView:
         assert view.get_object() == user
 
     def test_form_valid(self, user: User, rf: RequestFactory):
+        """
+        Verify that the form processing and messaging work correctly.
+
+        Args:
+            user (User): The user instance to be updated.
+            rf (RequestFactory): Factory for creating request instances.
+
+        Tests the form_valid method of the UserUpdateView.
+        """
         view = UserUpdateView()
         request = rf.get("/fake-url/")
 
@@ -74,6 +123,22 @@ class TestUserUpdateView:
 
 class TestUserRedirectView:
     def test_get_redirect_url(self, user: User, rf: RequestFactory):
+    """
+    Tests for the UserRedirectView functionality.
+
+    These tests ensure that the UserRedirectView correctly generates the
+    expected URL to which a logged-in user should be redirected.
+    """
+
+        """
+        Test the URL generation for redirecting a logged-in user.
+
+        Args:
+            user (User): The logged-in user for whom the URL is generated.
+            rf (RequestFactory): Factory for creating request instances.
+
+        Tests the get_redirect_url method of the UserRedirectView.
+        """
         view = UserRedirectView()
         request = rf.get("/fake-url")
         request.user = user
@@ -84,6 +149,22 @@ class TestUserRedirectView:
 
 class TestUserDetailView:
     def test_authenticated(self, user: User, rf: RequestFactory):
+    """
+    Tests for the UserDetailView functionality.
+
+    These tests verify that the UserDetailView behaves correctly under
+    authenticated and unauthenticated scenarios.
+    """
+
+        """
+        Ensure that an authenticated user can access the user detail view.
+
+        Args:
+            user (User): The user attempting to access their detail view.
+            rf (RequestFactory): Factory for creating request instances.
+
+        Tests the user_detail_view function for an authenticated user.
+        """
         request = rf.get("/fake-url/")
         request.user = UserFactory()
         response = user_detail_view(request, username=user.username)
@@ -91,6 +172,15 @@ class TestUserDetailView:
         assert response.status_code == HTTPStatus.OK
 
     def test_not_authenticated(self, user: User, rf: RequestFactory):
+        """
+        Check that an unauthenticated user is redirected to the login page.
+
+        Args:
+            user (User): The user attempting to access their detail view.
+            rf (RequestFactory): Factory for creating request instances.
+
+        Tests the user_detail_view function for an unauthenticated user.
+        """
         request = rf.get("/fake-url/")
         request.user = AnonymousUser()
         response = user_detail_view(request, username=user.username)

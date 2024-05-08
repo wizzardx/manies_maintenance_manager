@@ -1,3 +1,11 @@
+"""
+Test module for merging dotenv files into a single .env file.
+
+This module provides unit tests for the `merge` function, ensuring it combines
+multiple dotenv files into one accurately. It handles various cases, from empty
+inputs to lists of environment variables.
+"""
+
 from pathlib import Path
 
 import pytest
@@ -21,6 +29,18 @@ def test_merge(
     input_contents: list[str],
     expected_output: str,
 ):
+    """
+    Test merging multiple dotenv files into a single .env file.
+
+    Args:
+        tmp_path (Path): The temporary directory path used for testing.
+        input_contents (list[str]): A list of strings representing the
+            contents of individual dotenv files to be merged.
+        expected_output (str): The expected content of the output .env file
+            after merging.
+
+    Ensures the merge function outputs match the expected combined dotenv file.
+    """
     output_file = tmp_path / ".env"
 
     files_to_merge = []

@@ -1,4 +1,6 @@
 # ruff: noqa: E501
+"""Django production settings for Manie's Maintenance Manager project."""
+
 import logging
 
 import sentry_sdk

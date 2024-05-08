@@ -1,3 +1,5 @@
+"""Configure admin panels for user management."""
+
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import admin as auth_admin
@@ -16,6 +18,8 @@ if settings.DJANGO_ADMIN_FORCE_ALLAUTH:
 
 @admin.register(User)
 class UserAdmin(auth_admin.UserAdmin):
+    """Define the admin model for custom User handling."""
+
     form = UserAdminChangeForm
     add_form = UserAdminCreationForm
     fieldsets = (

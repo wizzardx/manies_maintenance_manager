@@ -1,4 +1,6 @@
 # ruff: noqa: E501
+"""Django local development settings for Manie's Maintenance Manager project."""
+
 from .base import *  # noqa: F403
 from .base import INSTALLED_APPS
 from .base import MIDDLEWARE

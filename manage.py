@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # ruff: noqa
+
+"""Django's command-line utility for administrative tasks."""
+
 import os
 import sys
 from pathlib import Path

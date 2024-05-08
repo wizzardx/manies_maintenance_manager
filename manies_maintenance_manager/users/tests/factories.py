@@ -1,3 +1,5 @@
+"""Factory module for creating user instances for testing purposes."""
+
 from collections.abc import Sequence
 from typing import Any
 
@@ -9,12 +11,22 @@ from manies_maintenance_manager.users.models import User
 
 
 class UserFactory(DjangoModelFactory):
+    """Factory for generating User model instances."""
+
     username = Faker("user_name")
     email = Faker("email")
     name = Faker("name")
 
     @post_generation
     def password(self, create: bool, extracted: Sequence[Any], **kwargs):  # noqa: FBT001
+        """
+        Generate and set a password for the user.
+
+        Args:
+            create (bool): Whether the user is being created.
+            extracted (Sequence[str]): Custom password, if provided.
+            **kwargs (str): Additional keyword arguments.
+        """
         password = (
             extracted
             if extracted
@@ -32,10 +44,21 @@ class UserFactory(DjangoModelFactory):
     @classmethod
     def _after_postgeneration(cls, instance, create, results=None):
         """Save again the instance if creating and at least one hook ran."""
+        """
+        Ensure instance is saved after post-generation hooks if changes are made.
+
+        Args:
+            cls (type["UserFactory"]): The current class.
+            instance (User): The user instance being created.
+            create (bool): Flag to check if creation is ongoing.
+            results (dict[str, str | None]): Post-generation hook results.
+        """
         if create and results and not cls._meta.skip_postgeneration_save:
             # Some post-generation hooks ran, and may have modified us.
             instance.save()
 
     class Meta:
+        """Meta options for UserFactory."""
+
         model = User
         django_get_or_create = ["username"]

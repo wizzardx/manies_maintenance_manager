@@ -1,3 +1,11 @@
+"""
+URL configurations for the user management features of Manie's Maintenance Manager.
+
+This module defines the URL patterns for user interactions such as redirection,
+user detail viewing, and user profile updating. These patterns help navigate
+through different user-related views.
+"""
+
 from django.urls import path
 
 from .views import user_detail_view
