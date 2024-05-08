@@ -45,18 +45,18 @@ class TestUserUpdateView:
         https://github.com/pytest-dev/pytest-django/pull/258
     """
 
-    def dummy_get_response(self, request: HttpRequest):
-        return None
+    def dummy_get_response(self, request: HttpRequest) -> None:
         """
         Provide a dummy response for middleware usage.
 
-    def test_get_success_url(self, user: User, rf: RequestFactory):
         Args:
             request (HttpRequest): The incoming HTTP request.
 
         Returns:
             None
         """
+
+    def test_get_success_url(self, user: User, rf: RequestFactory) -> None:
         """
         Ensure the URL to redirect to after a successful update is correct.
 
@@ -73,7 +73,7 @@ class TestUserUpdateView:
         view.request = request
         assert view.get_success_url() == f"/users/{user.username}/"
 
-    def test_get_object(self, user: User, rf: RequestFactory):
+    def test_get_object(self, user: User, rf: RequestFactory) -> None:
         """
         Test that the correct user object is retrieved for update.
 
@@ -91,7 +91,7 @@ class TestUserUpdateView:
 
         assert view.get_object() == user
 
-    def test_form_valid(self, user: User, rf: RequestFactory):
+    def test_form_valid(self, user: User, rf: RequestFactory) -> None:
         """
         Verify that the form processing and messaging work correctly.
 
@@ -122,7 +122,6 @@ class TestUserUpdateView:
 
 
 class TestUserRedirectView:
-    def test_get_redirect_url(self, user: User, rf: RequestFactory):
     """
     Tests for the UserRedirectView functionality.
 
@@ -130,6 +129,7 @@ class TestUserRedirectView:
     expected URL to which a logged-in user should be redirected.
     """
 
+    def test_get_redirect_url(self, user: User, rf: RequestFactory) -> None:
         """
         Test the URL generation for redirecting a logged-in user.
 
@@ -148,7 +148,6 @@ class TestUserRedirectView:
 
 
 class TestUserDetailView:
-    def test_authenticated(self, user: User, rf: RequestFactory):
     """
     Tests for the UserDetailView functionality.
 
@@ -156,6 +155,7 @@ class TestUserDetailView:
     authenticated and unauthenticated scenarios.
     """
 
+    def test_authenticated(self, user: User, rf: RequestFactory) -> None:
         """
         Ensure that an authenticated user can access the user detail view.
 
@@ -171,7 +171,7 @@ class TestUserDetailView:
 
         assert response.status_code == HTTPStatus.OK
 
-    def test_not_authenticated(self, user: User, rf: RequestFactory):
+    def test_not_authenticated(self, user: User, rf: RequestFactory) -> None:
         """
         Check that an unauthenticated user is redirected to the login page.
 

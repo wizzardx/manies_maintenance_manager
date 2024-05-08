@@ -5,14 +5,20 @@ These tests ensure that the job maintenance functionalities work as expected
 from a user's perspective in the Manies Maintenance Manager application.
 """
 
+from collections.abc import Iterator
+
 import pytest
+from pytest_django.live_server_helper import LiveServer
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webdriver import WebDriver
+
+from manies_maintenance_manager.users.models import User
 
 
 @pytest.fixture()
-def browser():
+def browser() -> Iterator[WebDriver]:
     """
     Provide a configured Selenium WebDriver for testing in a Docker environment.
 
@@ -31,7 +37,7 @@ def browser():
 
 
 @pytest.fixture()
-def live_server_url(live_server):
+def live_server_url(live_server: LiveServer) -> str:
     """
     Modify the live_server URL to use 'django' instead of '0.0.0.0'.
 
@@ -43,10 +49,10 @@ def live_server_url(live_server):
 
 @pytest.mark.django_db()
 def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logout(
-    browser,
-    live_server_url,
-    bob_agent_user,
-):
+    browser: WebDriver,
+    live_server_url: str,
+    bob_agent_user: User,
+) -> None:
     """
     Ensure a user can log in, create a job, and log out.
 

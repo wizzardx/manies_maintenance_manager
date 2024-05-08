@@ -11,7 +11,7 @@ UUID_REGEX = (
 
 
 @pytest.mark.django_db()
-def test_job_id_field_is_uuid():
+def test_job_id_field_is_uuid() -> None:
     """Ensure the 'id' field of a Job instance is a valid UUID."""
     from manies_maintenance_manager.jobs.models import Job
 

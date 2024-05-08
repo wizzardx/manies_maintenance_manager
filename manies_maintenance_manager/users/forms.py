@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from .models import User
 
 
-class UserAdminChangeForm(admin_forms.UserChangeForm):
+class UserAdminChangeForm(admin_forms.UserChangeForm):  # type: ignore[type-arg]
     """Provide form for changing existing users in the admin area."""
 
     class Meta(admin_forms.UserChangeForm.Meta):
@@ -17,7 +17,7 @@ class UserAdminChangeForm(admin_forms.UserChangeForm):
         model = User
 
 
-class UserAdminCreationForm(admin_forms.UserCreationForm):
+class UserAdminCreationForm(admin_forms.UserCreationForm):  # type: ignore[type-arg]
     """
     Form for User Creation in the Admin Area.
 
@@ -33,7 +33,7 @@ class UserAdminCreationForm(admin_forms.UserCreationForm):
         }
 
 
-class UserSignupForm(SignupForm):
+class UserSignupForm(SignupForm):  # type: ignore[misc]
     """
     Form that will be rendered on a user sign up section/screen.
 
@@ -42,7 +42,7 @@ class UserSignupForm(SignupForm):
     """
 
 
-class UserSocialSignupForm(SocialSignupForm):
+class UserSocialSignupForm(SocialSignupForm):  # type: ignore[misc]
     """
     Renders the form when user has signed up using social accounts.
 

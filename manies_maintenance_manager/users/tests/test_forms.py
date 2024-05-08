@@ -9,7 +9,7 @@ from manies_maintenance_manager.users.models import User
 class TestUserAdminCreationForm:
     """Test class for all tests related to the UserAdminCreationForm."""
 
-    def test_username_validation_error_msg(self, user: User):
+    def test_username_validation_error_msg(self, user: User) -> None:
         """
         Verify username uniqueness validation for UserAdminCreationForm.
 

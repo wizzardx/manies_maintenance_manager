@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import typing
+from typing import cast
 
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
@@ -15,7 +16,7 @@ if typing.TYPE_CHECKING:
     from manies_maintenance_manager.users.models import User
 
 
-class AccountAdapter(DefaultAccountAdapter):
+class AccountAdapter(DefaultAccountAdapter):  # type: ignore[misc]
     """Determine if the site is currently open for new user registrations."""
 
     def is_open_for_signup(self, request: HttpRequest) -> bool:
@@ -23,7 +24,7 @@ class AccountAdapter(DefaultAccountAdapter):
         return getattr(settings, "ACCOUNT_ALLOW_REGISTRATION", True)
 
 
-class SocialAccountAdapter(DefaultSocialAccountAdapter):
+class SocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[misc]
     """Handle signup conditions and user population for social accounts."""
 
     def is_open_for_signup(
@@ -45,7 +46,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
 
         See: https://docs.allauth.org/en/latest/socialaccount/advanced.html#creating-and-populating-user-instances
         """
-        user = super().populate_user(request, sociallogin, data)
+        user = cast(User, super().populate_user(request, sociallogin, data))
         if not user.name:
             if name := data.get("name"):
                 user.name = name

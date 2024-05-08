@@ -1,7 +1,6 @@
 """Factory module for creating user instances for testing purposes."""
 
 from collections.abc import Sequence
-from typing import Any
 
 from factory import Faker
 from factory import post_generation
@@ -10,15 +9,15 @@ from factory.django import DjangoModelFactory
 from manies_maintenance_manager.users.models import User
 
 
-class UserFactory(DjangoModelFactory):
+class UserFactory(DjangoModelFactory):  # type: ignore[misc]
     """Factory for generating User model instances."""
 
     username = Faker("user_name")
     email = Faker("email")
     name = Faker("name")
 
-    @post_generation
-    def password(self, create: bool, extracted: Sequence[Any], **kwargs):  # noqa: FBT001
+    @post_generation  # type: ignore[misc]
+    def password(self, create: bool, extracted: Sequence[str], **kwargs: str) -> None:  # noqa: FBT001
         """
         Generate and set a password for the user.
 
@@ -42,8 +41,12 @@ class UserFactory(DjangoModelFactory):
         self.set_password(password)
 
     @classmethod
-    def _after_postgeneration(cls, instance, create, results=None):
-        """Save again the instance if creating and at least one hook ran."""
+    def _after_postgeneration(
+        cls: type["UserFactory"],
+        instance: User,
+        create: bool,  # noqa: FBT001
+        results: dict[str, str | None],
+    ) -> None:
         """
         Ensure instance is saved after post-generation hooks if changes are made.
 

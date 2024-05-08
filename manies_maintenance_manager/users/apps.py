@@ -12,7 +12,7 @@ class UsersConfig(AppConfig):
     name = "manies_maintenance_manager.users"
     verbose_name = _("Users")
 
-    def ready(self):
+    def ready(self) -> None:
         """Handle startup logic for the users app, including signal imports."""
         with contextlib.suppress(ImportError):
             import manies_maintenance_manager.users.signals  # noqa: F401

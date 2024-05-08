@@ -7,6 +7,7 @@ access control through authentication.
 """
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -17,7 +18,7 @@ from django.views.generic import UpdateView
 from manies_maintenance_manager.users.models import User
 
 
-class UserDetailView(LoginRequiredMixin, DetailView):
+class UserDetailView(LoginRequiredMixin, DetailView):  # type: ignore[type-arg]
     """
     Display the detailed view of a user profile.
 
@@ -33,7 +34,12 @@ class UserDetailView(LoginRequiredMixin, DetailView):
 user_detail_view = UserDetailView.as_view()
 
 
-class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+@typechecked
+class UserUpdateView(
+    LoginRequiredMixin,
+    SuccessMessageMixin,  # type: ignore[type-arg]
+    UpdateView,  # type: ignore[type-arg]
+):
     """
     Handle updates to a user's profile information.
 
@@ -46,7 +52,7 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     fields = ["name"]
     success_message = _("Information successfully updated")
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         """
         Get the URL to redirect to after a successful update.
 
@@ -56,13 +62,15 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
         assert self.request.user.is_authenticated
         return self.request.user.get_absolute_url()
 
-    def get_object(self):
+    def get_object(self) -> User:  # type: ignore[override]
         """
         Retrieve the object that this view will display.
 
         Ensures the user is authenticated and returns the current user's
         profile. Raises ValueError if an unauthenticated user is encountered.
         """
+        if isinstance(self.request.user, AnonymousUser):
+            raise ValueError("User must be authenticated")  # noqa: EM101,TRY003,TRY004
         return self.request.user
 
 
@@ -79,7 +87,7 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
     permanent = False
 
-    def get_redirect_url(self):
+    def get_redirect_url(self) -> str:
         """
         Determine the URL to redirect the user to.
 

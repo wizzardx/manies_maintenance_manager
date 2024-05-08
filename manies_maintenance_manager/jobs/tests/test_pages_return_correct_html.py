@@ -17,7 +17,9 @@ To execute these tests, run the following command:
 
 import pytest
 from bs4 import BeautifulSoup
+from django.test.client import Client
 from django.views.generic import TemplateView
+from django.views.generic.base import View as BaseView
 
 from manies_maintenance_manager.jobs.views import JobCreateView
 from manies_maintenance_manager.jobs.views import JobListView
@@ -26,15 +28,15 @@ HTTP_SUCCESS_STATUS_CODE = 200
 
 
 def _run_shared_logic(  # noqa: PLR0913
-    client,
-    url,
-    expected_title,
-    expected_template_name,
-    expected_h1_text,
-    expected_func_name,
-    expected_url_name,
-    expected_view_class,
-):
+    client: Client,
+    url: str,
+    expected_title: str,
+    expected_template_name: str,
+    expected_h1_text: str | None,
+    expected_func_name: str,
+    expected_url_name: str,
+    expected_view_class: type[BaseView],  # TODO: Test this line more
+) -> None:
     response = client.get(url)
     assert response.status_code == HTTP_SUCCESS_STATUS_CODE
 
@@ -67,7 +69,7 @@ def _run_shared_logic(  # noqa: PLR0913
 
 
 @pytest.mark.django_db()
-def test_home_page_returns_correct_html(client):
+def test_home_page_returns_correct_html(client: Client) -> None:
     """
     Verify that the home page renders correctly.
 
@@ -89,7 +91,7 @@ def test_home_page_returns_correct_html(client):
 
 
 @pytest.mark.django_db()
-def test_maintenance_jobs_page_returns_correct_html(client):
+def test_maintenance_jobs_page_returns_correct_html(client: Client) -> None:
     """
     Verify the maintenance jobs page loads with the correct HTML.
 
@@ -111,7 +113,7 @@ def test_maintenance_jobs_page_returns_correct_html(client):
 
 
 @pytest.mark.django_db()
-def test_create_maintenance_job_page_returns_correct_html(client):
+def test_create_maintenance_job_page_returns_correct_html(client: Client) -> None:
     """
     Ensure the create maintenance job page returns the expected HTML content.
 

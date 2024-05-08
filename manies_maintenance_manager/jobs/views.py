@@ -13,7 +13,7 @@ from django.views.generic.edit import CreateView
 from .models import Job
 
 
-class JobListView(ListView):
+class JobListView(ListView):  # type: ignore[type-arg]
     """
     Display a list of all Maintenance Jobs.
 
@@ -25,7 +25,7 @@ class JobListView(ListView):
     template_name = "jobs/job_list.html"
 
 
-class JobCreateView(CreateView):
+class JobCreateView(CreateView):  # type: ignore[type-arg]
     """
     Provide a form to create a new Maintenance Job.
 

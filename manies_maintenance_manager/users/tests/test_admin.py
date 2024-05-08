@@ -12,28 +12,31 @@ from importlib import reload
 import pytest
 from django.contrib import admin
 from django.contrib.auth.models import AnonymousUser
+from django.test.client import Client
+from django.test.client import RequestFactory
 from django.urls import reverse
 from pytest_django.asserts import assertRedirects
+from pytest_django.fixtures import SettingsWrapper
 
 from manies_maintenance_manager.users.models import User
 
 
 class TestUserAdmin:
-    def test_changelist(self, admin_client):
     """Test admin operations for User model."""
 
+    def test_changelist(self, admin_client: Client) -> None:
         """Verify that user changelist page loads correctly."""
         url = reverse("admin:users_user_changelist")
         response = admin_client.get(url)
         assert response.status_code == HTTPStatus.OK
 
-    def test_search(self, admin_client):
+    def test_search(self, admin_client: Client) -> None:
         """Ensure that user search functionality works correctly."""
         url = reverse("admin:users_user_changelist")
         response = admin_client.get(url, data={"q": "test"})
         assert response.status_code == HTTPStatus.OK
 
-    def test_add(self, admin_client):
+    def test_add(self, admin_client: Client) -> None:
         """Test adding a new user through the admin interface."""
         url = reverse("admin:users_user_add")
         response = admin_client.get(url)
@@ -50,7 +53,7 @@ class TestUserAdmin:
         assert response.status_code == HTTPStatus.FOUND
         assert User.objects.filter(username="test").exists()
 
-    def test_view_user(self, admin_client):
+    def test_view_user(self, admin_client: Client) -> None:
         """Confirm that user detail view in admin works as expected."""
         user = User.objects.get(username="admin")
         url = reverse("admin:users_user_change", kwargs={"object_id": user.pk})
@@ -58,7 +61,7 @@ class TestUserAdmin:
         assert response.status_code == HTTPStatus.OK
 
     @pytest.fixture()
-    def _force_allauth(self, settings):
+    def _force_allauth(self, settings: SettingsWrapper) -> None:
         """Configure settings to force Allauth in admin for testing."""
         settings.DJANGO_ADMIN_FORCE_ALLAUTH = True
         # Reload the admin module to apply the setting change
@@ -69,7 +72,11 @@ class TestUserAdmin:
 
     @pytest.mark.django_db()
     @pytest.mark.usefixtures("_force_allauth")
-    def test_allauth_login(self, rf, settings):
+    def test_allauth_login(
+        self,
+        rf: RequestFactory,
+        settings: SettingsWrapper,
+    ) -> None:
         """Check Allauth integration with admin login."""
         request = rf.get("/fake-url")
         request.user = AnonymousUser()

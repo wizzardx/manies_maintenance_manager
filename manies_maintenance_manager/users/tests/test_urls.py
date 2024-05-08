@@ -11,7 +11,7 @@ from django.urls import reverse
 from manies_maintenance_manager.users.models import User
 
 
-def test_detail(user: User):
+def test_detail(user: User) -> None:
     """
     Verify the user detail URL and its resolution.
 
@@ -28,7 +28,7 @@ def test_detail(user: User):
     assert resolve(f"/users/{user.username}/").view_name == "users:detail"
 
 
-def test_update():
+def test_update() -> None:
     """
     Confirm that the update URL routes correctly.
 
@@ -39,7 +39,8 @@ def test_update():
     assert resolve("/users/~update/").view_name == "users:update"
 
 
-def test_redirect():
+@typechecked
+def test_redirect() -> None:
     """
     Ensure that the redirect URL functions as intended.
 
