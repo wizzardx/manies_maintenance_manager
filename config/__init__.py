@@ -1,1 +1,1 @@
-"""Configuration package for Manie's Maintenance Manager Django project."""
+"""Configuration package for Marnie's Maintenance Manager Django project."""

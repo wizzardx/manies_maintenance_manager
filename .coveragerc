@@ -3,5 +3,5 @@ omit =
     */templates/allauth/*
     */users/*
     config/*
-    manies_maintenance_manager/contrib/sites/migrations/0003_set_site_domain_and_name.py
+    marnies_maintenance_manager/contrib/sites/migrations/0003_set_site_domain_and_name.py
     merge_production_dotenvs_in_dotenv.py

@@ -1,9 +1,9 @@
-.. Manies Maintenance Manager documentation master file, created by
+.. Marnie's Maintenance Manager documentation master file, created by
    sphinx-quickstart.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Manies Maintenance Manager's documentation!
+Welcome to Marnie's Maintenance Manager's documentation!
 ======================================================================
 
 .. toctree::

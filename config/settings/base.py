@@ -6,8 +6,8 @@ from pathlib import Path
 import environ
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
-# manies_maintenance_manager/
-APPS_DIR = BASE_DIR / "manies_maintenance_manager"
+# marnies_maintenance_manager/
+APPS_DIR = BASE_DIR / "marnies_maintenance_manager"
 env = environ.Env()
 
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
@@ -80,9 +80,9 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "manies_maintenance_manager.users",
+    "marnies_maintenance_manager.users",
     # Your stuff: custom apps go here
-    "manies_maintenance_manager.jobs",  # Maintenance Jobs
+    "marnies_maintenance_manager.jobs",  # Maintenance Jobs
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -90,7 +90,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIGRATIONS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
-MIGRATION_MODULES = {"sites": "manies_maintenance_manager.contrib.sites.migrations"}
+MIGRATION_MODULES = {"sites": "marnies_maintenance_manager.contrib.sites.migrations"}
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
@@ -185,7 +185,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "manies_maintenance_manager.users.context_processors.allauth_settings",
+                "marnies_maintenance_manager.users.context_processors.allauth_settings",
             ],
         },
     },
@@ -268,14 +268,14 @@ ACCOUNT_EMAIL_REQUIRED = True
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # https://docs.allauth.org/en/latest/account/configuration.html
-ACCOUNT_ADAPTER = "manies_maintenance_manager.users.adapters.AccountAdapter"
+ACCOUNT_ADAPTER = "marnies_maintenance_manager.users.adapters.AccountAdapter"
 # https://docs.allauth.org/en/latest/account/forms.html
-ACCOUNT_FORMS = {"signup": "manies_maintenance_manager.users.forms.UserSignupForm"}
+ACCOUNT_FORMS = {"signup": "marnies_maintenance_manager.users.forms.UserSignupForm"}
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_ADAPTER = "manies_maintenance_manager.users.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "marnies_maintenance_manager.users.adapters.SocialAccountAdapter"
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
 SOCIALACCOUNT_FORMS = {
-    "signup": "manies_maintenance_manager.users.forms.UserSocialSignupForm",
+    "signup": "marnies_maintenance_manager.users.forms.UserSocialSignupForm",
 }
 
 

@@ -28,8 +28,8 @@ if __name__ == "__main__":
         raise
 
     # This allows easy placement of apps within the interior
-    # manies_maintenance_manager directory.
+    # marnies_maintenance_manager directory.
     current_path = Path(__file__).parent.resolve()
-    sys.path.append(str(current_path / "manies_maintenance_manager"))
+    sys.path.append(str(current_path / "marnies_maintenance_manager"))
 
     execute_from_command_line(sys.argv)

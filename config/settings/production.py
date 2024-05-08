@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""Django production settings for Manie's Maintenance Manager project."""
+"""Django production settings for Marnie's Maintenance Manager project."""
 
 import logging
 
@@ -113,14 +113,14 @@ STATIC_URL = f"https://{aws_s3_domain}/static/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
 DEFAULT_FROM_EMAIL = env(
     "DJANGO_DEFAULT_FROM_EMAIL",
-    default="Manies Maintenance Manager <noreply@mmm.ar-ciel.org>",
+    default="Marnie's Maintenance Manager <noreply@mmm.ar-ciel.org>",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
 SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-subject-prefix
 EMAIL_SUBJECT_PREFIX = env(
     "DJANGO_EMAIL_SUBJECT_PREFIX",
-    default="[Manies Maintenance Manager] ",
+    default="[Marnie's Maintenance Manager] ",
 )
 
 # ADMIN

@@ -1,1 +1,1 @@
-"""Settings package initialization for Manie's Maintenance Manager."""
+"""Settings package initialization for Marnie's Maintenance Manager."""
