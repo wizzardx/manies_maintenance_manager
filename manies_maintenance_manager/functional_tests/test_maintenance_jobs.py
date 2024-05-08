@@ -198,3 +198,6 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
         sign_out_button.click()
 
     # Satisfied, he goes back to sleep
+
+    ## Without this explicit return statement, the 'coverage' tool has trouble
+    ## measuring the branch covering of the above "with pytest.warns" block.

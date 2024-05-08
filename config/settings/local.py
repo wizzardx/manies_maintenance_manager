@@ -4,6 +4,7 @@
 from .base import *  # noqa: F403
 from .base import INSTALLED_APPS
 from .base import MIDDLEWARE
+from .base import TEMPLATES
 from .base import env
 
 # GENERAL
@@ -72,7 +73,5 @@ INSTALLED_APPS += ["django_extensions"]
 INSTALLED_APPS += ["django_fastdev"]
 
 # Enable template debugging:
-from .base import TEMPLATES
-
 for template in TEMPLATES:
     template["OPTIONS"]["debug"] = True

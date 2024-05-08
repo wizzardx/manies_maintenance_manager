@@ -1,4 +1,5 @@
 """Unit tests for the User model in Manie's Maintenance Manager."""
+
 from manies_maintenance_manager.users.models import User
 
 

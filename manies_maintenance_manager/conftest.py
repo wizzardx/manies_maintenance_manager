@@ -21,6 +21,7 @@ def _media_storage(
     settings.MEDIA_ROOT = tmpdir.strpath
 
 
+# noinspection PyUnusedLocal
 @pytest.fixture()
 def user(db: None) -> User:
     """Provide a User instance from the UserFactory for use in tests.

@@ -55,6 +55,7 @@ class TestUserUpdateView:
         Returns:
             None
         """
+        return
 
     def test_get_success_url(self, user: User, rf: RequestFactory) -> None:
         """
@@ -105,8 +106,14 @@ class TestUserUpdateView:
         request = rf.get("/fake-url/")
 
         # Add the session/message middleware to the request
-        SessionMiddleware(self.dummy_get_response).process_request(request)
-        MessageMiddleware(self.dummy_get_response).process_request(request)
+        (
+            SessionMiddleware(self.dummy_get_response).  # type: ignore[arg-type]
+            process_request(request)
+        )
+        (
+            MessageMiddleware(self.dummy_get_response).  # type: ignore[arg-type]
+            process_request(request)
+        )
         request.user = user
 
         view.request = request
