@@ -39,7 +39,6 @@ def test_update() -> None:
     assert resolve("/users/~update/").view_name == "users:update"
 
 
-@typechecked
 def test_redirect() -> None:
     """
     Ensure that the redirect URL functions as intended.

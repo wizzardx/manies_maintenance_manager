@@ -34,7 +34,6 @@ class UserDetailView(LoginRequiredMixin, DetailView):  # type: ignore[type-arg]
 user_detail_view = UserDetailView.as_view()
 
 
-@typechecked
 class UserUpdateView(
     LoginRequiredMixin,
     SuccessMessageMixin,  # type: ignore[type-arg]

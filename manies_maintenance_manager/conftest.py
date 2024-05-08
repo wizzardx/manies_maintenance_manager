@@ -14,7 +14,6 @@ from manies_maintenance_manager.users.tests.factories import UserFactory
 
 
 @pytest.fixture(autouse=True)
-@typechecked()
 def _media_storage(
     settings: pytest_django.fixtures.SettingsWrapper,
     tmpdir: py.path.local,
@@ -23,7 +22,6 @@ def _media_storage(
 
 
 @pytest.fixture()
-@typechecked
 def user(db: None) -> User:
     """Provide a User instance from the UserFactory for use in tests.
 
