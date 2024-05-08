@@ -161,7 +161,7 @@ def test_creating_a_new_job_sets_an_agent_from_the_request(
 
 
 class TestOnlyLoggedInUsersCanAccessJobCreateView:
-    """Test access control for the job create view."""
+    """Ensure only logged-in users can access the job create view."""
 
     @pytest.mark.django_db()
     def test_anonymous_login_fails_to_access_job_create_view(
