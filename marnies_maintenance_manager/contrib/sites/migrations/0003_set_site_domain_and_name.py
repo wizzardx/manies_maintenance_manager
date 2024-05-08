@@ -23,6 +23,14 @@ def _update_or_create_site_with_sequence(site_model, connection, domain, name):
         # site is created.
         # To avoid this, we need to manually update DB sequence and make sure it's
         # greater than the maximum value.
+
+        # David: To speed things up, my unit test scripts sometimes use SQLite.
+        # However, the logic below seems to be PostgreSQL-specific. To be less
+        # intrusive, I'm just checking for my special case of 'sqlite' here.
+        if connection.vendor == 'sqlite':
+            return
+        # David: And then everything after this comment runs as before.
+
         max_id = site_model.objects.order_by("-id").first().id
         with connection.cursor() as cursor:
             cursor.execute("SELECT last_value from django_site_id_seq")

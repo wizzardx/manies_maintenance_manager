@@ -1,10 +1,10 @@
 """
 Tests for HTML content validation in Marnie's Maintenance Manager application views.
 
-This module checks the HTML content returned by various views in the Marnie's Maintenance
-Manager application. It covers tests for the home page, maintenance jobs page, and the
-create maintenance job page. Each test ensures that the respective page renders the
-expected HTML structure, elements, and uses the appropriate template.
+This module checks the HTML content returned by various views in the Marnie's
+Maintenance Manager application. It covers tests for the home page, maintenance jobs
+page, and the create maintenance job page. Each test ensures that the respective page
+renders the expected HTML structure, elements, and uses the appropriate template.
 
 The Django test client is used for making requests, and BeautifulSoup for parsing the
 returned HTML. This setup ensures not only a successful HTTP response but also verifies
@@ -35,7 +35,7 @@ def _run_shared_logic(  # noqa: PLR0913
     expected_h1_text: str | None,
     expected_func_name: str,
     expected_url_name: str,
-    expected_view_class: type[BaseView],  # TODO: Test this line more
+    expected_view_class: type[BaseView],
 ) -> None:
     response = client.get(url)
     assert response.status_code == HTTP_SUCCESS_STATUS_CODE
@@ -94,7 +94,9 @@ def test_home_page_returns_correct_html(client: Client) -> None:
 
 
 @pytest.mark.django_db()
-def test_maintenance_jobs_page_returns_correct_html(client: Client) -> None:
+def test_maintenance_jobs_page_returns_correct_html(
+    bob_agent_user_client: Client,
+) -> None:
     """
     Verify the maintenance jobs page loads with the correct HTML.
 
@@ -104,7 +106,7 @@ def test_maintenance_jobs_page_returns_correct_html(client: Client) -> None:
     function for this route.
     """
     _run_shared_logic(
-        client=client,
+        client=bob_agent_user_client,
         url="/jobs/",
         expected_title="Maintenance Jobs",
         expected_h1_text="Maintenance Jobs",

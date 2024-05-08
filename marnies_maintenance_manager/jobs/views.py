@@ -6,14 +6,20 @@ and creating new maintenance jobs. Each view function renders an HTML template t
 corresponds to its specific functionality.
 """
 
+from typing import cast
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
 
+from marnies_maintenance_manager.users.models import User
+
 from .models import Job
 
 
-class JobListView(ListView):  # type: ignore[type-arg]
+class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: ignore[type-arg]
     """
     Display a list of all Maintenance Jobs.
 
@@ -23,6 +29,11 @@ class JobListView(ListView):  # type: ignore[type-arg]
 
     model = Job
     template_name = "jobs/job_list.html"
+
+    def test_func(self) -> bool:
+        """Check if the user is an agent, or a superuser."""
+        user = cast(User, self.request.user)
+        return user.is_agent or user.is_superuser
 
 
 class JobCreateView(CreateView):  # type: ignore[type-arg]

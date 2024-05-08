@@ -4,8 +4,14 @@ set -e
 echo "Type checks..."
 docker compose -f local.yml exec django mypy --strict marnies_maintenance_manager
 
-echo "Unit and functional tests, with coverage..."
+echo "Fast unit tests (using sqlite mem, outside of docker)..."
+scripts/unit_tests_outside_docker.sh
+
+echo "Unit and functional tests (under docker), with coverage..."
 docker compose -f local.yml exec django coverage run --rcfile=.coveragerc --branch -m pytest --showlocals
+
+echo "Running pre-commit checks..."
+pre-commit run --all-files
 
 echo "Coverage report (console)..."
 docker compose -f local.yml exec django coverage report --rcfile=.coveragerc

@@ -1,3 +1,6 @@
+# ruff: noqa
+"""Spiked Test Code that we need to merge into our main codebase."""
+
 #
 # class MySeleniumTests(CustomStaticLiveServerTestCase):
 #

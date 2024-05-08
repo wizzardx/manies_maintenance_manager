@@ -272,7 +272,9 @@ ACCOUNT_ADAPTER = "marnies_maintenance_manager.users.adapters.AccountAdapter"
 # https://docs.allauth.org/en/latest/account/forms.html
 ACCOUNT_FORMS = {"signup": "marnies_maintenance_manager.users.forms.UserSignupForm"}
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_ADAPTER = "marnies_maintenance_manager.users.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = (
+    "marnies_maintenance_manager.users.adapters.SocialAccountAdapter"
+)
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
 SOCIALACCOUNT_FORMS = {
     "signup": "marnies_maintenance_manager.users.forms.UserSocialSignupForm",
