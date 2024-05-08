@@ -2,7 +2,7 @@
 set -e
 
 echo "Type checks..."
-docker compose -f local.yml exec django mypy manies_maintenance_manager
+docker compose -f local.yml exec django mypy --strict manies_maintenance_manager
 
 echo "Unit and functional tests, with coverage..."
 docker compose -f local.yml exec django coverage run --rcfile=.coveragerc --branch -m pytest --showlocals
