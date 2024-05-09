@@ -13,13 +13,13 @@ scripts/unit_tests_outside_docker.sh
 echo "Unit and functional tests (under docker), with coverage..."
 docker compose -f local.yml exec django coverage run --rcfile=.coveragerc -m pytest --showlocals
 
-echo "Running pre-commit checks..."
-pre-commit run --all-files
-
 echo "Coverage report (console)..."
 docker compose -f local.yml exec django coverage report --rcfile=.coveragerc
 
 echo "Coverage report (html)..."
 docker compose -f local.yml exec django coverage html --rcfile=.coveragerc
+
+echo "Running pre-commit checks..."
+pre-commit run --all-files
 
 echo "Done with all_tests.sh"
