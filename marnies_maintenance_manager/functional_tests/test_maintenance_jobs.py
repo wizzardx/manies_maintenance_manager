@@ -5,16 +5,22 @@ These tests ensure that the job maintenance functionalities work as expected
 from a user's perspective in the Marnie's Maintenance Manager application.
 """
 
+import time
+from collections.abc import Callable
 from collections.abc import Iterator
+from typing import Any
 
 import pytest
 from pytest_django.live_server_helper import LiveServer
 from selenium import webdriver
+from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from marnies_maintenance_manager.users.models import User
+
+MAX_WAIT = 5  # Maximum time to wait during retries, before failing the test
 
 
 @pytest.fixture()
@@ -45,6 +51,18 @@ def live_server_url(live_server: LiveServer) -> str:
     Returns the modified URL as a string.
     """
     return live_server.url.replace("0.0.0.0", "django")  # noqa: S104
+
+
+def wait_until(fn: Callable[[], Any]) -> Any:
+    """Retry an action until it succeeds or the maximum wait time is reached."""
+    start_time = time.time()
+    while True:
+        try:
+            return fn()
+        except ElementClickInterceptedException:
+            if time.time() - start_time > MAX_WAIT:
+                raise  # pragma: no cover
+            time.sleep(0.1)
 
 
 @pytest.mark.django_db()
@@ -138,8 +156,9 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     )
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
 
-    # He types 2021-01-01 into the "Date" field
-    date_field.send_keys("2021-01-01")
+    # He types 01/01/2021 into the "Date" field (dd/mm/yyyy) format.
+    # It's a custom input field that adds the "-" values in for us.
+    date_field.send_keys("01012021")
 
     # He types "Department of Home Affairs Bellville" into the "Address Details"
     # field
@@ -156,7 +175,7 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     )
 
     # He clicks the Submit button
-    submit_button.click()
+    wait_until(lambda: submit_button.click())
 
     # This sends him back to the "Maintenance Jobs" page, where he notices that the
     # page title and the header mention Maintenance Jobs like before.

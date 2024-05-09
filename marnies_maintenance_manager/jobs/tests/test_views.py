@@ -279,3 +279,13 @@ class TestJobCreateViewCanOnlyBeReachedByAgentsAndSuperuser:
         """Test that a superuser can access the job create view."""
         response = superuser_client.get(reverse("jobs:job_create"))
         assert response.status_code == status.HTTP_200_OK
+
+
+def test_create_job_form_uses_date_type_for_date_input_field(
+    bob_agent_user_client: Client,
+) -> None:
+    """Ensure the job create form uses an HTML5 date input for the date field."""
+    response = bob_agent_user_client.get(reverse("jobs:job_create"))
+    form = response.context["form"]
+    date_widget = form.fields["date"].widget
+    assert date_widget.input_type == "date"

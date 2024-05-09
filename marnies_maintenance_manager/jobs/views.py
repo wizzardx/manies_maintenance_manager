@@ -9,6 +9,7 @@ corresponds to its specific functionality.
 from typing import Any
 from typing import cast
 
+from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db.models.query import QuerySet
@@ -113,6 +114,12 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
     fields = ["date", "address_details", "gps_link", "quote_request_details"]
     template_name = "jobs/job_create.html"
     success_url = reverse_lazy("jobs:job_list")
+
+    def get_form(self, form_class: type[Any] | None = None) -> Any:
+        """Modify the widgets of the form, to use HTML5 date input."""
+        form = super().get_form(form_class)
+        form.fields["date"].widget = forms.DateInput(attrs={"type": "date"})
+        return form
 
     def form_valid(self, form: Any) -> HttpResponse:
         """Set the agent field to the current user before saving the form."""
