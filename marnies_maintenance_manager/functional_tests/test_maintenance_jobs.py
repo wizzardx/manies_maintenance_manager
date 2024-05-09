@@ -65,18 +65,10 @@ def wait_until(fn: Callable[[], Any]) -> Any:
             time.sleep(0.1)
 
 
-@pytest.mark.django_db()
-def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logout(
+def _create_new_job(
     browser: WebDriver,
     live_server_url: str,
-    bob_agent_user: User,
 ) -> None:
-    """
-    Ensure a user can log in, create a job, and log out.
-
-    This test simulates a user logging into the system, creating a new
-    maintenance job, and logging out, verifying each critical step.
-    """
     # Marnie's client Bob has heard of Marnie's cool new maintenance management site.
     # He goes to check out its homepage.
     browser.get(live_server_url)
@@ -228,5 +220,51 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
 
     # Satisfied, he goes back to sleep
 
-    ## Without this explicit return statement, the 'coverage' tool has trouble
-    ## measuring the branch covering of the above "with pytest.warns" block.
+
+@pytest.mark.django_db()
+def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logout(
+    browser: WebDriver,
+    live_server_url: str,
+    bob_agent_user: User,
+) -> None:
+    """
+    Ensure a user can log in, create a job, and log out.
+
+    This test simulates a user logging into the system, creating a new
+    maintenance job, and logging out, verifying each critical step.
+    """
+    # The body of our logic is moved to a helper function, because we're going
+    # to be re-using this logic a lot of times for other functional tests.
+    _create_new_job(browser, live_server_url)
+
+
+def test_agent_creating_a_new_job_should_send_marnie_a_notification_email(
+    browser: WebDriver,
+    live_server_url: str,
+    bob_agent_user: User,
+) -> None:
+    """Ensure that creating a new job sends Marnie a notification email."""
+    # First, quickly run through the steps of creating a new job
+    _create_new_job(browser, live_server_url)
+
+    # Since we have the fixture, the email should have already been sent by this point
+    from django.core import mail
+
+    assert len(mail.outbox) == 1, "No email was sent"
+
+    # We also check the contents and other details of the mail, here.
+
+    email = mail.outbox[0]
+    assert email.subject == "New maintenance request by bob"
+    assert "bob has made a new maintenance request." in email.body
+    assert "Date: 2021-01-01" in email.body
+    assert "Address Details:\n\nDepartment of Home Affairs Bellville" in email.body
+    assert "GPS Link:\n\nhttps://maps.app.goo.gl/mXfDGVfn1dhZDxJj7" in email.body
+    assert (
+        "Quote Request Details:\n\nPlease fix the leaky faucet in the staff bathroom"
+        in email.body
+    )
+    assert (
+        "PS: This mail is sent from an unmonitored email address. "
+        "Please do not reply to this email." in email.body
+    )
