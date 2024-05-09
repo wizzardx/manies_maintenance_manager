@@ -3,6 +3,7 @@
 import pytest
 from django.test.client import Client
 
+from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
 
 
@@ -72,3 +73,18 @@ def superuser_client(client: Client, superuser_user: User) -> Client:
     logged_in = client.login(username="admin", password="password")  # noqa: S106
     assert logged_in
     return client
+
+
+@pytest.fixture()
+def job_created_by_bob(bob_agent_user: User) -> Job:
+    """Create a job instance that was created by Bob."""
+    job = Job.objects.create(
+        agent=bob_agent_user,
+        date="2022-01-01",
+        address_details="1234 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the kitchen sink",
+    )
+    # Make sure that the job is valid before returning it
+    job.full_clean()
+    return job
