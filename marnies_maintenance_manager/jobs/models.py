@@ -22,4 +22,4 @@ class Job(UUIDModel):
     address_details = models.TextField()
     gps_link = models.URLField()
     quote_request_details = models.TextField()
-    agent = models.ForeignKey(User, on_delete=models.CASCADE)
+    agent = models.ForeignKey(User, on_delete=models.CASCADE, editable=False)
