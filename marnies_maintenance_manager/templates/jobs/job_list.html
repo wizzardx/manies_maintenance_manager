@@ -5,16 +5,29 @@
 {% endblock title %}
 {% block content %}
   <h1>Maintenance Jobs</h1>
-  <a href="{% url 'jobs:job_create' %}">Create Maintenance Job</a>
+  <a href="{% url 'jobs:job_create' %}" class="create-link">Create Maintenance Job</a>
   <table id="id_list_table">
-    {% for job in job_list %}
+    <thead>
       <tr>
-        <td>{{ forloop.counter }}</td>
-        <td>{{ job.date|date:"Y-m-d" }}</td>
-        <td>{{ job.address_details }}</td>
-        <td>{{ job.gps_link }}</td>
-        <td>{{ job.quote_request_details }}</td>
+        <th>#</th>
+        <th>Date</th>
+        <th>Address</th>
+        <th>GPS Link</th>
+        <th>Details</th>
       </tr>
-    {% endfor %}
+    </thead>
+    <tbody>
+      {% for job in job_list %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ job.date|date:"Y-m-d" }}</td>
+          <td>{{ job.address_details }}</td>
+          <td>
+            <a href="{{ job.gps_link }}">GPS</a>
+          </td>
+          <td>{{ job.quote_request_details }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
   </table>
 {% endblock content %}

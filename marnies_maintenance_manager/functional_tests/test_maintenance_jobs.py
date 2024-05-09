@@ -186,9 +186,19 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     table = browser.find_element(By.ID, "id_list_table")
     rows = table.find_elements(By.TAG_NAME, "tr")
 
-    ## There should be only one row:
-    assert len(rows) == 1
-    row = rows[0]
+    ## There should be two rows:
+    assert len(rows) == 2  # noqa: PLR2004
+
+    ## The first row is the header row
+    header_row = rows[0]
+    header_cell_texts = [
+        cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")
+    ]
+    assert header_cell_texts == ["#", "Date", "Address", "GPS Link", "Details"]
+
+    ## The second row is the new job
+    row = rows[1]
+    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
 
     ## Grab the cell text contents from the row
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
@@ -198,7 +208,7 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
         "1",  # This is for the row number, automatically added by the system.
         "2021-01-01",
         "Department of Home Affairs Bellville",
-        "https://maps.app.goo.gl/mXfDGVfn1dhZDxJj7",
+        "GPS",  # This is the displayed text, on-screen it's a link
         "Please fix the leaky faucet in the staff bathroom",
     ]
 
