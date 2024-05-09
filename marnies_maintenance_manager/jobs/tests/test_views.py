@@ -240,3 +240,42 @@ class TestSuperUserAccessingJobListView:
         response = superuser_client.get(reverse("jobs:job_list") + "?agent=nonexistent")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.content.decode() == "Agent username not found"
+
+
+class TestJobCreateViewCanOnlyBeReachedByAgentsAndSuperuser:
+    """Ensure job create view access is restricted to agents and superusers."""
+
+    @pytest.mark.django_db()
+    def test_access_by_anonymous_user_is_denied(self, client: Client) -> None:
+        """Test that anonymous users cannot access the job create view."""
+        response = client.get(reverse("jobs:job_create"))
+        assert response.status_code == status.HTTP_302_FOUND
+
+    def test_access_by_marnie_user_is_denied(self, marnie_user_client: Client) -> None:
+        """Test that Marnie cannot access the job create view."""
+        response = marnie_user_client.get(reverse("jobs:job_create"))
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_access_by_bob_agent_user_is_allowed(
+        self,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Test that Bob the agent can access the job create view."""
+        response = bob_agent_user_client.get(reverse("jobs:job_create"))
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_access_by_peter_agent_user_is_allowed(
+        self,
+        peter_agent_user_client: Client,
+    ) -> None:
+        """Test that Peter the agent can access the job create view."""
+        response = peter_agent_user_client.get(reverse("jobs:job_create"))
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_access_by_superuser_user_is_allowed(
+        self,
+        superuser_client: Client,
+    ) -> None:
+        """Test that a superuser can access the job create view."""
+        response = superuser_client.get(reverse("jobs:job_create"))
+        assert response.status_code == status.HTTP_200_OK
