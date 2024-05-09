@@ -30,10 +30,18 @@ class User(AbstractUser):
     # If this is set to True, it means that this is an "Agent" user, ie the
     # user is someone from one of the property companies that Marnie works with, who
     # can create new Maintenance Jobs.
-    is_agent = BooleanField(default=False)
+    is_agent = BooleanField(
+        _("User is an Agent"),
+        default=False,
+        help_text=_("Designates whether the user is an Agent."),
+    )
 
     # If this is set to True, it means that this is Marnie's user.
-    is_marnie = BooleanField(default=False)
+    is_marnie = BooleanField(
+        _("User is Marnie"),
+        default=False,
+        help_text=_("Designates whether this user is Marnie Ferreira."),
+    )
 
     def get_absolute_url(self) -> str:
         """Get URL for user's detail view.

@@ -32,6 +32,8 @@ class UserAdmin(auth_admin.UserAdmin):
                     "is_active",
                     "is_staff",
                     "is_superuser",
+                    "is_agent",
+                    "is_marnie",
                     "groups",
                     "user_permissions",
                 ),
