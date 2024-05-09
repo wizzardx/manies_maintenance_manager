@@ -58,7 +58,7 @@ class UserUpdateView(
         Returns the URL for the user's detailed profile view.
         """
         # for mypy to know that the user is authenticated
-        assert self.request.user.is_authenticated
+        assert self.request.user.is_authenticated  # nosec B101
         return self.request.user.get_absolute_url()
 
     def get_object(self) -> User:  # type: ignore[override]
