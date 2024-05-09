@@ -80,7 +80,7 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
         elif user.is_agent:
             # For agents, we return all jobs that they initially created
             return Job.objects.filter(agent=user)
-        elif user.is_superuser:
+        elif user.is_superuser:  # pragma: no branch
             agent_username = self.request.GET.get("agent")
             if not agent_username:
                 # Agent username parameter not provided, so for superuser, return all
@@ -93,11 +93,12 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
                 msg = "Agent username not found"
                 raise ValueError(msg) from err
 
-        # There's no known use cases past this point (they should have been caught
-        # in various other logic branches before logic reaches this point), but
-        # just in case we do somehow reach this point, raise an error:
-        msg = "Unknown user type"
-        raise ValueError(msg)
+        else:  # pragma: no cover
+            # There's no known use cases past this point (they should have been caught
+            # in various other logic branches before logic reaches this point), but
+            # just in case we do somehow reach this point, raise an error:
+            msg = "Unknown user type"
+            raise ValueError(msg)
 
 
 class JobCreateView(LoginRequiredMixin, CreateView):  # type: ignore[type-arg]
