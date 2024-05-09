@@ -40,4 +40,4 @@ export DATABASE_URL=sqlite://:memory:  # Faster than PostgreSQL
 export USE_DOCKER=no
 
 # Run the unit tests:
-pytest marnies_maintenance_manager/jobs --ff --maxfail=1 --showlocals
+pytest marnies_maintenance_manager/jobs --ff --maxfail=1 --showlocals --durations=10
