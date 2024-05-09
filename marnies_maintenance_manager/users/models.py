@@ -7,6 +7,7 @@ and permissions within the system.
 """
 
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db.models import BooleanField
 from django.db.models import CharField
 from django.urls import reverse
@@ -51,3 +52,16 @@ class User(AbstractUser):
 
         """
         return reverse("users:detail", kwargs={"username": self.username})
+
+    def clean(self) -> None:
+        """Ensure that an Agent user can only exist if Marnie exists."""
+        cleaned_data = super().clean()
+
+        # If is_agent is set to True, then ensure that a Marnie user exists on the
+        # system.
+        if self.is_agent and not User.objects.filter(is_marnie=True).exists():
+            raise ValidationError(
+                _("An Agent user can only exist if Marnie exists."),
+            )
+
+        return cleaned_data
