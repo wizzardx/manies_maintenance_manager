@@ -31,8 +31,8 @@ BASE_ALREADY_INSTALLED_MARKER_FILE=".venv/.base_already_installed_${BASE_TXT_MD5
 # file md5sum markers are now out of date).
 if [[ ! -f $LOCAL_ALREADY_INSTALLED_MARKER_FILE || ! -f $BASE_ALREADY_INSTALLED_MARKER_FILE ]]; then
     python -m pip install -r requirements/local.txt
-    touch $LOCAL_ALREADY_INSTALLED_MARKER_FILE
-    touch $BASE_ALREADY_INSTALLED_MARKER_FILE
+    touch "$LOCAL_ALREADY_INSTALLED_MARKER_FILE"
+    touch "$BASE_ALREADY_INSTALLED_MARKER_FILE"
 fi
 
 # Setup needed environment variables
