@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Check helper scripts..."
+shellcheck scripts/*.sh
+
 echo "Type checks..."
 docker compose -f local.yml exec django mypy --strict marnies_maintenance_manager
 

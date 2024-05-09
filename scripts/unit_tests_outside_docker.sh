@@ -15,6 +15,7 @@ if [ ! -d .venv ]; then
 fi
 
 # Activate the virtualenv
+# shellcheck disable=SC1091
 source .venv/bin/activate
 
 # Get md5sum of requirements/local.txt, and use that to determine if we need to
