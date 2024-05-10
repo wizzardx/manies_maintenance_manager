@@ -126,6 +126,7 @@ class TestAgentsAccessingJobListViewCanOnlySeeJobsThatTheyCreated:
 def test_creating_a_new_job_sets_an_agent_from_the_request(
     bob_agent_user_client: Client,
     bob_agent_user: User,
+    marnie_user: User,
 ) -> None:
     """Creating a job should automatically assign the agent from the request."""
     client = bob_agent_user_client

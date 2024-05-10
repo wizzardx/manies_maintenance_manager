@@ -25,8 +25,8 @@ from django.views.generic.edit import CreateView
 from marnies_maintenance_manager.users.models import User
 
 from .constants import DEFAULT_FROM_EMAIL
-from .constants import DEFAULT_MANIE_EMAIL
 from .models import Job
+from .utils import get_marnie_email
 
 
 class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: ignore[type-arg]
@@ -167,7 +167,7 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         )
 
         email_from = DEFAULT_FROM_EMAIL
-        email_to = DEFAULT_MANIE_EMAIL
+        email_to = get_marnie_email()
 
         send_mail(email_subject, email_body, email_from, [email_to])
 

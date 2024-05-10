@@ -226,6 +226,7 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     browser: WebDriver,
     live_server_url: str,
     bob_agent_user: User,
+    marnie_user_client: User,
 ) -> None:
     """
     Ensure a user can log in, create a job, and log out.
@@ -242,6 +243,7 @@ def test_agent_creating_a_new_job_should_send_marnie_a_notification_email(
     browser: WebDriver,
     live_server_url: str,
     bob_agent_user: User,
+    marnie_user: User,
 ) -> None:
     """Ensure that creating a new job sends Marnie a notification email."""
     # First, quickly run through the steps of creating a new job
@@ -256,6 +258,7 @@ def test_agent_creating_a_new_job_should_send_marnie_a_notification_email(
 
     email = mail.outbox[0]
     assert email.subject == "New maintenance request by bob"
+    assert marnie_user.email in email.to
     assert "bob has made a new maintenance request." in email.body
     assert "Date: 2021-01-01" in email.body
     assert "Address Details:\n\nDepartment of Home Affairs Bellville" in email.body

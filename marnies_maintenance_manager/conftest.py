@@ -8,6 +8,7 @@ necessary environments for tests, such as user fixtures and media storage.
 import py
 import pytest
 import pytest_django.fixtures
+from django.test import Client
 
 from marnies_maintenance_manager.users.models import User
 from marnies_maintenance_manager.users.tests.factories import UserFactory
@@ -66,6 +67,7 @@ def _make_user(
         is_agent=is_agent,
         is_superuser=is_superuser,
         is_marnie=is_marnie,
+        email=f"{username}@example.com",
     )
     user_.emailaddress_set.create(  # type: ignore[attr-defined]
         email=f"{username}@example.com",
@@ -121,3 +123,20 @@ def superuser_user(django_user_model: type[User]) -> User:
         User: A Django user instance with superuser privileges.
     """
     return _make_user(django_user_model, "admin", is_superuser=True)
+
+
+@pytest.fixture()
+def marnie_user_client(client: Client, marnie_user: User) -> Client:
+    """
+    Generate a logged-in test client for user Marnie.
+
+    Args:
+        client (Client): The fixture to use for creating an HTTP client.
+        marnie_user (User): The non-agent user Marnie from the user model.
+
+    Returns:
+        Client: A Django test client logged in as non-agent user Marnie.
+    """
+    logged_in = client.login(username="marnie", password="password")  # noqa: S106
+    assert logged_in
+    return client

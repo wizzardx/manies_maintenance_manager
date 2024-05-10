@@ -42,23 +42,6 @@ def peter_agent_user_client(client: Client, peter_agent_user: User) -> Client:
 
 
 @pytest.fixture()
-def marnie_user_client(client: Client, marnie_user: User) -> Client:
-    """
-    Generate a logged-in test client for user Marnie.
-
-    Args:
-        client (Client): The fixture to use for creating an HTTP client.
-        marnie_user (User): The non-agent user Marnie from the user model.
-
-    Returns:
-        Client: A Django test client logged in as non-agent user Marnie.
-    """
-    logged_in = client.login(username="marnie", password="password")  # noqa: S106
-    assert logged_in
-    return client
-
-
-@pytest.fixture()
 def superuser_client(client: Client, superuser_user: User) -> Client:
     """
     Create a logged-in test client for a superuser.
