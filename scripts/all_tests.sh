@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Running pre-commit checks..."
+pre-commit run --all-files
+
 echo "Check helper scripts..."
 shellcheck scripts/*.sh
 
@@ -28,8 +31,5 @@ if [ "$COVERAGE_ERROR" != "0" ]; then
     echo "Error running coverage"
     exit 1
 fi
-
-echo "Running pre-commit checks..."
-pre-commit run --all-files
 
 echo "Done with all_tests.sh"
