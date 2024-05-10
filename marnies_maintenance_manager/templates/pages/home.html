@@ -1,1 +1,12 @@
 {% extends "base.html" %}
+
+{% block content %}
+  <p>Use this document as a way to quick start any new project.</p>
+  {% if num_admin_users == 0 %}<p>WARNING: There are no Admin users.</p>{% endif %}
+  {% if request.user.is_superuser %}
+    {% if num_admin_users > 1 %}<p>WARNING: There are multiple Admin users.</p>{% endif %}
+    {% if num_marnie_users == 0 %}<p>WARNING: There are no Marnie users.</p>{% endif %}
+    {% if num_marnie_users > 1 %}<p>WARNING: There are multiple Marnie users.</p>{% endif %}
+    {% if num_agent_users == 0 %}<p>WARNING: There are no Agent users.</p>{% endif %}
+  {% endif %}
+{% endblock content %}

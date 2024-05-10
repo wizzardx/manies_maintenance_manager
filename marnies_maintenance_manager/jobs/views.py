@@ -6,10 +6,12 @@ and creating new maintenance jobs. Each view function renders an HTML template t
 corresponds to its specific functionality.
 """
 
+import logging
 from typing import Any
 from typing import cast
 
 from django import forms
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.core.mail import send_mail
@@ -18,6 +20,7 @@ from django.http import HttpRequest
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseBase
+from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
@@ -25,8 +28,15 @@ from django.views.generic.edit import CreateView
 from marnies_maintenance_manager.users.models import User
 
 from .constants import DEFAULT_FROM_EMAIL
+from .exceptions import MarnieUserNotFoundError
 from .models import Job
+from .utils import count_admin_users
+from .utils import count_agent_users
+from .utils import count_marnie_users
 from .utils import get_marnie_email
+from .utils import get_sysadmin_email
+
+logger = logging.getLogger(__name__)
 
 
 class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: ignore[type-arg]
@@ -167,9 +177,32 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         )
 
         email_from = DEFAULT_FROM_EMAIL
-        email_to = get_marnie_email()
 
-        send_mail(email_subject, email_body, email_from, [email_to])
+        # One main error that can happen here is if the Marnie user account does
+        # not exist.
+        try:
+            email_to = get_marnie_email()
+        except MarnieUserNotFoundError:
+            # Log the message here, then send a flash message to the user (it
+            # will appear on their next web page). We don't raise an exception
+            # further than this point.
+            logger.exception(
+                "No Marnie user found. Unable to send maintenance request email.",
+            )
+            messages.error(
+                self.request,
+                "No Marnie user found.\nUnable to send maintenance request.\n"
+                "Please contact the system administrator at " + get_sysadmin_email(),
+            )
+        else:
+            # Marnie's user account was found, so we can send the email:
+            send_mail(email_subject, email_body, email_from, [email_to])
+
+            # And send the success flash message to the user:
+            messages.success(
+                self.request,
+                "Your maintenance request has been sent to Marnie.",
+            )
 
         return response
 
@@ -177,3 +210,14 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         """Check if the user is an agent, or a superuser."""
         user = cast(User, self.request.user)
         return user.is_agent or user.is_superuser
+
+
+def home_page(request: HttpRequest) -> HttpResponse:
+    """Render the home page for the application."""
+    context = {
+        "request": request,
+        "num_admin_users": count_admin_users(),
+        "num_marnie_users": count_marnie_users(),
+        "num_agent_users": count_agent_users(),
+    }
+    return render(request, "pages/home.html", context)

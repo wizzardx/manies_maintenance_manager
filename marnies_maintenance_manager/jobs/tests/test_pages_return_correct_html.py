@@ -18,11 +18,14 @@ To execute these tests, run the following command:
 import pytest
 from bs4 import BeautifulSoup
 from django.test.client import Client
-from django.views.generic import TemplateView
 from django.views.generic.base import View as BaseView
 
+from marnies_maintenance_manager.jobs.utils import count_admin_users
+from marnies_maintenance_manager.jobs.utils import count_agent_users
+from marnies_maintenance_manager.jobs.utils import count_marnie_users
 from marnies_maintenance_manager.jobs.views import JobCreateView
 from marnies_maintenance_manager.jobs.views import JobListView
+from marnies_maintenance_manager.users.models import User
 
 HTTP_SUCCESS_STATUS_CODE = 200
 
@@ -35,7 +38,7 @@ def _run_shared_logic(  # noqa: PLR0913
     expected_h1_text: str | None,
     expected_func_name: str,
     expected_url_name: str,
-    expected_view_class: type[BaseView],
+    expected_view_class: type[BaseView] | None,
 ) -> None:
     response = client.get(url)
     assert response.status_code == HTTP_SUCCESS_STATUS_CODE
@@ -65,10 +68,11 @@ def _run_shared_logic(  # noqa: PLR0913
     # Validate details about the view function used to handle the route
     assert response.resolver_match.func.__name__ == expected_func_name
     assert response.resolver_match.url_name == expected_url_name
-    assert (
-        response.resolver_match.func.view_class  # type: ignore[attr-defined]
-        == expected_view_class
-    )
+    if expected_view_class is not None:
+        assert (
+            response.resolver_match.func.view_class  # type: ignore[attr-defined]
+            == expected_view_class
+        )
 
 
 @pytest.mark.django_db()
@@ -87,9 +91,9 @@ def test_home_page_returns_correct_html(client: Client) -> None:
         expected_title="Marnie's Maintenance Manager",
         expected_h1_text=None,
         expected_template_name="pages/home.html",
-        expected_func_name="view",
+        expected_func_name="home_page",
         expected_url_name="home",
-        expected_view_class=TemplateView,
+        expected_view_class=None,
     )
 
 
@@ -139,3 +143,147 @@ def test_create_maintenance_job_page_returns_correct_html(
         expected_url_name="job_create",
         expected_view_class=JobCreateView,
     )
+
+
+class TestAdminSpecificHomePageWarnings:
+    """Tests for the home page warnings related to Admin users."""
+
+    def test_warning_for_no_admin_user(self, bob_agent_user_client: Client) -> None:
+        """Test that a warning is shown when there are no Admin users."""
+        # Make sure there are no admin users here
+        assert count_admin_users() == 0
+
+        response = bob_agent_user_client.get("/")
+
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert "WARNING: There are no Admin users." in response.content.decode()
+
+    def test_warning_for_multiple_admin_users(
+        self,
+        bob_agent_user: User,
+        peter_agent_user: User,
+        admin_client: Client,
+    ) -> None:
+        """Test that a warning is shown when there are multiple Admin users."""
+        # Change Bob to an admin so that there are two admin users.
+        bob_agent_user.is_superuser = True
+        bob_agent_user.save()
+
+        # Make sure there are at least 2 admin users here:
+        assert count_admin_users() >= 2  # noqa: PLR2004
+
+        # We can check now.
+        response = admin_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert "WARNING: There are multiple Admin users." in response.content.decode()
+
+    def test_no_warning_for_multiple_admin_users_when_i_am_not_admin(
+        self,
+        admin_user: User,
+        peter_agent_user: User,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Ensure no admin user multiple warning when not admin."""
+        # Make sure there are two admin user:
+        peter_agent_user.is_superuser = True
+        peter_agent_user.save()
+
+        # Make sure there are at least 2 admin users here:
+        assert count_admin_users() >= 2  # noqa: PLR2004
+
+        response = bob_agent_user_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert (
+            "WARNING: There are multiple Admin users." not in response.content.decode()
+        )
+
+    def test_warning_for_no_marnie_user(self, admin_client: Client) -> None:
+        """Test that a warning is shown when there are no Marnie users."""
+        # Make sure there are no Marnie users here
+        assert count_marnie_users() == 0
+
+        response = admin_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert "WARNING: There are no Marnie users." in response.content.decode()
+
+    def test_no_warning_for_no_marnie_user_when_i_am_not_admin(
+        self,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Test that there is no warning for no Marnie users when I am not admin."""
+        # Make sure there are no Marnie users here
+        assert count_marnie_users() == 0
+
+        # Make sure there are no admins here, either.
+        assert count_admin_users() == 0
+
+        response = bob_agent_user_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert "WARNING: There are no Marnie users." not in response.content.decode()
+
+    def test_warning_for_multiple_marnie_users(
+        self,
+        marnie_user: User,
+        bob_agent_user: User,
+        admin_client: Client,
+    ) -> None:
+        """Test that a warning is shown when there are multiple Marnie users."""
+        # Make sure there are at least 2 Marnie users here
+        bob_agent_user.is_marnie = True
+        bob_agent_user.save()
+        assert count_marnie_users() >= 2  # noqa: PLR2004
+
+        response = admin_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert "WARNING: There are multiple Marnie users." in response.content.decode()
+
+    def test_no_warning_for_multiple_marnie_users_when_i_am_not_admin(
+        self,
+        marnie_user: User,
+        bob_agent_user: User,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Ensure no Marnie user multiple warning when not admin."""
+        # Make sure there are at least 2 Marnie users here
+        # We have a single 'marnie' user already, lets flag 'bob' as a 'marnie' user,
+        # too.
+        bob_agent_user.is_marnie = True
+        bob_agent_user.save()
+
+        assert count_marnie_users() >= 2  # noqa: PLR2004
+
+        # Make sure there are no admins here.
+        assert count_admin_users() == 0
+
+        response = bob_agent_user_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert (
+            "WARNING: There are multiple Marnie users." not in response.content.decode()
+        )
+
+    def test_warning_for_no_agent_users(self, admin_client: Client) -> None:
+        """Test that a warning is shown when there are no Agent users."""
+        # Make sure there are no agent users here
+        assert count_agent_users() == 0
+
+        response = admin_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert "WARNING: There are no Agent users." in response.content.decode()
+
+    @pytest.mark.django_db()
+    def test_no_warning_for_no_agent_users_when_i_am_not_admin(
+        self,
+        client: Client,
+    ) -> None:
+        """Test that there is no warning for no Agent users when I am not admin."""
+        # Make sure there are no agent users in the system
+        assert count_agent_users() == 0
+
+        # Make sure there are no admin users in the system
+        assert count_admin_users() == 0
+
+        # Check, as anonymous user on the browser, that there are no warnings for no
+        # # agents.
+        response = client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert "WARNING: There are no Agent users." not in response.content.decode()

@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
 from marnies_maintenance_manager.users.models import User
 
 
@@ -205,7 +206,7 @@ class TestMarnieAccessingJobListView:
 
 
 class TestSuperUserAccessingJobListView:
-    """Test superuser's access to the job list view with different agent parameters."""
+    """Test superusers access to the job list view with different agent parameters."""
 
     def test_without_agent_username_url_param_returns_all_jobs(
         self,
@@ -290,3 +291,68 @@ def test_create_job_form_uses_date_type_for_date_input_field(
     form = response.context["form"]
     date_widget = form.fields["date"].widget
     assert date_widget.input_type == "date"
+
+
+class TestAgentCreatingAJobShowsThemFlashMessages:
+    """Test that agents see flash messages when creating a job."""
+
+    def test_a_success_flash_message(
+        self,
+        bob_agent_user_client: Client,
+        marnie_user: User,
+    ) -> None:
+        """Test that agents see a flash message when a job is created."""
+        response = bob_agent_user_client.post(
+            reverse("jobs:job_create"),
+            {
+                "date": "2022-01-01",
+                "address_details": "1234 Main St, Springfield, IL",
+                "gps_link": "https://www.google.com/maps",
+                "quote_request_details": "Replace the kitchen sink",
+            },
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
+        response = bob_agent_user_client.get(response.url)  # type: ignore[attr-defined]
+        messages = list(response.context["messages"])
+        assert len(messages) == 1
+        assert str(messages[0]) == "Your maintenance request has been sent to Marnie."
+
+    def test_error_flash_when_no_marnie_user_exists(
+        self,
+        bob_agent_user_client: Client,
+        caplog: pytest.LogCaptureFixture,
+        superuser_user: User,
+    ) -> None:
+        """Test that agents see an error message when no Marnie user exists."""
+        response = bob_agent_user_client.post(
+            reverse("jobs:job_create"),
+            {
+                "date": "2022-01-01",
+                "address_details": "1234 Main St, Springfield, IL",
+                "gps_link": "https://www.google.com/maps",
+                "quote_request_details": "Replace the kitchen sink",
+            },
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
+        response = bob_agent_user_client.get(response.url)  # type: ignore[attr-defined]
+        messages = list(response.context["messages"])
+        assert len(messages) == 1
+        assert (
+            str(messages[0])
+            == (
+                "No Marnie user found.\n"
+                "Unable to send maintenance request.\n"
+                "Please contact the system administrator at "
+            )
+            + get_sysadmin_email()
+        )
+
+        # Also check that an error message was logged at the same time
+        assert len(caplog.records) == 1
+        assert caplog.records[0].levelname == "ERROR"
+        assert (
+            caplog.records[0].message
+            == "No Marnie user found. Unable to send maintenance request email."
+        )
