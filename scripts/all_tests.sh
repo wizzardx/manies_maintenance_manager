@@ -1,14 +1,14 @@
 #!/bin/bash
 set -e
 
-echo "Running pre-commit checks..."
-pre-commit run --all-files
-
 echo "Check helper scripts..."
 shellcheck scripts/*.sh
 
 echo "Type checks..."
 docker compose -f local.yml exec django mypy --strict marnies_maintenance_manager
+
+echo "Running pre-commit checks..."
+pre-commit run --all-files
 
 echo "Fast unit tests (using sqlite mem, outside of docker)..."
 scripts/unit_tests_outside_docker.sh
