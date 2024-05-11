@@ -39,6 +39,15 @@ from .utils import get_sysadmin_email
 logger = logging.getLogger(__name__)
 
 
+USER_COUNT_PROBLEM_MESSAGES = {
+    "NO_ADMIN_USERS": "WARNING: There are no Admin users.",
+    "MANY_ADMIN_USERS": "WARNING: There are multiple Admin users.",
+    "NO_MARNIE_USERS": "WARNING: There are no Marnie users.",
+    "MANY_MARNIE_USERS": "WARNING: There are multiple Marnie users.",
+    "NO_AGENT_USERS": "WARNING: There are no Agent users.",
+}
+
+
 class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: ignore[type-arg]
     """
     Display a list of all Maintenance Jobs.
@@ -212,12 +221,39 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         return user.is_agent or user.is_superuser
 
 
+class _UserInfo:
+    """Class to provide information about the users in the system."""
+
+    @staticmethod
+    def has_no_admin_users() -> bool:
+        """Check if there are no superusers."""
+        return count_admin_users() == 0
+
+    @staticmethod
+    def has_many_admin_users() -> bool:
+        """Check if there are more than one superusers."""
+        return count_admin_users() > 1
+
+    @staticmethod
+    def has_no_marnie_users() -> bool:
+        """Check if there are no Marnie users."""
+        return count_marnie_users() == 0
+
+    @staticmethod
+    def has_many_marnie_users() -> bool:
+        """Check if there are more than one Marnie users."""
+        return count_marnie_users() > 1
+
+    @staticmethod
+    def has_no_agent_users() -> bool:
+        """Check if there are no agent users."""
+        return count_agent_users() == 0
+
+
 def home_page(request: HttpRequest) -> HttpResponse:
     """Render the home page for the application."""
     context = {
-        "request": request,
-        "num_admin_users": count_admin_users(),
-        "num_marnie_users": count_marnie_users(),
-        "num_agent_users": count_agent_users(),
+        "userinfo": _UserInfo,
+        "warnings": USER_COUNT_PROBLEM_MESSAGES,
     }
     return render(request, "pages/home.html", context)

@@ -2,11 +2,11 @@
 
 {% block content %}
   <p>Use this document as a way to quick start any new project.</p>
-  {% if num_admin_users == 0 %}<p>WARNING: There are no Admin users.</p>{% endif %}
+  {% if userinfo.has_no_admin_users %}<p>{{ warnings.NO_ADMIN_USERS }}</p>{% endif %}
   {% if request.user.is_superuser %}
-    {% if num_admin_users > 1 %}<p>WARNING: There are multiple Admin users.</p>{% endif %}
-    {% if num_marnie_users == 0 %}<p>WARNING: There are no Marnie users.</p>{% endif %}
-    {% if num_marnie_users > 1 %}<p>WARNING: There are multiple Marnie users.</p>{% endif %}
-    {% if num_agent_users == 0 %}<p>WARNING: There are no Agent users.</p>{% endif %}
+    {% if userinfo.has_many_admin_users %}<p>{{ warnings.MANY_ADMIN_USERS }}</p>{% endif %}
+    {% if userinfo.has_no_marnie_users %}<p>{{ warnings.NO_MARNIE_USERS }}</p>{% endif %}
+    {% if userinfo.has_many_marnie_users %}<p>{{ warnings.MANY_MARNIE_USERS }}</p>{% endif %}
+    {% if userinfo.has_no_agent_users %}<p>{{ warnings.NO_AGENT_USERS }}</p>{% endif %}
   {% endif %}
 {% endblock content %}

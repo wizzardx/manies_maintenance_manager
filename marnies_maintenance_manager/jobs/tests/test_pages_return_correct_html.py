@@ -23,6 +23,7 @@ from django.views.generic.base import View as BaseView
 from marnies_maintenance_manager.jobs.utils import count_admin_users
 from marnies_maintenance_manager.jobs.utils import count_agent_users
 from marnies_maintenance_manager.jobs.utils import count_marnie_users
+from marnies_maintenance_manager.jobs.views import USER_COUNT_PROBLEM_MESSAGES
 from marnies_maintenance_manager.jobs.views import JobCreateView
 from marnies_maintenance_manager.jobs.views import JobListView
 from marnies_maintenance_manager.users.models import User
@@ -156,7 +157,9 @@ class TestAdminSpecificHomePageWarnings:
         response = bob_agent_user_client.get("/")
 
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
-        assert "WARNING: There are no Admin users." in response.content.decode()
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["NO_ADMIN_USERS"] in response.content.decode()
+        )
 
     def test_warning_for_multiple_admin_users(
         self,
@@ -175,7 +178,9 @@ class TestAdminSpecificHomePageWarnings:
         # We can check now.
         response = admin_client.get("/")
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
-        assert "WARNING: There are multiple Admin users." in response.content.decode()
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["MANY_ADMIN_USERS"] in response.content.decode()
+        )
 
     def test_no_warning_for_multiple_admin_users_when_i_am_not_admin(
         self,
@@ -194,7 +199,8 @@ class TestAdminSpecificHomePageWarnings:
         response = bob_agent_user_client.get("/")
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
         assert (
-            "WARNING: There are multiple Admin users." not in response.content.decode()
+            USER_COUNT_PROBLEM_MESSAGES["MANY_ADMIN_USERS"]
+            not in response.content.decode()
         )
 
     def test_warning_for_no_marnie_user(self, admin_client: Client) -> None:
@@ -204,7 +210,9 @@ class TestAdminSpecificHomePageWarnings:
 
         response = admin_client.get("/")
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
-        assert "WARNING: There are no Marnie users." in response.content.decode()
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["NO_MARNIE_USERS"] in response.content.decode()
+        )
 
     def test_no_warning_for_no_marnie_user_when_i_am_not_admin(
         self,
@@ -219,7 +227,10 @@ class TestAdminSpecificHomePageWarnings:
 
         response = bob_agent_user_client.get("/")
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
-        assert "WARNING: There are no Marnie users." not in response.content.decode()
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["NO_MARNIE_USERS"]
+            not in response.content.decode()
+        )
 
     def test_warning_for_multiple_marnie_users(
         self,
@@ -235,7 +246,10 @@ class TestAdminSpecificHomePageWarnings:
 
         response = admin_client.get("/")
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
-        assert "WARNING: There are multiple Marnie users." in response.content.decode()
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["MANY_MARNIE_USERS"]
+            in response.content.decode()
+        )
 
     def test_no_warning_for_multiple_marnie_users_when_i_am_not_admin(
         self,
@@ -258,7 +272,8 @@ class TestAdminSpecificHomePageWarnings:
         response = bob_agent_user_client.get("/")
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
         assert (
-            "WARNING: There are multiple Marnie users." not in response.content.decode()
+            USER_COUNT_PROBLEM_MESSAGES["MANY_MARNIE_USERS"]
+            not in response.content.decode()
         )
 
     def test_warning_for_no_agent_users(self, admin_client: Client) -> None:
@@ -268,7 +283,9 @@ class TestAdminSpecificHomePageWarnings:
 
         response = admin_client.get("/")
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
-        assert "WARNING: There are no Agent users." in response.content.decode()
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["NO_AGENT_USERS"] in response.content.decode()
+        )
 
     @pytest.mark.django_db()
     def test_no_warning_for_no_agent_users_when_i_am_not_admin(
@@ -286,4 +303,7 @@ class TestAdminSpecificHomePageWarnings:
         # # agents.
         response = client.get("/")
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
-        assert "WARNING: There are no Agent users." not in response.content.decode()
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["NO_AGENT_USERS"]
+            not in response.content.decode()
+        )
