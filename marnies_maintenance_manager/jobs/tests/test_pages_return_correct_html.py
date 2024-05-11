@@ -15,8 +15,11 @@ To execute these tests, run the following command:
     marnies_maintenance_manager/jobs/tests/test_pages_return_correct_html.py`
 """
 
+from typing import cast
+
 import pytest
 from bs4 import BeautifulSoup
+from django.http.response import HttpResponse
 from django.test.client import Client
 from django.views.generic.base import View as BaseView
 
@@ -40,7 +43,7 @@ def _run_shared_logic(  # noqa: PLR0913
     expected_func_name: str,
     expected_url_name: str,
     expected_view_class: type[BaseView] | None,
-) -> None:
+) -> HttpResponse:
     response = client.get(url)
     assert response.status_code == HTTP_SUCCESS_STATUS_CODE
 
@@ -74,6 +77,8 @@ def _run_shared_logic(  # noqa: PLR0913
             response.resolver_match.func.view_class  # type: ignore[attr-defined]
             == expected_view_class
         )
+
+    return cast(HttpResponse, response)
 
 
 @pytest.mark.django_db()
@@ -110,7 +115,7 @@ def test_maintenance_jobs_page_returns_correct_html(
     It also verifies the use of the correct template and checks the associated view
     function for this route.
     """
-    _run_shared_logic(
+    response = _run_shared_logic(
         client=bob_agent_user_client,
         url="/jobs/",
         expected_title="Maintenance Jobs",
@@ -120,6 +125,25 @@ def test_maintenance_jobs_page_returns_correct_html(
         expected_url_name="job_list",
         expected_view_class=JobListView,
     )
+
+    # Parse HTML so that we can check for specific elements
+    response_text = response.content.decode()
+    soup = BeautifulSoup(response_text, "html.parser")
+
+    # Grab the table element
+    table = soup.find("table")
+    assert table, "Table element should exist in the HTML"
+
+    # Check the table headers
+    headers = table.find_all("th")
+    assert headers, "Table headers should exist in the HTML"
+    assert [header.get_text(strip=True) for header in headers] == [
+        "Number",
+        "Date",
+        "Address",
+        "GPS Link",
+        "Details",
+    ]
 
 
 @pytest.mark.django_db()
