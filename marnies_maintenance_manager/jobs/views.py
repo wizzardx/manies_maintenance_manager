@@ -14,7 +14,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from django.db.models.query import QuerySet
 from django.http import HttpRequest
 from django.http import HttpResponse
@@ -186,6 +186,7 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         )
 
         email_from = DEFAULT_FROM_EMAIL
+        email_cc = self.request.user.email
 
         # One main error that can happen here is if the Marnie user account does
         # not exist.
@@ -205,7 +206,14 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
             )
         else:
             # Marnie's user account was found, so we can send the email:
-            send_mail(email_subject, email_body, email_from, [email_to])
+            email = EmailMessage(
+                subject=email_subject,
+                body=email_body,
+                from_email=email_from,
+                to=[email_to],
+                cc=[email_cc],
+            )
+            email.send()
 
             # And send the success flash message to the user:
             messages.success(

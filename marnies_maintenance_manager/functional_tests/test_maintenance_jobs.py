@@ -239,7 +239,7 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     _create_new_job(browser, live_server_url)
 
 
-def test_agent_creating_a_new_job_should_send_marnie_a_notification_email(
+def test_agent_creating_a_new_job_should_send_notification_emails(
     browser: WebDriver,
     live_server_url: str,
     bob_agent_user: User,
@@ -257,8 +257,13 @@ def test_agent_creating_a_new_job_should_send_marnie_a_notification_email(
     # We also check the contents and other details of the mail, here.
 
     email = mail.outbox[0]
+
+    # Check mail metadata:
     assert email.subject == "New maintenance request by bob"
     assert marnie_user.email in email.to
+    assert bob_agent_user.email in email.cc
+
+    # Check mail contents:
     assert "bob has made a new maintenance request." in email.body
     assert "Date: 2021-01-01" in email.body
     assert "Address Details:\n\nDepartment of Home Affairs Bellville" in email.body
