@@ -186,7 +186,13 @@ def _create_new_job(
     header_cell_texts = [
         cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")
     ]
-    assert header_cell_texts == ["Number", "Date", "Address", "GPS Link", "Details"]
+    assert header_cell_texts == [
+        "Number",
+        "Date",
+        "Address Details",
+        "GPS Link",
+        "Details",
+    ]
 
     ## The second row is the new job
     row = rows[1]

@@ -140,7 +140,7 @@ def test_maintenance_jobs_page_returns_correct_html(
     assert [header.get_text(strip=True) for header in headers] == [
         "Number",
         "Date",
-        "Address",
+        "Address Details",
         "GPS Link",
         "Details",
     ]
