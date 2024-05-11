@@ -191,7 +191,7 @@ def _create_new_job(
         "Date",
         "Address Details",
         "GPS Link",
-        "Details",
+        "Quote Request Details",
     ]
 
     ## The second row is the new job

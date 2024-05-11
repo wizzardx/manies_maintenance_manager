@@ -142,7 +142,7 @@ def test_maintenance_jobs_page_returns_correct_html(
         "Date",
         "Address Details",
         "GPS Link",
-        "Details",
+        "Quote Request Details",
     ]
 
 
