@@ -129,6 +129,7 @@ class TestUserUpdateView:
 
 
 class TestUserRedirectView:
+    # pylint: disable=too-few-public-methods
     """
     Tests for the UserRedirectView functionality.
 

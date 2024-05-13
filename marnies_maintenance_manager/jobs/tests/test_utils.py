@@ -1,5 +1,7 @@
 """Tests for the utility functions in the jobs app."""
 
+# pylint: disable=unused-argument
+
 import re
 
 import pytest

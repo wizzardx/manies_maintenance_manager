@@ -16,8 +16,14 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
     email = Faker("email")
     name = Faker("name")
 
+    # pylint: disable=unused-argument
     @post_generation  # type: ignore[misc]
-    def password(self, create: bool, extracted: Sequence[str], **kwargs: str) -> None:  # noqa: FBT001
+    def password(
+        self,
+        create: bool,  # noqa: FBT001
+        extracted: Sequence[str],
+        **kwargs: str,
+    ) -> None:
         """
         Generate and set a password for the user.
 
@@ -40,6 +46,7 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
         )
         self.set_password(password)
 
+    # pylint: disable=signature-differs
     @classmethod
     def _after_postgeneration(
         cls: type["UserFactory"],
@@ -59,6 +66,7 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
         # noqa: DAR102
 
         """
+        # pylint: disable=no-member
         if create and results and not cls._meta.skip_postgeneration_save:
             # Some post-generation hooks ran, and may have modified us.
             instance.save()

@@ -5,12 +5,15 @@ These tests ensure that the job maintenance functionalities work as expected
 from a user's perspective in the Marnie's Maintenance Manager application.
 """
 
+# pylint: disable=redefined-outer-name,unused-argument
+
 import time
 from collections.abc import Callable
 from collections.abc import Iterator
 from typing import Any
 
 import pytest
+from django.core import mail
 from pytest_django.live_server_helper import LiveServer
 from selenium import webdriver
 from selenium.common.exceptions import ElementClickInterceptedException
@@ -86,6 +89,8 @@ def _create_new_job(
     browser: WebDriver,
     live_server_url: str,
 ) -> None:
+    # pylint: disable=too-many-locals
+
     # Marnie's client Bob has heard of Marnie's cool new maintenance management site.
     # He goes to check out its homepage.
     browser.get(live_server_url)
@@ -184,7 +189,7 @@ def _create_new_job(
     )
 
     # He clicks the Submit button
-    wait_until(lambda: submit_button.click())
+    wait_until(submit_button.click)
 
     # This sends him back to the "Maintenance Jobs" page, where he notices that the
     # page title and the header mention Maintenance Jobs like before.
@@ -287,8 +292,6 @@ def test_agent_creating_a_new_job_should_send_notification_emails(
     _create_new_job(browser, live_server_url)
 
     # Since we have the fixture, the email should have already been sent by this point
-    from django.core import mail
-
     assert len(mail.outbox) == 1, "No email was sent"
 
     # We also check the contents and other details of the mail, here.

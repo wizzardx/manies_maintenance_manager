@@ -1,4 +1,6 @@
 # ruff: noqa
+# pylint: skip-file
+
 """Spiked Test Code that we need to merge into our main codebase."""
 
 #

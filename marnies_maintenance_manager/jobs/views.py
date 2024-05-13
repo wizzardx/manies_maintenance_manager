@@ -48,6 +48,7 @@ USER_COUNT_PROBLEM_MESSAGES = {
 }
 
 
+# pylint: disable=too-many-ancestors
 class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: ignore[type-arg]
     """
     Display a list of all Maintenance Jobs.

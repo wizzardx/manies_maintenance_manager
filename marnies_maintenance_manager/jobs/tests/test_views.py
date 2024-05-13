@@ -1,5 +1,7 @@
 """Provide tests for job view access control in Marnie's Maintenance Manager."""
 
+# pylint: disable=unused-argument,redefined-outer-name,unused-argument
+
 import pytest
 from django.test import Client
 from django.urls import reverse

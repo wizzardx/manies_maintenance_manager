@@ -7,6 +7,11 @@ shellcheck scripts/*.sh
 echo "Type checks..."
 docker compose -f local.yml exec django mypy --strict marnies_maintenance_manager
 
+echo "Pylint..."
+docker compose -f local.yml exec django pylint \
+    --django-settings-module=config.settings \
+    --output-format=colorized marnies_maintenance_manager/
+
 echo "Running pre-commit checks..."
 pre-commit run --all-files
 

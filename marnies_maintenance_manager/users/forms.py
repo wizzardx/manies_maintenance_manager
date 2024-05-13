@@ -17,6 +17,7 @@ class UserAdminChangeForm(admin_forms.UserChangeForm):  # type: ignore[type-arg]
         model = User
 
 
+# pylint: disable=too-many-ancestors
 class UserAdminCreationForm(admin_forms.UserCreationForm):  # type: ignore[type-arg]
     """
     Form for User Creation in the Admin Area.

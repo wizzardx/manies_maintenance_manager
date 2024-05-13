@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 """
 Tests for HTML content validation in Marnie's Maintenance Manager application views.
 
@@ -14,6 +15,8 @@ To execute these tests, run the following command:
 `docker compose -f local.yml run --rm django pytest \
     marnies_maintenance_manager/jobs/tests/test_pages_return_correct_html.py`
 """
+
+# pylint: disable=unused-argument
 
 from typing import cast
 
@@ -34,6 +37,7 @@ from marnies_maintenance_manager.users.models import User
 HTTP_SUCCESS_STATUS_CODE = 200
 
 
+# pylint: disable=too-many-arguments
 def _run_shared_logic(  # noqa: PLR0913
     client: Client,
     url: str,
@@ -44,6 +48,8 @@ def _run_shared_logic(  # noqa: PLR0913
     expected_url_name: str,
     expected_view_class: type[BaseView] | None,
 ) -> HttpResponse:
+    # pylint: disable=too-many-statements
+
     response = client.get(url)
     assert response.status_code == HTTP_SUCCESS_STATUS_CODE
 

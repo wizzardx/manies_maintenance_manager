@@ -1,5 +1,7 @@
 """Define pytest fixtures for testing user authentication in job views."""
 
+# pylint: disable=unused-argument
+
 import pytest
 from django.test.client import Client
 

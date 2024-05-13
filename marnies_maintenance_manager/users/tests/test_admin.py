@@ -91,6 +91,7 @@ class TestUserAdmin:
         """
         settings.DJANGO_ADMIN_FORCE_ALLAUTH = True
         # Reload the admin module to apply the setting change
+        # pylint: disable=import-outside-toplevel
         import marnies_maintenance_manager.users.admin as users_admin
 
         with contextlib.suppress(admin.sites.AlreadyRegistered):

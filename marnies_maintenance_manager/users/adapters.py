@@ -58,6 +58,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[misc]
         sociallogin: SocialLogin,
         data: dict[str, typing.Any],
     ) -> User:
+        # pylint: disable=line-too-long
         """
         Populate user information from social provider info.
 

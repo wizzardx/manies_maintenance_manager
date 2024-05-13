@@ -4,6 +4,8 @@ This module contains tests that verify the presence or absence of specific
 navigation links on the home page based on user authentication and roles.
 """
 
+# pylint: disable=unused-argument
+
 import pytest
 from bs4 import BeautifulSoup
 from django.test.client import Client

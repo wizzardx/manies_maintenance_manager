@@ -5,6 +5,8 @@ the tests for the Marnie's Maintenance Manager application. It sets up
 necessary environments for tests, such as user fixtures and media storage.
 """
 
+# pylint: disable=redefined-outer-name,unused-argument
+
 import py
 import pytest
 import pytest_django.fixtures
@@ -17,7 +19,7 @@ from marnies_maintenance_manager.users.tests.factories import UserFactory
 @pytest.fixture(autouse=True)
 def _media_storage(
     settings: pytest_django.fixtures.SettingsWrapper,
-    tmpdir: py.path.local,
+    tmpdir: py.path.local,  # pylint: disable=no-member
 ) -> None:
     """
     Automatically set the MEDIA_ROOT in Django settings to a temporary directory.
@@ -32,7 +34,7 @@ def _media_storage(
 
 # noinspection PyUnusedLocal
 @pytest.fixture()
-def user(db: None) -> User:
+def user(db: None) -> User:  # pylint: disable=unused-argument
     """
     Provide a User instance from the UserFactory for use in tests.
 

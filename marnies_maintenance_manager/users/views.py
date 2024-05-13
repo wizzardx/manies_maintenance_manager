@@ -65,6 +65,7 @@ class UserUpdateView(
         assert self.request.user.is_authenticated  # nosec B101
         return self.request.user.get_absolute_url()
 
+    # pylint: disable=arguments-differ
     def get_object(self) -> User:  # type: ignore[override]
         """
         Retrieve and return the current user's profile.
@@ -96,7 +97,7 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
     permanent = False
 
-    def get_redirect_url(self) -> str:
+    def get_redirect_url(self) -> str:  # pylint: disable=arguments-differ
         """
         Return the URL for the user's detailed profile view.
 

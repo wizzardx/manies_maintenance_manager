@@ -74,7 +74,7 @@ class User(AbstractUser, UUIDModel):
         Raises:
             ValidationError: If 'is_agent' is True and no Marnie user exists.
         """
-        cleaned_data = super().clean()
+        cleaned_data = super().clean()  # pylint: disable=assignment-from-no-return
 
         # If is_agent is set to True, then ensure that a Marnie user exists on the
         # system.

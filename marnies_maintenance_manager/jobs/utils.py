@@ -36,8 +36,7 @@ def get_marnie_email() -> str:
         raise MarnieUserNotFoundError from err
     except User.MultipleObjectsReturned as err:
         raise MultipleMarnieUsersError from err
-    else:
-        return marnie.email
+    return marnie.email
 
 
 def get_sysadmin_email(*, _introduce_logic_error: bool = False) -> str:
@@ -112,7 +111,7 @@ def first_or_error(queryset: QuerySet[T], error_message: str = "No object found.
     return obj
 
 
-def count_admin_users() -> int:  # TODO: Unit test this
+def count_admin_users() -> int:
     """
     Return the number of superusers.
 
@@ -122,7 +121,7 @@ def count_admin_users() -> int:  # TODO: Unit test this
     return User.objects.filter(is_superuser=True).count()
 
 
-def count_marnie_users() -> int:  # TODO: Unit test this
+def count_marnie_users() -> int:
     """
     Return the number of Marnie users.
 
@@ -132,7 +131,7 @@ def count_marnie_users() -> int:  # TODO: Unit test this
     return User.objects.filter(is_marnie=True).count()
 
 
-def count_agent_users() -> int:  # TODO: Unit test this
+def count_agent_users() -> int:
     """
     Return the number of Agent users.
 

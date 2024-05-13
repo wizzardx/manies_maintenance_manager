@@ -5,6 +5,7 @@ import uuid
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.forms.models import ModelForm
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
@@ -55,9 +56,10 @@ def test_agent_field_is_not_editable(bob_agent_user: User) -> None:
     )
 
     # For this test, create a ModeLForm based on all fields in the Job model
-    from django.forms.models import ModelForm
 
     class JobForm(ModelForm):  # type: ignore[type-arg]
+        """ModelForm for the Job model."""
+
         class Meta:
             model = Job
             fields = "__all__"  # noqa: DJ007

@@ -1,5 +1,7 @@
 """Unit tests for the User model in Marnie's Maintenance Manager."""
 
+# pylint: disable=unused-argument
+
 import uuid
 
 import pytest

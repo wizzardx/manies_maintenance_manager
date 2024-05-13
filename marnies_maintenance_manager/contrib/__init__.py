@@ -1,3 +1,5 @@
+# pylint: disable=line-too-long
+
 """
 To understand why this file is here, please read the following.
 
