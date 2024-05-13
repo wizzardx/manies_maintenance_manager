@@ -10,6 +10,9 @@ docker compose -f local.yml exec django mypy --strict marnies_maintenance_manage
 echo "Running pre-commit checks..."
 pre-commit run --all-files
 
+echo "Running Django's system checks..."
+docker compose -f local.yml exec django python manage.py check
+
 echo "Fast unit tests (using sqlite mem, outside of docker)..."
 scripts/unit_tests_outside_docker.sh
 
