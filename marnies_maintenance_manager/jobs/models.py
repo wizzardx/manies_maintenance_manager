@@ -1,5 +1,7 @@
 """Models for managing jobs in the Marnie's Maintenance Manager application."""
 
+import uuid
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -8,7 +10,7 @@ from model_utils.models import UUIDModel
 from marnies_maintenance_manager.users.models import User
 
 
-def _validate_user_is_agent(user_id: int) -> None:
+def _validate_user_is_agent(user_id: uuid.UUID) -> None:
     """Ensure the user is an agent."""
     user = User.objects.get(pk=user_id)
     if not user.is_agent:  # pragma: no branch

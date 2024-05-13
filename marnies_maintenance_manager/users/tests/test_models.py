@@ -1,5 +1,7 @@
 """Unit tests for the User model in Marnie's Maintenance Manager."""
 
+import uuid
+
 import pytest
 from django.core.exceptions import ValidationError
 
@@ -88,3 +90,12 @@ def test_is_agent_valid_when_marnie_user_is_present(
     # We have a Marnie user from our fixture, so creating an Agent user should work.
     bob = _create_bob_agent_user(django_user_model)
     bob.full_clean()
+
+
+@pytest.mark.django_db()
+def test_user_model_has_uuid_id(user: User) -> None:
+    """Verify that the User model has a UUID as the primary key."""
+    assert isinstance(
+        user.id,
+        uuid.UUID,
+    ), "The User model's primary key should be a UUID."

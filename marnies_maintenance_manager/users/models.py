@@ -12,9 +12,10 @@ from django.db.models import BooleanField
 from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from model_utils.models import UUIDModel
 
 
-class User(AbstractUser):
+class User(AbstractUser, UUIDModel):
     """
     Default custom user model for Marnie's Maintenance Manager.
 
