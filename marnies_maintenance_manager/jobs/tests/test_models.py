@@ -110,3 +110,49 @@ class TestJobAgentMustBeAUserOfTypeAgent:
         job = job_created_by_bob
         job.agent = bob_agent_user
         job.full_clean()
+
+
+def test_str_method_returns_job_date_and_start_of_address(bob_agent_user: User) -> None:
+    """Ensure the __str__ method returns the job date and the start of the address."""
+    job = Job.objects.create(
+        agent=bob_agent_user,
+        date="2022-01-01",
+        address_details="1234 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the kitchen sink",
+    )
+
+    assert str(job) == "2022-01-01: 1234 Main St, Springfield, IL"
+
+
+def test_str_method_only_contains_up_to_50_characters_of_address(
+    bob_agent_user: User,
+) -> None:
+    """Ensure __str__ only returns the first 50 characters of the address."""
+    job = Job.objects.create(
+        agent=bob_agent_user,
+        date="2022-01-01",
+        address_details="1234 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the kitchen sink",
+    )
+
+    job.address_details = (
+        "1234 Main St, Springfield, IL, USA, Earth, Milky Way, Universe"
+    )
+    assert str(job) == "2022-01-01: 1234 Main St, Springfield, IL, USA, Earth, Milky W"
+
+
+def test_str_method_converts_newlines_in_address_to_spaces(
+    bob_agent_user: User,
+) -> None:
+    """Ensure the __str__ method converts newlines in the address to spaces."""
+    job = Job.objects.create(
+        agent=bob_agent_user,
+        date="2022-01-01",
+        address_details="1234 Main St,\nSpringfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the kitchen sink",
+    )
+
+    assert str(job) == "2022-01-01: 1234 Main St, Springfield, IL"

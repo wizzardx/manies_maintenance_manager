@@ -42,3 +42,8 @@ class Job(UUIDModel):
         editable=False,
         validators=[_validate_user_is_agent],
     )
+
+    def __str__(self) -> str:
+        """Return a basic string representation of the job."""
+        shortened_address = self.address_details[:50].replace("\n", " ")
+        return f"{self.date}: {shortened_address}"
