@@ -25,19 +25,34 @@ class TestUserAdmin:
     """Test admin operations for User model."""
 
     def test_changelist(self, admin_client: Client) -> None:
-        """Verify that user changelist page loads correctly."""
+        """
+        Verify that user changelist page loads correctly.
+
+        Args:
+            admin_client (Client): A Django test client instance with admin permissions.
+        """
         url = reverse("admin:users_user_changelist")
         response = admin_client.get(url)
         assert response.status_code == HTTPStatus.OK
 
     def test_search(self, admin_client: Client) -> None:
-        """Ensure that user search functionality works correctly."""
+        """
+        Ensure that user search functionality works correctly.
+
+        Args:
+            admin_client (Client): A Django test client instance with admin permissions.
+        """
         url = reverse("admin:users_user_changelist")
         response = admin_client.get(url, data={"q": "test"})
         assert response.status_code == HTTPStatus.OK
 
     def test_add(self, admin_client: Client) -> None:
-        """Test adding a new user through the admin interface."""
+        """
+        Test adding a new user through the admin interface.
+
+        Args:
+            admin_client (Client): A Django test client instance with admin permissions.
+        """
         url = reverse("admin:users_user_add")
         response = admin_client.get(url)
         assert response.status_code == HTTPStatus.OK
@@ -54,7 +69,12 @@ class TestUserAdmin:
         assert User.objects.filter(username="test").exists()
 
     def test_view_user(self, admin_client: Client) -> None:
-        """Confirm that user detail view in admin works as expected."""
+        """
+        Confirm that user detail view in admin works as expected.
+
+        Args:
+            admin_client (Client): A Django test client instance with admin permissions.
+        """
         user = User.objects.get(username="admin")
         url = reverse("admin:users_user_change", kwargs={"object_id": user.pk})
         response = admin_client.get(url)
@@ -62,7 +82,13 @@ class TestUserAdmin:
 
     @pytest.fixture()
     def _force_allauth(self, settings: SettingsWrapper) -> None:
-        """Configure settings to force Allauth in admin for testing."""
+        """
+        Configure settings to force Allauth in admin for testing.
+
+        Args:
+            settings (SettingsWrapper): A pytest fixture providing access to Django
+                                        settings.
+        """
         settings.DJANGO_ADMIN_FORCE_ALLAUTH = True
         # Reload the admin module to apply the setting change
         import marnies_maintenance_manager.users.admin as users_admin
@@ -77,7 +103,15 @@ class TestUserAdmin:
         rf: RequestFactory,
         settings: SettingsWrapper,
     ) -> None:
-        """Check Allauth integration with admin login."""
+        """
+        Check Allauth integration with admin login.
+
+        Args:
+            rf (RequestFactory): A Django RequestFactory instance for creating mock
+                                 requests.
+            settings (SettingsWrapper): A pytest fixture providing access to Django
+                                        settings.
+        """
         request = rf.get("/fake-url")
         request.user = AnonymousUser()
         response = admin.site.login(request)

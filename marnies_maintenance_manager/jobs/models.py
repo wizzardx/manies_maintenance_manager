@@ -11,7 +11,15 @@ from marnies_maintenance_manager.users.models import User
 
 
 def _validate_user_is_agent(user_id: uuid.UUID) -> None:
-    """Ensure the user is an agent."""
+    """
+    Ensure the user is an agent.
+
+    Args:
+        user_id (uuid.UUID): The unique identifier of the user to validate.
+
+    Raises:
+        ValidationError: If the specified user is not an agent.
+    """
     user = User.objects.get(pk=user_id)
     if not user.is_agent:  # pragma: no branch
         raise ValidationError(
@@ -44,6 +52,12 @@ class Job(UUIDModel):
     )
 
     def __str__(self) -> str:
-        """Return a basic string representation of the job."""
+        """
+        Return a basic string representation of the job.
+
+        Returns:
+            str: A string that represents the job, containing the date and a shortened
+                 version of the address with newlines replaced by spaces.
+        """
         shortened_address = self.address_details[:50].replace("\n", " ")
         return f"{self.date}: {shortened_address}"

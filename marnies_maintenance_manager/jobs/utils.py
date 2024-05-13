@@ -20,7 +20,16 @@ logger = logging.getLogger(__name__)
 
 
 def get_marnie_email() -> str:
-    """Return the email address for Marnie."""
+    """
+    Return the email address for Marnie.
+
+    Returns:
+        str: The email address for Marnie.
+
+    Raises:
+        MarnieUserNotFoundError: If no Marnie user is found.
+        MultipleMarnieUsersError: If multiple Marnie users are found.
+    """
     try:
         marnie = User.objects.get(is_marnie=True)
     except User.DoesNotExist as err:
@@ -32,11 +41,19 @@ def get_marnie_email() -> str:
 
 
 def get_sysadmin_email(*, _introduce_logic_error: bool = False) -> str:
-    """Return the email address for the system administrator.
+    """
+    Return the email address for the system administrator.
 
     Args:
         _introduce_logic_error (bool): If True, introduces a logical error for testing
                                        purposes.
+
+    Returns:
+        str: The email address for the system administrator.
+
+    Raises:
+        LogicalError: If a logical error is encountered.
+        NoSystemAdministratorUserError: If no system administrator user is found.
     """
     sysadmins = User.objects.filter(is_superuser=True)
 
@@ -96,15 +113,30 @@ def first_or_error(queryset: QuerySet[T], error_message: str = "No object found.
 
 
 def count_admin_users() -> int:  # TODO: Unit test this
-    """Return the number of superusers."""
+    """
+    Return the number of superusers.
+
+    Returns:
+        int: The number of superusers.
+    """
     return User.objects.filter(is_superuser=True).count()
 
 
 def count_marnie_users() -> int:  # TODO: Unit test this
-    """Return the number of Marnie users."""
+    """
+    Return the number of Marnie users.
+
+    Returns:
+        int: The number of Marnie users.
+    """
     return User.objects.filter(is_marnie=True).count()
 
 
 def count_agent_users() -> int:  # TODO: Unit test this
-    """Return the number of Agent users."""
+    """
+    Return the number of Agent users.
+
+    Returns:
+        int: The number of Agent users.
+    """
     return User.objects.filter(is_agent=True).count()

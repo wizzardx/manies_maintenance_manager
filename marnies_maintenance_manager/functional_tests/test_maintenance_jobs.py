@@ -28,7 +28,9 @@ def browser() -> Iterator[WebDriver]:
     """
     Provide a configured Selenium WebDriver for testing in a Docker environment.
 
-    Yields a WebDriver instance for use in tests, ensuring it's closed afterward.
+    Yields:
+        WebDriver: A WebDriver instance for use in tests, ensuring it's closed
+                   afterward.
     """
     options = Options()
     # You can add more options here if needed
@@ -47,14 +49,29 @@ def live_server_url(live_server: LiveServer) -> str:
     """
     Modify the live_server URL to use 'django' instead of '0.0.0.0'.
 
-    This change supports Docker inter-container communication during testing.
-    Returns the modified URL as a string.
+    Args:
+        live_server (LiveServer): The pytest-django fixture providing a live server.
+
+    Returns:
+        str: The modified URL as a string.
     """
     return live_server.url.replace("0.0.0.0", "django")  # noqa: S104
 
 
 def wait_until(fn: Callable[[], Any]) -> Any:
-    """Retry an action until it succeeds or the maximum wait time is reached."""
+    """
+    Retry an action until it succeeds or the maximum wait time is reached.
+
+    Args:
+        fn (Callable[[], Any]): The function to execute.
+
+    Returns:
+        Any: The result of the function call.
+
+    Raises:
+        ElementClickInterceptedException: If the action does not succeed within the
+                                          allotted time.
+    """
     start_time = time.time()
     while True:
         try:
@@ -239,6 +256,12 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
 
     This test simulates a user logging into the system, creating a new
     maintenance job, and logging out, verifying each critical step.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+        bob_agent_user (User): The user instance for Bob, who is an agent.
+        marnie_user_client (User): The user instance for Marnie, included for context.
     """
     # The body of our logic is moved to a helper function, because we're going
     # to be re-using this logic a lot of times for other functional tests.
@@ -251,7 +274,15 @@ def test_agent_creating_a_new_job_should_send_notification_emails(
     bob_agent_user: User,
     marnie_user: User,
 ) -> None:
-    """Ensure that creating a new job sends Marnie a notification email."""
+    """
+    Ensure that creating a new job sends Marnie a notification email.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+        bob_agent_user (User): The user instance for Bob, who is an agent.
+        marnie_user (User): The user instance for Marnie.
+    """
     # First, quickly run through the steps of creating a new job
     _create_new_job(browser, live_server_url)
 

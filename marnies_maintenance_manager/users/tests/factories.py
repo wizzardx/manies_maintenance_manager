@@ -55,6 +55,9 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
             instance (User): The user instance being created.
             create (bool): Flag to check if creation is ongoing.
             results (dict[str, str | None]): Post-generation hook results.
+
+        # noqa: DAR102
+
         """
         if create and results and not cls._meta.skip_postgeneration_save:
             # Some post-generation hooks ran, and may have modified us.

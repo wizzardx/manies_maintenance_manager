@@ -60,7 +60,19 @@ def superuser_client(client: Client, superuser_user: User) -> Client:
 
 @pytest.fixture()
 def job_created_by_bob(bob_agent_user: User) -> Job:
-    """Create a job instance that was created by Bob."""
+    """
+    Create a job instance that was created by Bob.
+
+    This fixture ensures that the job data is valid and raises a ValidationError if
+    the data does not comply with model constraints.
+
+    Args:
+        bob_agent_user (User): The User model instance for Bob, who is marked as an
+                               agent.
+
+    Returns:
+        Job: A Job model instance representing a maintenance job created by Bob.
+    """
     job = Job.objects.create(
         agent=bob_agent_user,
         date="2022-01-01",

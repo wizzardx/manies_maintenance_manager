@@ -86,10 +86,8 @@ def test_home_page_returns_correct_html(client: Client) -> None:
     """
     Verify that the home page renders correctly.
 
-    This test checks if the home page returns HTML content with the specified title
-    tag correctly formatted, includes necessary language attributes, uses the correct
-    HTML structure, and utilizes the designated template.
-    It also validates the view function linked to this page.
+    Args:
+        client (Client): Django test client used to make requests.
     """
     _run_shared_logic(
         client=client,
@@ -110,10 +108,8 @@ def test_maintenance_jobs_page_returns_correct_html(
     """
     Verify the maintenance jobs page loads with the correct HTML.
 
-    This test ensures the maintenance jobs page is loaded with the correct title, a
-    header tag, and the appropriate HTML structure.
-    It also verifies the use of the correct template and checks the associated view
-    function for this route.
+    Args:
+        bob_agent_user_client (Client): A test client for user Bob who is an agent.
     """
     response = _run_shared_logic(
         client=bob_agent_user_client,
@@ -153,10 +149,8 @@ def test_create_maintenance_job_page_returns_correct_html(
     """
     Ensure the create maintenance job page returns the expected HTML content.
 
-    This test checks for the presence of the correct title and header in the HTML of
-    the create maintenance job page, ensures the HTML structure is properly formed, and
-    confirms that the designated template is used.
-    It also verifies the correct view function is managing this route.
+    Args:
+        bob_agent_user_client (Client): A test client for user Bob who is an agent.
     """
     _run_shared_logic(
         client=bob_agent_user_client,
@@ -174,7 +168,13 @@ class TestAdminSpecificHomePageWarnings:
     """Tests for the home page warnings related to Admin users."""
 
     def test_warning_for_no_admin_user(self, bob_agent_user_client: Client) -> None:
-        """Test that a warning is shown when there are no Admin users."""
+        """
+        Test that a warning is shown when there are no Admin users.
+
+        Args:
+            bob_agent_user_client (Client): A test client configured for Bob, an agent
+                                            user.
+        """
         # Make sure there are no admin users here
         assert count_admin_users() == 0
 
@@ -191,7 +191,15 @@ class TestAdminSpecificHomePageWarnings:
         peter_agent_user: User,
         admin_client: Client,
     ) -> None:
-        """Test that a warning is shown when there are multiple Admin users."""
+        """
+        Test that a warning is shown when there are multiple Admin users.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+            bob_agent_user (User): User instance for Bob, temporarily made an admin
+                                   for this test.
+            peter_agent_user (User): User instance for Peter, also an admin.
+        """
         # Change Bob to an admin so that there are two admin users.
         bob_agent_user.is_superuser = True
         bob_agent_user.save()
@@ -212,7 +220,14 @@ class TestAdminSpecificHomePageWarnings:
         peter_agent_user: User,
         bob_agent_user_client: Client,
     ) -> None:
-        """Ensure no admin user multiple warning when not admin."""
+        """
+        Ensure no admin user multiple warning when not admin.
+
+        Args:
+            admin_user (User): An admin user instance.
+            peter_agent_user (User): Another user with admin status.
+            bob_agent_user_client (Client): Bob's client, who is not an admin.
+        """
         # Make sure there are two admin user:
         peter_agent_user.is_superuser = True
         peter_agent_user.save()
@@ -228,7 +243,12 @@ class TestAdminSpecificHomePageWarnings:
         )
 
     def test_warning_for_no_marnie_user(self, admin_client: Client) -> None:
-        """Test that a warning is shown when there are no Marnie users."""
+        """
+        Test that a warning is shown when there are no Marnie users.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+        """
         # Make sure there are no Marnie users here
         assert count_marnie_users() == 0
 
@@ -242,7 +262,13 @@ class TestAdminSpecificHomePageWarnings:
         self,
         bob_agent_user_client: Client,
     ) -> None:
-        """Test that there is no warning for no Marnie users when I am not admin."""
+        """
+        Test that there is no warning for no Marnie users when the user is not an admin.
+
+        Args:
+            bob_agent_user_client (Client): A test client configured for Bob, who is an
+                                            agent but not an admin.
+        """
         # Make sure there are no Marnie users here
         assert count_marnie_users() == 0
 
@@ -262,7 +288,15 @@ class TestAdminSpecificHomePageWarnings:
         bob_agent_user: User,
         admin_client: Client,
     ) -> None:
-        """Test that a warning is shown when there are multiple Marnie users."""
+        """
+        Test that a warning is shown when there are multiple Marnie users.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+            bob_agent_user (User): User instance for Bob, temporarily made a Marnie
+                                   user for this test.
+            marnie_user (User): User instance representing Marnie.
+        """
         # Make sure there are at least 2 Marnie users here
         bob_agent_user.is_marnie = True
         bob_agent_user.save()
@@ -281,7 +315,16 @@ class TestAdminSpecificHomePageWarnings:
         bob_agent_user: User,
         bob_agent_user_client: Client,
     ) -> None:
-        """Ensure no Marnie user multiple warning when not admin."""
+        """
+        Ensure no Marnie user multiple warning when not an admin.
+
+        Args:
+            bob_agent_user (User): User instance for Bob, marked as a Marnie user.
+            bob_agent_user_client (Client): A test client for Bob, who is an agent but
+                                            not an admin.
+            marnie_user (User): Another user instance flagged as Marnie to simulate the
+                                test condition.
+        """
         # Make sure there are at least 2 Marnie users here
         # We have a single 'marnie' user already, lets flag 'bob' as a 'marnie' user,
         # too.
@@ -301,7 +344,12 @@ class TestAdminSpecificHomePageWarnings:
         )
 
     def test_warning_for_no_agent_users(self, admin_client: Client) -> None:
-        """Test that a warning is shown when there are no Agent users."""
+        """
+        Test that a warning is shown when there are no Agent users.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+        """
         # Make sure there are no agent users here
         assert count_agent_users() == 0
 
@@ -316,7 +364,12 @@ class TestAdminSpecificHomePageWarnings:
         self,
         client: Client,
     ) -> None:
-        """Test that there is no warning for no Agent users when I am not admin."""
+        """
+        Test that there is no warning for no Agent users when I am not an admin.
+
+        Args:
+            client (Client): A general test client, not configured as an admin.
+        """
         # Make sure there are no agent users in the system
         assert count_agent_users() == 0
 

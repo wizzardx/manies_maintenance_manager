@@ -17,11 +17,17 @@ from model_utils.models import UUIDModel
 
 class User(AbstractUser, UUIDModel):
     """
-    Default custom user model for Marnie's Maintenance Manager.
+    Ensure that an Agent user can only exist if Marnie exists.
 
-    If adding fields that need to be filled at user signup, check forms.SignupForm
-    and forms.SocialSignupForms accordingly.
+    Validates that if the user has the 'is_agent' flag set to True,
+    a user designated as 'Marnie' must also exist within the system.
+    If this condition is not met, a ValidationError is raised.
 
+    Returns:
+        dict: A dictionary containing the cleaned (normalized) data.
+
+    Raises:
+        ValidationError: If 'is_agent' is True and no Marnie user exists.
     """
 
     # First and last name do not cover name patterns around the globe
@@ -55,7 +61,19 @@ class User(AbstractUser, UUIDModel):
         return reverse("users:detail", kwargs={"username": self.username})
 
     def clean(self) -> None:
-        """Ensure that an Agent user can only exist if Marnie exists."""
+        """
+        Ensure that an Agent user can only exist if Marnie exists.
+
+        Validates that if the user has the 'is_agent' flag set to True,
+        a user designated as 'Marnie' must also exist within the system.
+        If this condition is not met, a ValidationError is raised.
+
+        Returns:
+            dict: A dictionary containing the cleaned (normalized) data.
+
+        Raises:
+            ValidationError: If 'is_agent' is True and no Marnie user exists.
+        """
         cleaned_data = super().clean()
 
         # If is_agent is set to True, then ensure that a Marnie user exists on the

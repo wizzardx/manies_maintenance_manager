@@ -53,9 +53,13 @@ class UserUpdateView(
 
     def get_success_url(self) -> str:
         """
-        Get the URL to redirect to after a successful update.
+        Return the URL to redirect to after a successful profile update.
 
-        Returns the URL for the user's detailed profile view.
+        Constructs the URL for the user's detailed profile view based on their
+        authenticated status.
+
+        Returns:
+            str: The URL to redirect to the user's detailed profile view.
         """
         # for mypy to know that the user is authenticated
         assert self.request.user.is_authenticated  # nosec B101
@@ -63,10 +67,16 @@ class UserUpdateView(
 
     def get_object(self) -> User:  # type: ignore[override]
         """
-        Retrieve the object that this view will display.
+        Retrieve and return the current user's profile.
 
-        Ensures the user is authenticated and returns the current user's
-        profile. Raises ValueError if an unauthenticated user is encountered.
+        Ensures that the user is authenticated before retrieving their profile.
+        If the user is not authenticated, this method raises a ValueError.
+
+        Returns:
+            User: The profile of the currently authenticated user.
+
+        Raises:
+            ValueError: If the user is not authenticated.
         """
         if isinstance(self.request.user, AnonymousUser):
             raise ValueError("User must be authenticated")  # noqa: EM101,TRY003,TRY004
@@ -88,10 +98,14 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
     def get_redirect_url(self) -> str:
         """
-        Determine the URL to redirect the user to.
+        Return the URL for the user's detailed profile view.
 
-        Redirects to the detailed user profile page based on the logged-in
-        user's username.
+        Determines and returns the URL based on the logged-in user's username.
+        This method constructs the URL by reversing the 'users:detail' view
+        with the current user's username as a keyword argument.
+
+        Returns:
+            str: The URL to redirect to the user's detailed profile view.
         """
         return reverse("users:detail", kwargs={"username": self.request.user.username})
 

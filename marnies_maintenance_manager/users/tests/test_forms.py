@@ -13,6 +13,9 @@ class TestUserAdminCreationForm:
         """
         Verify username uniqueness validation for UserAdminCreationForm.
 
+        Args:
+            user (User): A user instance used to test username uniqueness.
+
         Ensures that:
         1) A new user with an existing username cannot be added.
         2) Only 1 error is raised by the form.

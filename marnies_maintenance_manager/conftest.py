@@ -19,19 +19,31 @@ def _media_storage(
     settings: pytest_django.fixtures.SettingsWrapper,
     tmpdir: py.path.local,
 ) -> None:
+    """
+    Automatically set the MEDIA_ROOT in Django settings to a temporary directory.
+
+    Args:
+        settings (SettingsWrapper): Pytest fixture that provides Django settings.
+        tmpdir (py.path.local): Pytest fixture that provides a temporary directory path
+                                object.
+    """
     settings.MEDIA_ROOT = tmpdir.strpath
 
 
 # noinspection PyUnusedLocal
 @pytest.fixture()
 def user(db: None) -> User:
-    """Provide a User instance from the UserFactory for use in tests.
+    """
+    Provide a User instance from the UserFactory for use in tests.
 
     This fixture depends on the database fixture and returns a new user instance
     generated through the UserFactory.
 
+    Args:
+        db (None): Fixture to ensure the database is accessible.
+
     Returns:
-        A new User instance.
+        User: A new User instance created by the UserFactory.
     """
     return UserFactory()
 
@@ -82,8 +94,11 @@ def bob_agent_user(django_user_model: type[User]) -> User:
     """
     Create a user fixture named 'bob' for testing job creation and login.
 
-    This fixture uses the Django user model to create a user and associated
-    email address, setting up a typical user environment for tests.
+    Args:
+        django_user_model (type[User]): The Django User model.
+
+    Returns:
+        User: A Django User instance configured as an agent, named 'bob'.
     """
     return _make_user(django_user_model, "bob", is_agent=True)
 
@@ -93,8 +108,11 @@ def peter_agent_user(django_user_model: type[User]) -> User:
     """
     Create a user fixture named 'peter' for testing job creation and login.
 
-    This fixture uses the Django user model to create a user and associated
-    email address, setting up a typical user environment for tests.
+    Args:
+        django_user_model (type[User]): The Django User model.
+
+    Returns:
+        User: A Django User instance configured as an agent, named 'peter'.
     """
     return _make_user(django_user_model, "peter", is_agent=True)
 
@@ -104,8 +122,11 @@ def marnie_user(django_user_model: type[User]) -> User:
     """
     Create a user fixture named 'marnie' for testing job creation and login.
 
-    This fixture uses the Django user model to create a user and associated
-    email address, setting up a typical user environment for tests.
+    Args:
+        django_user_model (type[User]): The Django User model.
+
+    Returns:
+        User: A Django User instance configured as 'marnie', without agent privileges.
     """
     return _make_user(django_user_model, "marnie", is_marnie=True)
 
@@ -115,12 +136,11 @@ def superuser_user(django_user_model: type[User]) -> User:
     """
     Create a superuser fixture for testing administrative privileges.
 
-    This fixture leverages the Django user model to generate a superuser
-    for use in tests that require administrative access. The user is set
-    with a username of 'admin' and typical superuser permissions.
+    Args:
+        django_user_model (type[User]): The Django User model.
 
     Returns:
-        User: A Django user instance with superuser privileges.
+        User: A Django User instance with superuser privileges, named 'admin'.
     """
     return _make_user(django_user_model, "admin", is_superuser=True)
 

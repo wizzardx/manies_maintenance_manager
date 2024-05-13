@@ -9,7 +9,15 @@ from marnies_maintenance_manager.users.models import User
 
 
 def test_user_get_absolute_url(user: User) -> None:
-    """Verify that the User model's get_absolute_url method returns the correct URL."""
+    """
+    Verify the correct URL is returned by the User model's get_absolute_url.
+
+    Args:
+        user (User): A user instance to test URL generation.
+
+    Asserts that the get_absolute_url method returns the expected URL,
+    formatted as "/users/{username}/".
+    """
     assert user.get_absolute_url() == f"/users/{user.username}/"
 
 
@@ -72,7 +80,15 @@ def _create_marnie_user(django_user_model: type[User]) -> User:
 def test_is_agent_invalid_when_no_marnie_user_present(
     django_user_model: type[User],
 ) -> None:
-    """Verify that an Agent user cannot exist without a Marnie user."""
+    """
+    Ensure an Agent user cannot exist without a Marnie user.
+
+    Args:
+        django_user_model (type[User]): The User model used to create users.
+
+    Verifies that creating an Agent user without a Marnie user in existence
+    raises a ValidationError, enforcing the business rule.
+    """
     # Create a new agent user, and confirm an error because there is no Marnie user
     bob = _create_bob_agent_user(django_user_model)
     with pytest.raises(ValidationError) as err:
@@ -86,7 +102,16 @@ def test_is_agent_valid_when_marnie_user_is_present(
     django_user_model: type[User],
     marnie_user: User,
 ) -> None:
-    """Verify that an Agent user can exist when a Marnie user is present."""
+    """
+    Confirm that an Agent user can exist with a Marnie user present.
+
+    Args:
+        django_user_model (type[User]): Model for creating user instances.
+        marnie_user (User): A Marnie user instance from a fixture.
+
+    Tests successful Agent user creation and validation when a Marnie user
+    exists, using the relevant user fixtures.
+    """
     # We have a Marnie user from our fixture, so creating an Agent user should work.
     bob = _create_bob_agent_user(django_user_model)
     bob.full_clean()
@@ -94,7 +119,15 @@ def test_is_agent_valid_when_marnie_user_is_present(
 
 @pytest.mark.django_db()
 def test_user_model_has_uuid_id(user: User) -> None:
-    """Verify that the User model has a UUID as the primary key."""
+    """
+    Verify that the User model's primary key is a UUID.
+
+    Args:
+        user (User): A user instance generated through the 'user' fixture,
+                     which uses the UserFactory to create a User model instance.
+
+    Confirms that the ID of a User model instance is of type UUID.
+    """
     assert isinstance(
         user.id,
         uuid.UUID,
