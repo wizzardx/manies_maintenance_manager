@@ -45,3 +45,11 @@ pytest \
     marnies_maintenance_manager/jobs \
     marnies_maintenance_manager/users \
     --ff --maxfail=1 --showlocals --durations=10
+
+# If we got this far, then there were no test erors. Now we can clear some data from
+# the pytest cache so that we don't -repeatedly get warnings like this:
+# "run-last-failure: 16 known failures not in selected tests"
+if [ -f .pytest_cache/v/cache/lastfailed ]; then
+    echo "Removing a pytest cache file to stop getting now-obsolete messages"
+    rm -vf .pytest_cache/v/cache/lastfailed
+fi
