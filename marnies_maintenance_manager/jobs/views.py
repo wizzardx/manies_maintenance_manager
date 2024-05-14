@@ -49,6 +49,9 @@ USER_COUNT_PROBLEM_MESSAGES = {
 
 USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES = {
     "NO_EMAIL_ADDRESS": "WARNING: User {username} has no email address.",
+    "NO_VALIDATED_EMAIL_ADDRESS": (
+        "WARNING: User {username} has not validated their email address."
+    ),
 }
 
 
@@ -338,6 +341,23 @@ class _UserInfo:
             list[User]: A list of all users in the system.
         """
         return list(User.objects.all())
+
+    @staticmethod
+    def users_with_no_validated_email_address() -> list[User]:
+        """
+        Get all users with no validated email address.
+
+        Returns:
+            list[User]: A list of all users with no validated email address.
+        """
+        users = cast(QuerySet[User], User.objects.all())
+        return [
+            user
+            for user in users
+            if not user.emailaddress_set.filter(  # type: ignore[attr-defined]
+                verified=True,
+            ).exists()
+        ]
 
 
 def home_page(request: HttpRequest) -> HttpResponse:
