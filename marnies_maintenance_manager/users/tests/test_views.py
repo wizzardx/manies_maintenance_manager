@@ -107,12 +107,14 @@ class TestUserUpdateView:
 
         # Add the session/message middleware to the request
         (
-            SessionMiddleware(self.dummy_get_response).  # type: ignore[arg-type]
-            process_request(request)
+            SessionMiddleware(
+                self.dummy_get_response,  # type: ignore[arg-type]
+            ).process_request(request)
         )
         (
-            MessageMiddleware(self.dummy_get_response).  # type: ignore[arg-type]
-            process_request(request)
+            MessageMiddleware(
+                self.dummy_get_response,  # type: ignore[arg-type]
+            ).process_request(request)
         )
         request.user = user
 

@@ -3,6 +3,7 @@ To understand why this file is here, please read:
 
 http://cookiecutter-django.readthedocs.io/en/latest/faq.html#why-is-there-a-django-contrib-sites-directory-in-cookiecutter-django
 """
+
 from django.conf import settings
 from django.db import migrations
 
@@ -27,7 +28,7 @@ def _update_or_create_site_with_sequence(site_model, connection, domain, name):
         # David: To speed things up, my unit test scripts sometimes use SQLite.
         # However, the logic below seems to be PostgreSQL-specific. To be less
         # intrusive, I'm just checking for my special case of 'sqlite' here.
-        if connection.vendor == 'sqlite':
+        if connection.vendor == "sqlite":
             return
         # David: And then everything after this comment runs as before.
 
