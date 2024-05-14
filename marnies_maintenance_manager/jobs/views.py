@@ -47,6 +47,10 @@ USER_COUNT_PROBLEM_MESSAGES = {
     "NO_AGENT_USERS": "WARNING: There are no Agent users.",
 }
 
+USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES = {
+    "NO_EMAIL_ADDRESS": "WARNING: User {username} has no email address.",
+}
+
 
 # pylint: disable=too-many-ancestors
 class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: ignore[type-arg]
@@ -324,6 +328,16 @@ class _UserInfo:
             bool: True if there are no agent users, False otherwise.
         """
         return count_agent_users() == 0
+
+    @staticmethod
+    def users() -> list[User]:
+        """
+        Get all users in the system.
+
+        Returns:
+            list[User]: A list of all users in the system.
+        """
+        return list(User.objects.all())
 
 
 def home_page(request: HttpRequest) -> HttpResponse:

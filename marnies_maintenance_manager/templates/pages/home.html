@@ -8,5 +8,8 @@
     {% if userinfo.has_no_marnie_users %}<p>{{ warnings.NO_MARNIE_USERS }}</p>{% endif %}
     {% if userinfo.has_many_marnie_users %}<p>{{ warnings.MANY_MARNIE_USERS }}</p>{% endif %}
     {% if userinfo.has_no_agent_users %}<p>{{ warnings.NO_AGENT_USERS }}</p>{% endif %}
+    {% for user in userinfo.users %}
+      {% if not user.email %}<p>WARNING: User {{ user.username }} has no email address.</p>{% endif %}
+    {% endfor %}
   {% endif %}
 {% endblock content %}

@@ -30,6 +30,7 @@ from marnies_maintenance_manager.jobs.utils import count_admin_users
 from marnies_maintenance_manager.jobs.utils import count_agent_users
 from marnies_maintenance_manager.jobs.utils import count_marnie_users
 from marnies_maintenance_manager.jobs.views import USER_COUNT_PROBLEM_MESSAGES
+from marnies_maintenance_manager.jobs.views import USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES
 from marnies_maintenance_manager.jobs.views import JobCreateView
 from marnies_maintenance_manager.jobs.views import JobListView
 from marnies_maintenance_manager.users.models import User
@@ -390,3 +391,44 @@ class TestAdminSpecificHomePageWarnings:
             USER_COUNT_PROBLEM_MESSAGES["NO_AGENT_USERS"]
             not in response.content.decode()
         )
+
+    def test_warning_for_users_with_no_email_addresses(
+        self,
+        admin_client: Client,
+    ) -> None:
+        """
+        Test that a warning is shown when there are users with no email addresses.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Create a user with no email address
+        username = "no_email_user"
+        User.objects.create(username=username)
+
+        response = admin_client.get("/")
+        expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES["NO_EMAIL_ADDRESS"]
+        expected_msg = expected_msg_template.format(username=username)
+        assert expected_msg in response.content.decode()
+
+    @pytest.mark.django_db()
+    def test_no_warning_for_users_with_no_email_addresses_when_i_am_not_admin(
+        self,
+        client: Client,
+    ) -> None:
+        """
+        Test for no warning for users with no email addresses when I am not an admin.
+
+        Args:
+            client (Client): A general test client, not configured as an admin.
+        """
+        # Create a user with no email address
+        username = "no_email_user"
+        User.objects.create(username=username)
+
+        response = client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+
+        expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES["NO_EMAIL_ADDRESS"]
+        expected_msg = expected_msg_template.format(username=username)
+        assert expected_msg not in response.content.decode()
