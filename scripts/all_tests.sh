@@ -1,25 +1,54 @@
 #!/bin/bash
 set -e
 
+# # Reset permissions/ownerships on files, our docker logic can set it to be root-owned.
+# echo "Resetting ownerships..."
+# sudo chown david:david . -R
+
+# Run unit tests first, to get useful things setup under .venv.
+echo "Fast unit tests (using sqlite mem, outside of docker)..."
+scripts/unit_tests_outside_docker.sh
+
+# Do the helper script checks over here, because it wants to check the .venv file
+# logic (but the .venv might not exist if the previous line has not yet run)
 echo "Check helper scripts..."
-shellcheck scripts/*.sh
+shellcheck -x scripts/*.sh
+
+# Activate the .venv just setup, to get the correct versions of various testing utils
+# available.
+. .venv/bin/activate
+
+# Run 'black' agains the code, it makes some things a bit faster in the precommit,
+# instead of it taking a long time to run reformats, and then terminate with an
+# error message because it reformatted something.
+echo "Running Black to reformat code..."
+black --line-length 88 marnies_maintenance_manager
 
 echo "Type checks..."
-docker compose -f local.yml exec django mypy --strict marnies_maintenance_manager
+
+# Setup needed environment variables
+export DATABASE_URL=sqlite://:memory:  # Faster than PostgreSQL
+export USE_DOCKER=no
+
+mypy --strict marnies_maintenance_manager
+
+# Reset variable that we no longer need
+unset DATABASE_URL
+unset USE_DOCKER
 
 echo "Pylint..."
-docker compose -f local.yml exec django pylint \
+pylint \
     --django-settings-module=config.settings \
     --output-format=colorized marnies_maintenance_manager/
 
 echo "Running pre-commit checks..."
 pre-commit run --all-files
 
+# Done with tools from under the python venv, so deactivate that now.
+deactivate
+
 echo "Running Django's system checks..."
 docker compose -f local.yml exec django python manage.py check
-
-echo "Fast unit tests (using sqlite mem, outside of docker)..."
-scripts/unit_tests_outside_docker.sh
 
 echo "Unit and functional tests (under docker), with coverage..."
 docker compose -f local.yml exec django coverage run --rcfile=.coveragerc -m pytest --showlocals
