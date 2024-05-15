@@ -6,7 +6,7 @@ import subprocess  # nosec
 import sys
 
 
-def check_outdated_packages(ignore_list):
+def check_outdated_packages(ignore_list: list[str]) -> int:
     """
     Check for outdated pip packages and return an appropriate exit code.
 
@@ -52,7 +52,7 @@ def check_outdated_packages(ignore_list):
     return 0
 
 
-def main():
+def main() -> None:
     """Parse command-line arguments and check for outdated pip packages."""
     parser = argparse.ArgumentParser(description="Check for outdated pip packages")
     parser.add_argument(

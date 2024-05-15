@@ -22,7 +22,7 @@ shellcheck -x scripts/*.sh
 # instead of it taking a long time to run reformats, and then terminate with an
 # error message because it reformatted something.
 echo "Running Black to reformat code..."
-black --line-length 88 marnies_maintenance_manager
+black --line-length 88 .
 
 echo "Type checks..."
 
@@ -30,7 +30,7 @@ echo "Type checks..."
 export DATABASE_URL=sqlite://:memory:  # Faster than PostgreSQL
 export USE_DOCKER=no
 
-mypy --strict marnies_maintenance_manager
+mypy --strict .
 
 # Reset variable that we no longer need
 unset DATABASE_URL
@@ -39,7 +39,12 @@ unset USE_DOCKER
 echo "Pylint..."
 pylint \
     --django-settings-module=config.settings \
-    --output-format=colorized marnies_maintenance_manager/
+    --output-format=colorized \
+        config/ scripts/ marnies_maintenance_manager/ \
+        docs/ \
+        tests/ \
+        manage.py \
+        merge_production_dotenvs_in_dotenv.py
 
 echo "Running pre-commit checks..."
 pre-commit run --all-files

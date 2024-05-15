@@ -28,7 +28,7 @@ def test_merge(
     tmp_path: Path,
     input_contents: list[str],
     expected_output: str,
-):
+) -> None:
     """
     Test merging multiple dotenv files into a single .env file.
 

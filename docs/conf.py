@@ -1,21 +1,65 @@
 # ruff: noqa
-# Configuration file for the Sphinx documentation builder.
-#
-# This file only contains a selection of the most common options. For a full
-# list see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Path setup --------------------------------------------------------------
+"""
+Configuration file for the Sphinx documentation builder.
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
+This file sets up the configuration for building the Sphinx documentation for
+the "Marnie's Maintenance Manager" project. It includes path setup, project
+information, and general configuration options.
+
+- For a full list of configuration options, see:
+  https://www.sphinx-doc.org/en/master/usage/configuration.html
+
+Path Setup:
+- Adds necessary directories to sys.path based on the environment (local or Read the
+  Docs).
+- Sets up Django environment variables and initializes Django settings.
+
+Project Information:
+- Project: "Marnie's Maintenance Manager"
+- Author: David Purdy
+- Copyright: 2024, David Purdy
+
+General Configuration:
+- Extensions: sphinx.ext.autodoc, sphinx.ext.napoleon
+- Templates path: _templates (commented out)
+- Exclude patterns: _build, Thumbs.db, .DS_Store
+
+HTML Output Options:
+- Theme: alabaster
+- Custom static files path: _static (commented out)
+
+Attributes:
+    project (str): The name of the project.
+    copyright (str): Copyright information.
+    author (str): The name of the author.
+    extensions (list): List of Sphinx extensions to be used.
+    exclude_patterns (list): List of patterns to exclude from the documentation build.
+    html_theme (str): The theme to use for HTML output.
+
+Environment Variables:
+    DATABASE_URL (str): URL for the database.
+    DJANGO_SETTINGS_MODULE (str): Django settings module to use.
+    DJANGO_READ_DOT_ENV_FILE (str): Flag to read .env file for Django.
+    USE_DOCKER (str): Flag to determine if Docker is used.
+
+Imports:
+    os: Provides a portable way of using operating system-dependent functionality.
+    sys: Provides access to some variables used or maintained by the Python interpreter.
+    django: High-level Python web framework that encourages rapid development and
+            clean, pragmatic design.
+
+Example:
+    To build the documentation, run:
+        $ make html
+
+"""
 
 import os
 import sys
 import django
 
-if os.getenv("READTHEDOCS", default=False) == "True":
+if os.getenv("READTHEDOCS", default="False") == "True":
     sys.path.insert(0, os.path.abspath(".."))
     os.environ["DJANGO_READ_DOT_ENV_FILE"] = "True"
     os.environ["USE_DOCKER"] = "no"
@@ -27,8 +71,9 @@ django.setup()
 
 # -- Project information -----------------------------------------------------
 
+# pylint: disable=invalid-name
 project = "Marnie's Maintenance Manager"
-copyright = """2024, David Purdy"""
+copyright = """2024, David Purdy"""  # pylint: disable=redefined-builtin
 author = "David Purdy"
 
 

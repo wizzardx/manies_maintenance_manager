@@ -1,5 +1,6 @@
 """With these settings, tests run faster."""
 
+# pylint: disable=wildcard-import, unused-wildcard-import
 from .base import *  # noqa: F403
 from .base import TEMPLATES
 from .base import env
