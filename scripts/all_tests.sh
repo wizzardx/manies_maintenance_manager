@@ -37,14 +37,12 @@ unset DATABASE_URL
 unset USE_DOCKER
 
 echo "Pylint..."
-pylint \
-    --django-settings-module=config.settings \
-    --output-format=colorized \
-        config/ scripts/ marnies_maintenance_manager/ \
-        docs/ \
-        tests/ \
-        manage.py \
-        merge_production_dotenvs_in_dotenv.py
+
+# Find all Python files in the current directory and subdirectories, excluding hidden directories and migration files
+mapfile -t files < <(find . -type f -name "*.py" ! -path "*/.*/*" ! -path "*/migrations/*")
+
+# Run pylint with the dynamically found files
+pylint --django-settings-module=config.settings --output-format=colorized "${files[@]}"
 
 echo "Running pre-commit checks..."
 pre-commit run --all-files
