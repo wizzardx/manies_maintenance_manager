@@ -50,7 +50,9 @@ echo "Check for security issues..."
 # using the latest available versions of the affected PyPI packages.
 safety check --ignore 51457,67599
 
+
 # Done with tools from under the python venv, so deactivate that now.
+echo "Deactivate python virtualenv."
 deactivate
 
 echo "Running Django's system checks..."
