@@ -19,8 +19,7 @@ class UserAdminChangeForm(admin_forms.UserChangeForm):  # type: ignore[type-arg]
 
 # pylint: disable=too-many-ancestors
 class UserAdminCreationForm(admin_forms.UserCreationForm):  # type: ignore[type-arg]
-    """
-    Form for User Creation in the Admin Area.
+    """Form for User Creation in the Admin Area.
 
     To change user signup, see UserSignupForm and UserSocialSignupForm.
     """
@@ -35,8 +34,7 @@ class UserAdminCreationForm(admin_forms.UserCreationForm):  # type: ignore[type-
 
 
 class UserSignupForm(SignupForm):  # type: ignore[misc]
-    """
-    Form that will be rendered on a user sign up section/screen.
+    """Form that will be rendered on a user sign up section/screen.
 
     Default fields will be added automatically.
     Check UserSocialSignupForm for accounts created from social.
@@ -44,8 +42,7 @@ class UserSignupForm(SignupForm):  # type: ignore[misc]
 
 
 class UserSocialSignupForm(SocialSignupForm):  # type: ignore[misc]
-    """
-    Renders the form when user has signed up using social accounts.
+    """Renders the form when user has signed up using social accounts.
 
     Default fields will be added automatically.
     See UserSignupForm otherwise.

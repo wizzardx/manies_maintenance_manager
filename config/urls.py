@@ -52,6 +52,7 @@ if settings.DEBUG:
         ),
         path("500/", default_views.server_error),
     ]
+    # pylint: disable=magic-value-comparison
     if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
 

@@ -98,7 +98,7 @@ AWS_S3_CUSTOM_DOMAIN = env("DJANGO_AWS_S3_CUSTOM_DOMAIN", default=None)
 aws_s3_domain = AWS_S3_CUSTOM_DOMAIN or f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 # STATIC & MEDIA
 # ------------------------
-STORAGES = {
+STORAGES = {  # pylint: disable=consider-using-namedtuple-or-dataclass
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },

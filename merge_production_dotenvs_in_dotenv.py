@@ -1,7 +1,6 @@
 # ruff: noqa
 
-"""
-Merge dotenv files for production into a single .env file.
+"""Merge dotenv files for production into a single .env file.
 
 This module is responsible for combining separate dotenv configuration files
 for different parts of the application (like Django and Postgres) into a single
@@ -25,8 +24,7 @@ def merge(
     output_file: Path,
     files_to_merge: Sequence[Path],
 ) -> None:
-    """
-    Merge multiple dotenv files into a single dotenv file.
+    """Merge multiple dotenv files into a single dotenv file.
 
     Args:
         output_file (Path): The path where the merged dotenv file will be saved.

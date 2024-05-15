@@ -1,5 +1,4 @@
-"""
-User view module for Marnie's Maintenance Manager.
+"""User view module for Marnie's Maintenance Manager.
 
 This module defines views for user interactions such as viewing user details,
 updating user information, and redirecting to specific user pages, ensuring
@@ -19,8 +18,7 @@ from marnies_maintenance_manager.users.models import User
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):  # type: ignore[type-arg]
-    """
-    Display the detailed view of a user profile.
+    """Display the detailed view of a user profile.
 
     This view requires the user to be logged in and displays detailed
     information based on the username provided in the URL.
@@ -39,8 +37,7 @@ class UserUpdateView(
     SuccessMessageMixin,  # type: ignore[type-arg]
     UpdateView,  # type: ignore[type-arg]
 ):
-    """
-    Handle updates to a user's profile information.
+    """Handle updates to a user's profile information.
 
     This view updates the user's profile, handles the form submission, and
     displays a success message upon update. It ensures that the user updating
@@ -52,8 +49,7 @@ class UserUpdateView(
     success_message = _("Information successfully updated")
 
     def get_success_url(self) -> str:
-        """
-        Return the URL to redirect to after a successful profile update.
+        """Return the URL to redirect to after a successful profile update.
 
         Constructs the URL for the user's detailed profile view based on their
         authenticated status.
@@ -67,8 +63,7 @@ class UserUpdateView(
 
     # pylint: disable=arguments-differ
     def get_object(self) -> User:  # type: ignore[override]
-        """
-        Retrieve and return the current user's profile.
+        """Retrieve and return the current user's profile.
 
         Ensures that the user is authenticated before retrieving their profile.
         If the user is not authenticated, this method raises a ValueError.
@@ -88,8 +83,7 @@ user_update_view = UserUpdateView.as_view()
 
 
 class UserRedirectView(LoginRequiredMixin, RedirectView):
-    """
-    Redirect users to their detailed profile view.
+    """Redirect users to their detailed profile view.
 
     This view automatically redirects logged-in users to their own user detail
     page, improving the user navigation experience.
@@ -98,8 +92,7 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
     permanent = False
 
     def get_redirect_url(self) -> str:  # pylint: disable=arguments-differ
-        """
-        Return the URL for the user's detailed profile view.
+        """Return the URL for the user's detailed profile view.
 
         Determines and returns the URL based on the logged-in user's username.
         This method constructs the URL by reversing the 'users:detail' view

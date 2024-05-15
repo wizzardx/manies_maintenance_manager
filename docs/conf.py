@@ -1,7 +1,6 @@
 # ruff: noqa
 
-"""
-Configuration file for the Sphinx documentation builder.
+"""Configuration file for the Sphinx documentation builder.
 
 This file sets up the configuration for building the Sphinx documentation for
 the "Marnie's Maintenance Manager" project. It includes path setup, project
@@ -59,7 +58,11 @@ import os
 import sys
 import django
 
-if os.getenv("READTHEDOCS", default="False") == "True":
+# pylint: disable=magic-value-comparison
+
+if (
+    os.getenv("READTHEDOCS", default="False") == "True"
+):  # pylint: disable=magic-value-comparison
     sys.path.insert(0, os.path.abspath(".."))
     os.environ["DJANGO_READ_DOT_ENV_FILE"] = "True"
     os.environ["USE_DOCKER"] = "no"
@@ -99,7 +102,6 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
 html_theme = "alabaster"
 
 # Add any paths that contain custom static files (such as style sheets) here,

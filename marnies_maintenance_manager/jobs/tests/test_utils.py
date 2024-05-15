@@ -17,13 +17,13 @@ from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
 from marnies_maintenance_manager.users.models import User
 
 
+# pylint: disable=no-self-use, magic-value-comparison
 @pytest.mark.django_db()
 class TestGetMarnieEmail:
     """Tests for the get_marnie_email utility function."""
 
     def test_gets_marnie_user_email(self, marnie_user: User) -> None:
-        """
-        Test that the email address for Marnie is returned.
+        """Test that the email address for Marnie is returned.
 
         Args:
             marnie_user (User): A user instance representing Marnie, expected to be
@@ -42,8 +42,7 @@ class TestGetMarnieEmail:
         marnie_user: User,
         bob_agent_user: User,
     ) -> None:
-        """
-        Test that an exception is raised when there are multiple Marnie users.
+        """Test that an exception is raised when there are multiple Marnie users.
 
         Args:
             marnie_user (User): A user instance representing Marnie.
@@ -66,8 +65,7 @@ class TestGetSystemAdministratorEmail:
     """Tests for the get_sysadmin_email utility function."""
 
     def test_gets_sysadmin_user_email(self, admin_user: User) -> None:
-        """
-        Test that the email address for the system administrator is returned.
+        """Test that the email address for the system administrator is returned.
 
         Args:
             admin_user (User): A user instance representing an admin, expected to be
@@ -90,8 +88,7 @@ class TestGetSystemAdministratorEmail:
         marnie_user: User,
         caplog: pytest.LogCaptureFixture,
     ) -> None:
-        """
-        Verify function operates with multiple sysadmin users and logs a warning.
+        """Verify function operates with multiple sysadmin users and logs a warning.
 
         Args:
             admin_user (User): A user instance representing an admin.
@@ -118,8 +115,7 @@ class TestGetSystemAdministratorEmail:
         self,
         caplog: pytest.LogCaptureFixture,
     ) -> None:
-        """
-        Test the logical error handling for impossible sysadmin count.
+        """Test the logical error handling for impossible sysadmin count.
 
         Args:
             caplog (pytest.LogCaptureFixture): Fixture to capture log outputs for
@@ -143,8 +139,7 @@ class TestFirstOrError:
     """Tests for the first_or_error utility function."""
 
     def test_gets_first_object(self, admin_user: User, marnie_user: User) -> None:
-        """
-        Test that the first object in a queryset is returned.
+        """Test that the first object in a queryset is returned.
 
         Args:
             admin_user (User): An admin user included in the queryset.

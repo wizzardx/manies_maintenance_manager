@@ -1,6 +1,5 @@
 # pylint: disable=duplicate-code
-"""
-Tests for HTML content validation in Marnie's Maintenance Manager application views.
+"""Tests for HTML content validation in Marnie's Maintenance Manager application views.
 
 This module checks the HTML content returned by various views in the Marnie's
 Maintenance Manager application. It covers tests for the home page, maintenance jobs
@@ -38,7 +37,7 @@ from marnies_maintenance_manager.users.models import User
 HTTP_SUCCESS_STATUS_CODE = 200
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments, no-self-use, magic-value-comparison
 def _run_shared_logic(  # noqa: PLR0913
     client: Client,
     url: str,
@@ -90,8 +89,7 @@ def _run_shared_logic(  # noqa: PLR0913
 
 @pytest.mark.django_db()
 def test_home_page_returns_correct_html(client: Client) -> None:
-    """
-    Verify that the home page renders correctly.
+    """Verify that the home page renders correctly.
 
     Args:
         client (Client): Django test client used to make requests.
@@ -112,8 +110,7 @@ def test_home_page_returns_correct_html(client: Client) -> None:
 def test_maintenance_jobs_page_returns_correct_html(
     bob_agent_user_client: Client,
 ) -> None:
-    """
-    Verify the maintenance jobs page loads with the correct HTML.
+    """Verify the maintenance jobs page loads with the correct HTML.
 
     Args:
         bob_agent_user_client (Client): A test client for user Bob who is an agent.
@@ -153,8 +150,7 @@ def test_maintenance_jobs_page_returns_correct_html(
 def test_create_maintenance_job_page_returns_correct_html(
     bob_agent_user_client: Client,
 ) -> None:
-    """
-    Ensure the create maintenance job page returns the expected HTML content.
+    """Ensure the create maintenance job page returns the expected HTML content.
 
     Args:
         bob_agent_user_client (Client): A test client for user Bob who is an agent.
@@ -175,8 +171,7 @@ class TestAdminSpecificHomePageWarnings:
     """Tests for the home page warnings related to Admin users."""
 
     def test_warning_for_no_admin_user(self, bob_agent_user_client: Client) -> None:
-        """
-        Test that a warning is shown when there are no Admin users.
+        """Test that a warning is shown when there are no Admin users.
 
         Args:
             bob_agent_user_client (Client): A test client configured for Bob, an agent
@@ -198,8 +193,7 @@ class TestAdminSpecificHomePageWarnings:
         peter_agent_user: User,
         admin_client: Client,
     ) -> None:
-        """
-        Test that a warning is shown when there are multiple Admin users.
+        """Test that a warning is shown when there are multiple Admin users.
 
         Args:
             admin_client (Client): A test client with admin privileges.
@@ -227,8 +221,7 @@ class TestAdminSpecificHomePageWarnings:
         peter_agent_user: User,
         bob_agent_user_client: Client,
     ) -> None:
-        """
-        Ensure no admin user multiple warning when not admin.
+        """Ensure no admin user multiple warning when not admin.
 
         Args:
             admin_user (User): An admin user instance.
@@ -250,8 +243,7 @@ class TestAdminSpecificHomePageWarnings:
         )
 
     def test_warning_for_no_marnie_user(self, admin_client: Client) -> None:
-        """
-        Test that a warning is shown when there are no Marnie users.
+        """Test that a warning is shown when there are no Marnie users.
 
         Args:
             admin_client (Client): A test client with admin privileges.
@@ -269,8 +261,7 @@ class TestAdminSpecificHomePageWarnings:
         self,
         bob_agent_user_client: Client,
     ) -> None:
-        """
-        Test that there is no warning for no Marnie users when the user is not an admin.
+        """Test there is no warning for no Marnie users when the user is not an admin.
 
         Args:
             bob_agent_user_client (Client): A test client configured for Bob, who is an
@@ -295,8 +286,7 @@ class TestAdminSpecificHomePageWarnings:
         bob_agent_user: User,
         admin_client: Client,
     ) -> None:
-        """
-        Test that a warning is shown when there are multiple Marnie users.
+        """Test that a warning is shown when there are multiple Marnie users.
 
         Args:
             admin_client (Client): A test client with admin privileges.
@@ -322,8 +312,7 @@ class TestAdminSpecificHomePageWarnings:
         bob_agent_user: User,
         bob_agent_user_client: Client,
     ) -> None:
-        """
-        Ensure no Marnie user multiple warning when not an admin.
+        """Ensure no Marnie user multiple warning when not an admin.
 
         Args:
             bob_agent_user (User): User instance for Bob, marked as a Marnie user.
@@ -351,8 +340,7 @@ class TestAdminSpecificHomePageWarnings:
         )
 
     def test_warning_for_no_agent_users(self, admin_client: Client) -> None:
-        """
-        Test that a warning is shown when there are no Agent users.
+        """Test that a warning is shown when there are no Agent users.
 
         Args:
             admin_client (Client): A test client with admin privileges.
@@ -371,8 +359,7 @@ class TestAdminSpecificHomePageWarnings:
         self,
         client: Client,
     ) -> None:
-        """
-        Test that there is no warning for no Agent users when I am not an admin.
+        """Test that there is no warning for no Agent users when I am not an admin.
 
         Args:
             client (Client): A general test client, not configured as an admin.
@@ -396,8 +383,7 @@ class TestAdminSpecificHomePageWarnings:
         self,
         admin_client: Client,
     ) -> None:
-        """
-        Test that a warning is shown when there are users with no email addresses.
+        """Test that a warning is shown when there are users with no email addresses.
 
         Args:
             admin_client (Client): A test client with admin privileges.
@@ -416,8 +402,7 @@ class TestAdminSpecificHomePageWarnings:
         self,
         client: Client,
     ) -> None:
-        """
-        Test for no warning for users with no email addresses when I am not an admin.
+        """Test for no warning for users with no email addresses when I am not an admin.
 
         Args:
             client (Client): A general test client, not configured as an admin.
@@ -437,8 +422,7 @@ class TestAdminSpecificHomePageWarnings:
         self,
         admin_client: Client,
     ) -> None:
-        """
-        Test warning for users with unvalidated email addresses.
+        """Test warning for users with unvalidated email addresses.
 
         Args:
             admin_client (Client): A test client with admin privileges.
@@ -459,8 +443,7 @@ class TestAdminSpecificHomePageWarnings:
 
     @pytest.mark.django_db()
     def test_no_warning_unvalidated_email_non_admin(self, client: Client) -> None:
-        """
-        Test warning for users with unvalidated email addresses.
+        """Test warning for users with unvalidated email addresses.
 
         Args:
             client (Client): A test client.
@@ -485,8 +468,7 @@ class TestAdminSpecificHomePageWarnings:
         superuser_client: Client,
         bob_agent_user: User,
     ) -> None:
-        """
-        Test no warning for validated email addresses when user is an admin.
+        """Test no warning for validated email addresses when user is an admin.
 
         Args:
             superuser_user (User): A superuser instance with validated email address.

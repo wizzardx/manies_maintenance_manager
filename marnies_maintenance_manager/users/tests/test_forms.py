@@ -5,6 +5,8 @@ from django.utils.translation import gettext_lazy as _
 from marnies_maintenance_manager.users.forms import UserAdminCreationForm
 from marnies_maintenance_manager.users.models import User
 
+# pylint: disable=magic-value-comparison, no-self-use
+
 
 class TestUserAdminCreationForm:
     """Test class for all tests related to the UserAdminCreationForm."""
@@ -12,8 +14,7 @@ class TestUserAdminCreationForm:
     # pylint: disable=too-few-public-methods
 
     def test_username_validation_error_msg(self, user: User) -> None:
-        """
-        Verify username uniqueness validation for UserAdminCreationForm.
+        """Verify username uniqueness validation for UserAdminCreationForm.
 
         Args:
             user (User): A user instance used to test username uniqueness.

@@ -1,5 +1,4 @@
-"""
-View functions for the jobs module in the Marnie's Maintenance Manager application.
+"""View functions for the jobs module in the Marnie's Maintenance Manager application.
 
 This module contains view functions that handle requests for listing maintenance jobs
 and creating new maintenance jobs. Each view function renders an HTML template that
@@ -57,8 +56,7 @@ USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES = {
 
 # pylint: disable=too-many-ancestors
 class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: ignore[type-arg]
-    """
-    Display a list of all Maintenance Jobs.
+    """Display a list of all Maintenance Jobs.
 
     This view extends Django's ListView class to display a list of all maintenance jobs
     in the system. It uses the 'jobs/job_list.html' template.
@@ -68,8 +66,7 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
     template_name = "jobs/job_list.html"
 
     def test_func(self) -> bool:
-        """
-        Check if the user is an agent, or Marnie, or a superuser.
+        """Check if the user is an agent, or Marnie, or a superuser.
 
         Returns:
             bool: True if the user has the required permissions, False otherwise.
@@ -83,8 +80,7 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
         *args: int,
         **kwargs: int,
     ) -> HttpResponseBase:
-        """
-        Handle exceptions in dispatch and provide appropriate responses.
+        """Handle exceptions in dispatch and provide appropriate responses.
 
         Enhances the default dispatch method by catching ValueError exceptions
         and returning a bad request response with the error message.
@@ -103,8 +99,7 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
             return HttpResponseBadRequest(str(e))
 
     def get_queryset(self) -> QuerySet[Job]:
-        """
-        Filter Job instances by user's role and optional query parameters.
+        """Filter Job instances by user's role and optional query parameters.
 
         Returns:
             QuerySet[Job]: The queryset of Job instances.
@@ -116,42 +111,41 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
 
         if user.is_marnie:
             agent_username = self.request.GET.get("agent")
-            if not agent_username:
+            if not agent_username:  # pylint: disable=consider-using-assignment-expr
                 msg = "Agent username parameter is missing"
                 raise ValueError(msg)
             try:
                 agent = User.objects.get(username=agent_username)
-                return Job.objects.filter(agent=agent)
             except User.DoesNotExist as err:
                 msg = "Agent username not found"
                 raise ValueError(msg) from err
-        elif user.is_agent:
+            return Job.objects.filter(agent=agent)
+
+        if user.is_agent:
             # For agents, we return all jobs that they initially created
             return Job.objects.filter(agent=user)
-        elif user.is_superuser:  # pragma: no branch
-            agent_username = self.request.GET.get("agent")
-            if not agent_username:
+
+        if user.is_superuser:  # pragma: no branch
+            if not (agent_username := self.request.GET.get("agent")):
                 # Agent username parameter not provided, so for superuser, return all
                 # jobs.
                 return Job.objects.all()
             try:
                 agent = User.objects.get(username=agent_username)
-                return Job.objects.filter(agent=agent)
             except User.DoesNotExist as err:
                 msg = "Agent username not found"
                 raise ValueError(msg) from err
+            return Job.objects.filter(agent=agent)
 
-        else:  # pragma: no cover
-            # There's no known use cases past this point (they should have been caught
-            # in various other logic branches before logic reaches this point), but
-            # just in case we do somehow reach this point, raise an error:
-            msg = "Unknown user type"
-            raise ValueError(msg)
+        # There's no known use cases past this point (they should have been caught
+        # in various other logic branches before logic reaches this point), but
+        # just in case we do somehow reach this point, raise an error:
+        msg = "Unknown user type"  # pragma: no cover
+        raise ValueError(msg)  # pragma: no cover
 
 
 class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # type: ignore[type-arg]
-    """
-    Provide a form to create a new Maintenance Job.
+    """Provide a form to create a new Maintenance Job.
 
     This view extends Django's CreateView class to create a form for users to input
     details for a new maintenance job. It uses the 'jobs/job_create.html' template.
@@ -163,8 +157,7 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
     success_url = reverse_lazy("jobs:job_list")
 
     def get_form(self, form_class: type[Any] | None = None) -> Any:
-        """
-        Modify the widgets of the form, to use HTML5 date input.
+        """Modify the widgets of the form, to use HTML5 date input.
 
         Args:
             form_class (type[Any], optional): The form class. Defaults to None.
@@ -177,8 +170,7 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         return form
 
     def form_valid(self, form: Any) -> HttpResponse:
-        """
-        Set the agent field to the current user before saving the form.
+        """Set the agent field to the current user before saving the form.
 
         Args:
             form (Any): The form instance.
@@ -211,10 +203,8 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         response = super().form_valid(form)
 
         # Send an email notification
-        job = self.object  # This is the Job object that has just been created and saved
-
-        # Sanity check that we actually have a job:
-        if not job:  # pragma: no cover
+        # Over here, `job` is the JOb object that has just been created and saved.
+        if not (job := self.object):  # pragma: no cover
             msg = "Job object is missing."
             raise ValueError(msg)
 
@@ -269,8 +259,7 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         return response
 
     def test_func(self) -> bool:
-        """
-        Check if the user is an agent, or Marnie, or a superuser.
+        """Check if the user is an agent, or Marnie, or a superuser.
 
         Returns:
             bool: True if the user has the required permissions, False otherwise.
@@ -284,8 +273,7 @@ class _UserInfo:
 
     @staticmethod
     def has_no_admin_users() -> bool:
-        """
-        Check if there are no superusers.
+        """Check if there are no superusers.
 
         Returns:
             bool: True if there are no superusers, False otherwise.
@@ -294,8 +282,7 @@ class _UserInfo:
 
     @staticmethod
     def has_many_admin_users() -> bool:
-        """
-        Check if there are more than one superusers.
+        """Check if there are more than one superusers.
 
         Returns:
             bool: True if there are more than one superusers, False otherwise.
@@ -304,8 +291,7 @@ class _UserInfo:
 
     @staticmethod
     def has_no_marnie_users() -> bool:
-        """
-        Check if there are no Marnie users.
+        """Check if there are no Marnie users.
 
         Returns:
             bool: True if there are no Marnie users, False otherwise.
@@ -314,8 +300,7 @@ class _UserInfo:
 
     @staticmethod
     def has_many_marnie_users() -> bool:
-        """
-        Check if there are more than one Marnie users.
+        """Check if there are more than one Marnie users.
 
         Returns:
             bool: True if there are more than one Marnie users, False otherwise.
@@ -324,8 +309,7 @@ class _UserInfo:
 
     @staticmethod
     def has_no_agent_users() -> bool:
-        """
-        Check if there are no agent users.
+        """Check if there are no agent users.
 
         Returns:
             bool: True if there are no agent users, False otherwise.
@@ -334,8 +318,7 @@ class _UserInfo:
 
     @staticmethod
     def users() -> list[User]:
-        """
-        Get all users in the system.
+        """Get all users in the system.
 
         Returns:
             list[User]: A list of all users in the system.
@@ -344,8 +327,7 @@ class _UserInfo:
 
     @staticmethod
     def users_with_no_validated_email_address() -> list[User]:
-        """
-        Get all users with no validated email address.
+        """Get all users with no validated email address.
 
         Returns:
             list[User]: A list of all users with no validated email address.
@@ -361,8 +343,7 @@ class _UserInfo:
 
 
 def home_page(request: HttpRequest) -> HttpResponse:
-    """
-    Render the home page for the application.
+    """Render the home page for the application.
 
     Args:
         request (HttpRequest): The HTTP request.

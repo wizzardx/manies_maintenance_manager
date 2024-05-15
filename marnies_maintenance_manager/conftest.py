@@ -21,8 +21,7 @@ def _media_storage(
     settings: pytest_django.fixtures.SettingsWrapper,
     tmpdir: py.path.local,  # pylint: disable=no-member
 ) -> None:
-    """
-    Automatically set the MEDIA_ROOT in Django settings to a temporary directory.
+    """Automatically set the MEDIA_ROOT in Django settings to a temporary directory.
 
     Args:
         settings (SettingsWrapper): Pytest fixture that provides Django settings.
@@ -35,8 +34,7 @@ def _media_storage(
 # noinspection PyUnusedLocal
 @pytest.fixture()
 def user(db: None) -> User:  # pylint: disable=unused-argument
-    """
-    Provide a User instance from the UserFactory for use in tests.
+    """Provide a User instance from the UserFactory for use in tests.
 
     This fixture depends on the database fixture and returns a new user instance
     generated through the UserFactory.
@@ -58,8 +56,7 @@ def _make_user(
     is_superuser: bool = False,
     is_marnie: bool = False,
 ) -> User:
-    """
-    Create and return a new user with optional agent and superuser status.
+    """Create and return a new user with optional agent and superuser status.
 
     This function helps in creating a user instance with additional properties
     like being an agent or a superuser. It sets the username and password,
@@ -93,8 +90,7 @@ def _make_user(
 
 @pytest.fixture()
 def bob_agent_user(django_user_model: type[User]) -> User:
-    """
-    Create a user fixture named 'bob' for testing job creation and login.
+    """Create a user fixture named 'bob' for testing job creation and login.
 
     Args:
         django_user_model (type[User]): The Django User model.
@@ -107,8 +103,7 @@ def bob_agent_user(django_user_model: type[User]) -> User:
 
 @pytest.fixture()
 def peter_agent_user(django_user_model: type[User]) -> User:
-    """
-    Create a user fixture named 'peter' for testing job creation and login.
+    """Create a user fixture named 'peter' for testing job creation and login.
 
     Args:
         django_user_model (type[User]): The Django User model.
@@ -121,8 +116,7 @@ def peter_agent_user(django_user_model: type[User]) -> User:
 
 @pytest.fixture()
 def marnie_user(django_user_model: type[User]) -> User:
-    """
-    Create a user fixture named 'marnie' for testing job creation and login.
+    """Create a user fixture named 'marnie' for testing job creation and login.
 
     Args:
         django_user_model (type[User]): The Django User model.
@@ -135,8 +129,7 @@ def marnie_user(django_user_model: type[User]) -> User:
 
 @pytest.fixture()
 def superuser_user(django_user_model: type[User]) -> User:
-    """
-    Create a superuser fixture for testing administrative privileges.
+    """Create a superuser fixture for testing administrative privileges.
 
     Args:
         django_user_model (type[User]): The Django User model.
@@ -149,8 +142,7 @@ def superuser_user(django_user_model: type[User]) -> User:
 
 @pytest.fixture()
 def marnie_user_client(client: Client, marnie_user: User) -> Client:
-    """
-    Generate a logged-in test client for user Marnie.
+    """Generate a logged-in test client for user Marnie.
 
     Args:
         client (Client): The fixture to use for creating an HTTP client.

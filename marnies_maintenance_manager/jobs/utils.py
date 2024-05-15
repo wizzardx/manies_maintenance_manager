@@ -20,8 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_marnie_email() -> str:
-    """
-    Return the email address for Marnie.
+    """Return the email address for Marnie.
 
     Returns:
         str: The email address for Marnie.
@@ -39,9 +38,9 @@ def get_marnie_email() -> str:
     return marnie.email
 
 
+# pylint: disable=useless-param-doc, useless-type-doc
 def get_sysadmin_email(*, _introduce_logic_error: bool = False) -> str:
-    """
-    Return the email address for the system administrator.
+    """Return the email address for the system administrator.
 
     Args:
         _introduce_logic_error (bool): If True, introduces a logical error for testing
@@ -56,6 +55,7 @@ def get_sysadmin_email(*, _introduce_logic_error: bool = False) -> str:
     """
     sysadmins = User.objects.filter(is_superuser=True)
 
+    # pylint: disable=consider-ternary-expression
     if _introduce_logic_error:  # noqa: SIM108
         num_sysadmins_found = -1  # Simulate a logical error for testing.
     else:
@@ -92,8 +92,7 @@ T = TypeVar("T", bound=Model)
 
 
 def first_or_error(queryset: QuerySet[T], error_message: str = "No object found.") -> T:
-    """
-    Return the first object of a queryset, or raise an error if the queryset is empty.
+    """Return first object of a queryset, or raise an error if the queryset is empty.
 
     Args:
         queryset (QuerySet[T]): The queryset from which to retrieve the first object.
@@ -105,15 +104,13 @@ def first_or_error(queryset: QuerySet[T], error_message: str = "No object found.
     Raises:
         ObjectDoesNotExist: If the queryset is empty.
     """
-    obj = queryset.first()
-    if obj is None:
+    if (obj := queryset.first()) is None:
         raise ObjectDoesNotExist(error_message)
     return obj
 
 
 def count_admin_users() -> int:
-    """
-    Return the number of superusers.
+    """Return the number of superusers.
 
     Returns:
         int: The number of superusers.
@@ -122,8 +119,7 @@ def count_admin_users() -> int:
 
 
 def count_marnie_users() -> int:
-    """
-    Return the number of Marnie users.
+    """Return the number of Marnie users.
 
     Returns:
         int: The number of Marnie users.
@@ -132,8 +128,7 @@ def count_marnie_users() -> int:
 
 
 def count_agent_users() -> int:
-    """
-    Return the number of Agent users.
+    """Return the number of Agent users.
 
     Returns:
         int: The number of Agent users.

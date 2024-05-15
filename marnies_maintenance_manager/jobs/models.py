@@ -11,8 +11,7 @@ from marnies_maintenance_manager.users.models import User
 
 
 def _validate_user_is_agent(user_id: uuid.UUID) -> None:
-    """
-    Ensure the user is an agent.
+    """Ensure the user is an agent.
 
     Args:
         user_id (uuid.UUID): The unique identifier of the user to validate.
@@ -29,8 +28,7 @@ def _validate_user_is_agent(user_id: uuid.UUID) -> None:
 
 
 class Job(UUIDModel):
-    """
-    Represents a maintenance job with all relevant details.
+    """Represents a maintenance job with all relevant details.
 
     Attributes:
         date (DateField): The date on which the job is scheduled.
@@ -52,8 +50,7 @@ class Job(UUIDModel):
     )
 
     def __str__(self) -> str:
-        """
-        Return a basic string representation of the job.
+        """Return a basic string representation of the job.
 
         Returns:
             str: A string that represents the job, containing the date and a shortened

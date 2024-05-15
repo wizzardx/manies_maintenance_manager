@@ -1,5 +1,4 @@
-"""
-URL configurations for the user management features of Marnie's Maintenance Manager.
+"""URL configurations for the user management features of Marnie's Maintenance Manager.
 
 This module defines the URL patterns for user interactions such as redirection,
 user detail viewing, and user profile updating. These patterns help navigate

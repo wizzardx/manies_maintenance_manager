@@ -11,8 +11,7 @@ from marnies_maintenance_manager.users.models import User
 
 
 def test_user_get_absolute_url(user: User) -> None:
-    """
-    Verify the correct URL is returned by the User model's get_absolute_url.
+    """Verify the correct URL is returned by the User model's get_absolute_url.
 
     Args:
         user (User): A user instance to test URL generation.
@@ -31,8 +30,7 @@ def _make_user(
     is_superuser: bool = False,
     is_marnie: bool = False,
 ) -> User:
-    """
-    Create and return a new user with optional agent and superuser status.
+    """Create and return a new user with optional agent and superuser status.
 
     This function helps in creating a user instance with additional properties
     like being an agent or a superuser. It sets the username and password,
@@ -82,8 +80,7 @@ def _create_marnie_user(django_user_model: type[User]) -> User:
 def test_is_agent_invalid_when_no_marnie_user_present(
     django_user_model: type[User],
 ) -> None:
-    """
-    Ensure an Agent user cannot exist without a Marnie user.
+    """Ensure an Agent user cannot exist without a Marnie user.
 
     Args:
         django_user_model (type[User]): The User model used to create users.
@@ -104,8 +101,7 @@ def test_is_agent_valid_when_marnie_user_is_present(
     django_user_model: type[User],
     marnie_user: User,
 ) -> None:
-    """
-    Confirm that an Agent user can exist with a Marnie user present.
+    """Confirm that an Agent user can exist with a Marnie user present.
 
     Args:
         django_user_model (type[User]): Model for creating user instances.
@@ -121,8 +117,7 @@ def test_is_agent_valid_when_marnie_user_is_present(
 
 @pytest.mark.django_db()
 def test_user_model_has_uuid_id(user: User) -> None:
-    """
-    Verify that the User model's primary key is a UUID.
+    """Verify that the User model's primary key is a UUID.
 
     Args:
         user (User): A user instance generated through the 'user' fixture,

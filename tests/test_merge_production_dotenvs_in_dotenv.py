@@ -1,5 +1,4 @@
-"""
-Test module for merging dotenv files into a single .env file.
+"""Test module for merging dotenv files into a single .env file.
 
 This module provides unit tests for the `merge` function, ensuring it combines
 multiple dotenv files into one accurately. It handles various cases, from empty
@@ -29,8 +28,7 @@ def test_merge(
     input_contents: list[str],
     expected_output: str,
 ) -> None:
-    """
-    Test merging multiple dotenv files into a single .env file.
+    """Test merging multiple dotenv files into a single .env file.
 
     Args:
         tmp_path (Path): The temporary directory path used for testing.

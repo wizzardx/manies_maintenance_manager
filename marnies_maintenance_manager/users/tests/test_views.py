@@ -1,5 +1,4 @@
-"""
-Unit tests for user views in Marnie's Maintenance Manager.
+"""Unit tests for user views in Marnie's Maintenance Manager.
 
 This module provides tests for various user-related views, ensuring that
 redirection, detail viewing, and profile updating operate as expected
@@ -30,9 +29,11 @@ from marnies_maintenance_manager.users.views import user_detail_view
 pytestmark = pytest.mark.django_db
 
 
+# pylint: disable=no-self-use
+
+
 class TestUserUpdateView:
-    """
-    Tests for the user profile update functionality.
+    """Tests for the user profile update functionality.
 
     This class contains tests to verify the behavior of the UserUpdateView,
     focusing on URL redirection, object retrieval, and form processing within
@@ -46,20 +47,15 @@ class TestUserUpdateView:
     """
 
     def dummy_get_response(self, request: HttpRequest) -> None:
-        """
-        Provide a dummy response for middleware usage.
+        """Provide a dummy response for middleware usage.
 
         Args:
             request (HttpRequest): The incoming HTTP request.
-
-        Returns:
-            None
         """
         return
 
     def test_get_success_url(self, user: User, rf: RequestFactory) -> None:
-        """
-        Ensure the URL to redirect to after a successful update is correct.
+        """Ensure the URL to redirect to after a successful update is correct.
 
         Args:
             user (User): The user object for which the URL is generated.
@@ -75,8 +71,7 @@ class TestUserUpdateView:
         assert view.get_success_url() == f"/users/{user.username}/"
 
     def test_get_object(self, user: User, rf: RequestFactory) -> None:
-        """
-        Test that the correct user object is retrieved for update.
+        """Test that the correct user object is retrieved for update.
 
         Args:
             user (User): The user instance expected to be retrieved.
@@ -93,8 +88,7 @@ class TestUserUpdateView:
         assert view.get_object() == user
 
     def test_form_valid(self, user: User, rf: RequestFactory) -> None:
-        """
-        Verify that the form processing and messaging work correctly.
+        """Verify that the form processing and messaging work correctly.
 
         Args:
             user (User): The user instance to be updated.
@@ -132,16 +126,14 @@ class TestUserUpdateView:
 
 class TestUserRedirectView:
     # pylint: disable=too-few-public-methods
-    """
-    Tests for the UserRedirectView functionality.
+    """Tests for the UserRedirectView functionality.
 
     These tests ensure that the UserRedirectView correctly generates the
     expected URL to which a logged-in user should be redirected.
     """
 
     def test_get_redirect_url(self, user: User, rf: RequestFactory) -> None:
-        """
-        Test the URL generation for redirecting a logged-in user.
+        """Test the URL generation for redirecting a logged-in user.
 
         Args:
             user (User): The logged-in user for whom the URL is generated.
@@ -158,16 +150,14 @@ class TestUserRedirectView:
 
 
 class TestUserDetailView:
-    """
-    Tests for the UserDetailView functionality.
+    """Tests for the UserDetailView functionality.
 
     These tests verify that the UserDetailView behaves correctly under
     authenticated and unauthenticated scenarios.
     """
 
     def test_authenticated(self, user: User, rf: RequestFactory) -> None:
-        """
-        Ensure that an authenticated user can access the user detail view.
+        """Ensure that an authenticated user can access the user detail view.
 
         Args:
             user (User): The user attempting to access their detail view.
@@ -182,8 +172,7 @@ class TestUserDetailView:
         assert response.status_code == HTTPStatus.OK
 
     def test_not_authenticated(self, user: User, rf: RequestFactory) -> None:
-        """
-        Check that an unauthenticated user is redirected to the login page.
+        """Check that an unauthenticated user is redirected to the login page.
 
         Args:
             user (User): The user attempting to access their detail view.

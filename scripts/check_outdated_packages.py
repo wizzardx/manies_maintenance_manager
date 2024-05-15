@@ -7,8 +7,7 @@ import sys
 
 
 def check_outdated_packages(ignore_list: list[str]) -> int:
-    """
-    Check for outdated pip packages and return an appropriate exit code.
+    """Check for outdated pip packages and return an appropriate exit code.
 
     Args:
         ignore_list (list): List of package names to ignore.

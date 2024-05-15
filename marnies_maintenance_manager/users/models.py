@@ -16,8 +16,7 @@ from model_utils.models import UUIDModel
 
 
 class User(AbstractUser, UUIDModel):
-    """
-    Ensure that an Agent user can only exist if Marnie exists.
+    """Ensure that an Agent user can only exist if Marnie exists.
 
     Validates that if the user has the 'is_agent' flag set to True,
     a user designated as 'Marnie' must also exist within the system.
@@ -61,8 +60,7 @@ class User(AbstractUser, UUIDModel):
         return reverse("users:detail", kwargs={"username": self.username})
 
     def clean(self) -> None:
-        """
-        Ensure that an Agent user can only exist if Marnie exists.
+        """Ensure that an Agent user can only exist if Marnie exists.
 
         Validates that if the user has the 'is_agent' flag set to True,
         a user designated as 'Marnie' must also exist within the system.

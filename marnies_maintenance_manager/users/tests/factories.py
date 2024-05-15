@@ -24,8 +24,7 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
         extracted: Sequence[str],
         **kwargs: str,
     ) -> None:
-        """
-        Generate and set a password for the user.
+        """Generate and set a password for the user.
 
         Args:
             create (bool): Whether the user is being created.
@@ -54,8 +53,7 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
         create: bool,  # noqa: FBT001
         results: dict[str, str | None],
     ) -> None:
-        """
-        Ensure instance is saved after post-generation hooks if changes are made.
+        """Ensure instance is saved after post-generation hooks if changes are made.
 
         Args:
             cls (type["UserFactory"]): The current class.

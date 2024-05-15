@@ -1,5 +1,4 @@
-"""
-URL routing definitions for the jobs module in the Marnie's Maintenance Manager.
+"""URL routing definitions for the jobs module in the Marnie's Maintenance Manager.
 
 This module defines URL patterns for the 'jobs' application, mapping URLs to their
 respective view functions for listing and creating maintenance jobs. It utilizes

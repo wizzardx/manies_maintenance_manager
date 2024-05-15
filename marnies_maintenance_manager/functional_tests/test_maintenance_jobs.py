@@ -1,11 +1,10 @@
-"""
-Functional tests for the 'Maintenance Jobs' feature.
+"""Functional tests for the 'Maintenance Jobs' feature.
 
 These tests ensure that the job maintenance functionalities work as expected
 from a user's perspective in the Marnie's Maintenance Manager application.
 """
 
-# pylint: disable=redefined-outer-name,unused-argument
+# pylint: disable=redefined-outer-name,unused-argument,magic-value-comparison
 
 import time
 from collections.abc import Callable
@@ -28,8 +27,7 @@ MAX_WAIT = 5  # Maximum time to wait during retries, before failing the test
 
 @pytest.fixture()
 def browser() -> Iterator[WebDriver]:
-    """
-    Provide a configured Selenium WebDriver for testing in a Docker environment.
+    """Provide a configured Selenium WebDriver for testing in a Docker environment.
 
     Yields:
         WebDriver: A WebDriver instance for use in tests, ensuring it's closed
@@ -49,8 +47,7 @@ def browser() -> Iterator[WebDriver]:
 
 @pytest.fixture()
 def live_server_url(live_server: LiveServer) -> str:
-    """
-    Modify the live_server URL to use 'django' instead of '0.0.0.0'.
+    """Modify the live_server URL to use 'django' instead of '0.0.0.0'.
 
     Args:
         live_server (LiveServer): The pytest-django fixture providing a live server.
@@ -62,8 +59,7 @@ def live_server_url(live_server: LiveServer) -> str:
 
 
 def wait_until(fn: Callable[[], Any]) -> Any:
-    """
-    Retry an action until it succeeds or the maximum wait time is reached.
+    """Retry an action until it succeeds or the maximum wait time is reached.
 
     Args:
         fn (Callable[[], Any]): The function to execute.
@@ -76,7 +72,7 @@ def wait_until(fn: Callable[[], Any]) -> Any:
                                           allotted time.
     """
     start_time = time.time()
-    while True:
+    while True:  # pylint: disable=while-used
         try:
             return fn()
         except ElementClickInterceptedException:
@@ -256,8 +252,7 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     bob_agent_user: User,
     marnie_user_client: User,
 ) -> None:
-    """
-    Ensure a user can log in, create a job, and log out.
+    """Ensure a user can log in, create a job, and log out.
 
     This test simulates a user logging into the system, creating a new
     maintenance job, and logging out, verifying each critical step.
@@ -279,8 +274,7 @@ def test_agent_creating_a_new_job_should_send_notification_emails(
     bob_agent_user: User,
     marnie_user: User,
 ) -> None:
-    """
-    Ensure that creating a new job sends Marnie a notification email.
+    """Ensure that creating a new job sends Marnie a notification email.
 
     Args:
         browser (WebDriver): The Selenium WebDriver.

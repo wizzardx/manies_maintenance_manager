@@ -20,8 +20,7 @@ class AccountAdapter(DefaultAccountAdapter):  # type: ignore[misc]
     """Determine if the site is currently open for new user registrations."""
 
     def is_open_for_signup(self, request: HttpRequest) -> bool:
-        """
-        Check if the site is accepting new registrations.
+        """Check if the site is accepting new registrations.
 
         Args:
             request (HttpRequest): The HTTP request.
@@ -40,8 +39,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[misc]
         request: HttpRequest,
         sociallogin: SocialLogin,
     ) -> bool:
-        """
-        Check if the site is accepting new registrations via social accounts.
+        """Check if the site is accepting new registrations via social accounts.
 
         Args:
             request (HttpRequest): The HTTP request.
@@ -59,8 +57,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[misc]
         data: dict[str, typing.Any],
     ) -> User:
         # pylint: disable=line-too-long
-        """
-        Populate user information from social provider info.
+        """Populate user information from social provider info.
 
         Args:
             request (HttpRequest): The HTTP request.

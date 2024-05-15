@@ -1,5 +1,4 @@
-"""
-Unit tests for admin interfaces of Marnie's Maintenance Manager user module.
+"""Unit tests for admin interfaces of Marnie's Maintenance Manager user module.
 
 These tests verify that admin functionalities such as listing, searching,
 adding, and viewing users work correctly.
@@ -20,13 +19,14 @@ from pytest_django.fixtures import SettingsWrapper
 
 from marnies_maintenance_manager.users.models import User
 
+# pylint: disable=no-self-use
+
 
 class TestUserAdmin:
     """Test admin operations for User model."""
 
     def test_changelist(self, admin_client: Client) -> None:
-        """
-        Verify that user changelist page loads correctly.
+        """Verify that user changelist page loads correctly.
 
         Args:
             admin_client (Client): A Django test client instance with admin permissions.
@@ -36,8 +36,7 @@ class TestUserAdmin:
         assert response.status_code == HTTPStatus.OK
 
     def test_search(self, admin_client: Client) -> None:
-        """
-        Ensure that user search functionality works correctly.
+        """Ensure that user search functionality works correctly.
 
         Args:
             admin_client (Client): A Django test client instance with admin permissions.
@@ -47,8 +46,7 @@ class TestUserAdmin:
         assert response.status_code == HTTPStatus.OK
 
     def test_add(self, admin_client: Client) -> None:
-        """
-        Test adding a new user through the admin interface.
+        """Test adding a new user through the admin interface.
 
         Args:
             admin_client (Client): A Django test client instance with admin permissions.
@@ -69,8 +67,7 @@ class TestUserAdmin:
         assert User.objects.filter(username="test").exists()
 
     def test_view_user(self, admin_client: Client) -> None:
-        """
-        Confirm that user detail view in admin works as expected.
+        """Confirm that user detail view in admin works as expected.
 
         Args:
             admin_client (Client): A Django test client instance with admin permissions.
@@ -82,8 +79,7 @@ class TestUserAdmin:
 
     @pytest.fixture()
     def _force_allauth(self, settings: SettingsWrapper) -> None:
-        """
-        Configure settings to force Allauth in admin for testing.
+        """Configure settings to force Allauth in admin for testing.
 
         Args:
             settings (SettingsWrapper): A pytest fixture providing access to Django
@@ -104,8 +100,7 @@ class TestUserAdmin:
         rf: RequestFactory,
         settings: SettingsWrapper,
     ) -> None:
-        """
-        Check Allauth integration with admin login.
+        """Check Allauth integration with admin login.
 
         Args:
             rf (RequestFactory): A Django RequestFactory instance for creating mock

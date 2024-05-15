@@ -1,7 +1,6 @@
 # pylint: disable=line-too-long
 
-"""
-To understand why this file is here, please read the following.
+"""To understand why this file is here, please read the following.
 
 See: http://cookiecutter-django.readthedocs.io/en/latest/faq.html#why-is-there-a-django-contrib-sites-directory-in-cookiecutter-django
 """

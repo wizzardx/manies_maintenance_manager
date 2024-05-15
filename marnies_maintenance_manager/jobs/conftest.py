@@ -11,8 +11,7 @@ from marnies_maintenance_manager.users.models import User
 
 @pytest.fixture()
 def bob_agent_user_client(client: Client, bob_agent_user: User) -> Client:
-    """
-    Provide a logged-in test client for agent user Bob.
+    """Provide a logged-in test client for agent user Bob.
 
     Args:
         client (Client): The fixture to use for creating an HTTP client.
@@ -28,8 +27,7 @@ def bob_agent_user_client(client: Client, bob_agent_user: User) -> Client:
 
 @pytest.fixture()
 def peter_agent_user_client(client: Client, peter_agent_user: User) -> Client:
-    """
-    Supply a logged-in test client for agent user Peter.
+    """Supply a logged-in test client for agent user Peter.
 
     Args:
         client (Client): The fixture to use for creating an HTTP client.
@@ -45,8 +43,7 @@ def peter_agent_user_client(client: Client, peter_agent_user: User) -> Client:
 
 @pytest.fixture()
 def superuser_client(client: Client, superuser_user: User) -> Client:
-    """
-    Create a logged-in test client for a superuser.
+    """Create a logged-in test client for a superuser.
 
     Args:
         client (Client): The fixture to use for creating an HTTP client.
@@ -62,8 +59,7 @@ def superuser_client(client: Client, superuser_user: User) -> Client:
 
 @pytest.fixture()
 def job_created_by_bob(bob_agent_user: User) -> Job:
-    """
-    Create a job instance that was created by Bob.
+    """Create a job instance that was created by Bob.
 
     This fixture ensures that the job data is valid and raises a ValidationError if
     the data does not comply with model constraints.

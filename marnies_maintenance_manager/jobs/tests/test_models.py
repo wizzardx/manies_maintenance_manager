@@ -14,11 +14,12 @@ UUID_REGEX = (
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 )
 
+# pylint: disable=no-self-use, magic-value-comparison
+
 
 @pytest.mark.django_db()
 def test_job_id_field_is_uuid(bob_agent_user: User) -> None:
-    """
-    Ensure the 'id' field of a Job instance is a valid UUID.
+    """Ensure the 'id' field of a Job instance is a valid UUID.
 
     Args:
         bob_agent_user (User): The agent user Bob used to create a Job instance.
@@ -40,8 +41,7 @@ def test_job_id_field_is_uuid(bob_agent_user: User) -> None:
 
 
 def test_agent_field_is_not_editable(bob_agent_user: User) -> None:
-    """
-    Verify the 'agent' field is not editable in the Job model form.
+    """Verify the 'agent' field is not editable in the Job model form.
 
     Args:
         bob_agent_user (User): The agent user Bob used to create a Job instance.
@@ -76,8 +76,7 @@ class TestJobAgentMustBeAUserOfTypeAgent:
     """Define tests to ensure a Job's agent is explicitly flagged as an Agent."""
 
     def test_creating_a_job_with_an_invalid_agent(self, marnie_user: User) -> None:
-        """
-        Ensure job creation fails when the agent is not flagged as an Agent.
+        """Ensure job creation fails when the agent is not flagged as an Agent.
 
         Args:
             marnie_user (User): User instance representing Marnie, who is not an agent.
@@ -94,8 +93,7 @@ class TestJobAgentMustBeAUserOfTypeAgent:
         ], "The error message should indicate that the agent is not an agent user."
 
     def test_creating_a_job_with_a_valid_user_agent(self, bob_agent_user: User) -> None:
-        """
-        Ensure job creation succeeds with a user flagged as an Agent.
+        """Ensure job creation succeeds with a user flagged as an Agent.
 
         Args:
             bob_agent_user (User): The agent user Bob used to validate job creation.
@@ -114,8 +112,7 @@ class TestJobAgentMustBeAUserOfTypeAgent:
         job_created_by_bob: Job,
         marnie_user: User,
     ) -> None:
-        """
-        Ensure updating a job fails when the new agent is not flagged as an Agent.
+        """Ensure updating a job fails when the new agent is not flagged as an Agent.
 
         Args:
             job_created_by_bob (Job): Job instance created by Bob, initially with a
@@ -136,8 +133,7 @@ class TestJobAgentMustBeAUserOfTypeAgent:
         job_created_by_bob: Job,
         bob_agent_user: User,
     ) -> None:
-        """
-        Ensure updating a job's agent to another flagged Agent succeeds.
+        """Ensure updating a job's agent to another flagged Agent succeeds.
 
         Args:
             job_created_by_bob (Job): Job initially created by Bob, for which agent
@@ -150,8 +146,7 @@ class TestJobAgentMustBeAUserOfTypeAgent:
 
 
 def test_str_method_returns_job_date_and_start_of_address(bob_agent_user: User) -> None:
-    """
-    Ensure the __str__ method returns the job date and the start of the address.
+    """Ensure the __str__ method returns the job date and the start of the address.
 
     Args:
         bob_agent_user (User): The agent user Bob used to create a Job instance.
@@ -170,8 +165,7 @@ def test_str_method_returns_job_date_and_start_of_address(bob_agent_user: User) 
 def test_str_method_only_contains_up_to_50_characters_of_address(
     bob_agent_user: User,
 ) -> None:
-    """
-    Ensure __str__ only returns the first 50 characters of the address.
+    """Ensure __str__ only returns the first 50 characters of the address.
 
     Args:
         bob_agent_user (User): The agent user Bob used to create a Job instance with a
@@ -194,8 +188,7 @@ def test_str_method_only_contains_up_to_50_characters_of_address(
 def test_str_method_converts_newlines_in_address_to_spaces(
     bob_agent_user: User,
 ) -> None:
-    """
-    Ensure the __str__ method converts newlines in the address to spaces.
+    """Ensure the __str__ method converts newlines in the address to spaces.
 
     Args:
         bob_agent_user (User): The agent user Bob used to create a Job instance with

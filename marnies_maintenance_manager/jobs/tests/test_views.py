@@ -11,11 +11,12 @@ from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
 from marnies_maintenance_manager.users.models import User
 
+# pylint: disable=no-self-use, magic-value-comparison
+
 
 @pytest.fixture()
 def job_created_by_bob(bob_agent_user: User) -> Job:
-    """
-    Create a job instance for Bob the agent.
+    """Create a job instance for Bob the agent.
 
     Args:
         bob_agent_user (User): The User instance representing Bob the agent.
@@ -35,8 +36,7 @@ def job_created_by_bob(bob_agent_user: User) -> Job:
 
 @pytest.fixture()
 def job_created_by_peter(peter_agent_user: User) -> Job:
-    """
-    Create a job instance for Peter the agent.
+    """Create a job instance for Peter the agent.
 
     Args:
         peter_agent_user (User): The User instance representing Peter the agent.
@@ -62,8 +62,7 @@ class TestOnlyAgentUsersCanAccessJobListView:
         self,
         bob_agent_user_client: Client,
     ) -> None:
-        """
-        Verify that agent user 'Bob' can access the job list view.
+        """Verify that agent user 'Bob' can access the job list view.
 
         Args:
             bob_agent_user_client (Client): A test client for agent user Bob.
@@ -75,8 +74,7 @@ class TestOnlyAgentUsersCanAccessJobListView:
         self,
         peter_agent_user_client: Client,
     ) -> None:
-        """
-        Ensure that agent user 'Peter' can access the job list view.
+        """Ensure that agent user 'Peter' can access the job list view.
 
         Args:
             peter_agent_user_client (Client): A test client for agent user Peter.
@@ -86,8 +84,7 @@ class TestOnlyAgentUsersCanAccessJobListView:
         assert response.status_code == status.HTTP_200_OK
 
     def test_anonymous_user_cannot_access_job_list_view(self, client: Client) -> None:
-        """
-        Confirm that anonymous users cannot access the job list view.
+        """Confirm that anonymous users cannot access the job list view.
 
         Args:
             client (Client): A test client for an anonymous user.
@@ -96,8 +93,7 @@ class TestOnlyAgentUsersCanAccessJobListView:
         assert response.status_code == status.HTTP_302_FOUND  # Redirect
 
     def test_superuser_can_access_job_list_view(self, superuser_client: Client) -> None:
-        """
-        Validate that a superuser can access the job list view.
+        """Validate that a superuser can access the job list view.
 
         Args:
             superuser_client (Client): A test client for a superuser.
@@ -114,8 +110,7 @@ class TestAgentsAccessingJobListViewCanOnlySeeJobsThatTheyCreated:
         job_created_by_bob: Job,
         bob_agent_user_client: Client,
     ) -> None:
-        """
-        Bob should only see his own created jobs in the list.
+        """Bob should only see his own created jobs in the list.
 
         Args:
             bob_agent_user_client (Client): A test client configured for Bob, an agent
@@ -133,8 +128,7 @@ class TestAgentsAccessingJobListViewCanOnlySeeJobsThatTheyCreated:
         job_created_by_peter: Job,
         bob_agent_user_client: Client,
     ) -> None:
-        """
-        Bob should not see Peter's created jobs in the list.
+        """Bob should not see Peter's created jobs in the list.
 
         Args:
             bob_agent_user_client (Client): A test client configured for Bob, an agent
@@ -154,8 +148,7 @@ def test_creating_a_new_job_sets_an_agent_from_the_request(
     bob_agent_user: User,
     marnie_user: User,
 ) -> None:
-    """
-    Creating a job should automatically assign the agent from the request.
+    """Creating a job should automatically assign the agent from the request.
 
     Args:
         bob_agent_user_client (Client): Client used by Bob, an agent user.
@@ -186,8 +179,7 @@ class TestOnlyLoggedInUsersCanAccessJobCreateView:
         self,
         client: Client,
     ) -> None:
-        """
-        Verify that anonymous users cannot access the job create view.
+        """Verify that anonymous users cannot access the job create view.
 
         Args:
             client (Client): A test client for an anonymous user.
@@ -199,8 +191,7 @@ class TestOnlyLoggedInUsersCanAccessJobCreateView:
         self,
         bob_agent_user_client: Client,
     ) -> None:
-        """
-        Ensure Bob the agent can access the job create view.
+        """Ensure Bob the agent can access the job create view.
 
         Args:
             bob_agent_user_client (Client): A test client configured for Bob, an agent
@@ -219,8 +210,7 @@ class TestMarnieAccessingJobListView:
         marnie_user_client: Client,
         job_created_by_bob: Job,
     ) -> None:
-        """
-        Test filtering job list by agent for Marnie with agent username parameter.
+        """Test filtering job list by agent for Marnie with agent username parameter.
 
         Args:
             bob_agent_user (User): The agent user Bob whose jobs are to be filtered.
@@ -239,8 +229,7 @@ class TestMarnieAccessingJobListView:
         marnie_user_client: Client,
         job_created_by_bob: Job,
     ) -> None:
-        """
-        Check response when no agent username parameter is provided in request.
+        """Check response when no agent username parameter is provided in request.
 
         Args:
             job_created_by_bob (Job): A job instance created for Bob.
@@ -254,8 +243,7 @@ class TestMarnieAccessingJobListView:
         self,
         marnie_user_client: Client,
     ) -> None:
-        """
-        Verify that using a nonexistent agent username returns a 'Not Found' response.
+        """Verif using a nonexistent agent username returns a 'Not Found' response.
 
         Args:
             marnie_user_client (Client): A test client used by Marnie.
@@ -276,8 +264,7 @@ class TestSuperUserAccessingJobListView:
         job_created_by_bob: Job,
         job_created_by_peter: Job,
     ) -> None:
-        """
-        Ensure a superuser sees all jobs when no agent username is provided.
+        """Ensure a superuser sees all jobs when no agent username is provided.
 
         Args:
             superuser_client (Client): A test client with superuser permissions.
@@ -295,8 +282,7 @@ class TestSuperUserAccessingJobListView:
         job_created_by_bob: Job,
         job_created_by_peter: Job,
     ) -> None:
-        """
-        Test superuser sees only the specified agent's jobs.
+        """Test superuser sees only the specified agent's jobs.
 
         Args:
             superuser_client (Client): A superuser client used to view jobs.
@@ -315,8 +301,7 @@ class TestSuperUserAccessingJobListView:
         self,
         superuser_client: Client,
     ) -> None:
-        """
-        Test response when a superuser uses a non-existent agent username.
+        """Test response when a superuser uses a non-existent agent username.
 
         Args:
             superuser_client (Client): A test client with superuser permissions.
@@ -331,8 +316,7 @@ class TestJobCreateViewCanOnlyBeReachedByAgentsAndSuperuser:
 
     @pytest.mark.django_db()
     def test_access_by_anonymous_user_is_denied(self, client: Client) -> None:
-        """
-        Verify that anonymous users cannot access the job create view.
+        """Verify that anonymous users cannot access the job create view.
 
         Args:
             client (Client): A test client for an anonymous user.
@@ -341,8 +325,7 @@ class TestJobCreateViewCanOnlyBeReachedByAgentsAndSuperuser:
         assert response.status_code == status.HTTP_302_FOUND
 
     def test_access_by_marnie_user_is_denied(self, marnie_user_client: Client) -> None:
-        """
-        Test that Marnie cannot access the job create view.
+        """Test that Marnie cannot access the job create view.
 
         Args:
             marnie_user_client (Client): A test client configured for Marnie.
@@ -354,8 +337,7 @@ class TestJobCreateViewCanOnlyBeReachedByAgentsAndSuperuser:
         self,
         bob_agent_user_client: Client,
     ) -> None:
-        """
-        Confirm Bob the agent can access the job create view.
+        """Confirm Bob the agent can access the job create view.
 
         Args:
             bob_agent_user_client (Client): A test client configured for Bob, an
@@ -368,8 +350,7 @@ class TestJobCreateViewCanOnlyBeReachedByAgentsAndSuperuser:
         self,
         peter_agent_user_client: Client,
     ) -> None:
-        """
-        Confirm that Peter the agent can access the job create view.
+        """Confirm that Peter the agent can access the job create view.
 
         Args:
             peter_agent_user_client (Client): A test client configured for Peter, an
@@ -382,8 +363,7 @@ class TestJobCreateViewCanOnlyBeReachedByAgentsAndSuperuser:
         self,
         superuser_client: Client,
     ) -> None:
-        """
-        Test that a superuser can access the job create view.
+        """Test that a superuser can access the job create view.
 
         Args:
             superuser_client (Client): A test client with superuser permissions.
@@ -395,8 +375,7 @@ class TestJobCreateViewCanOnlyBeReachedByAgentsAndSuperuser:
 def test_create_job_form_uses_date_type_for_date_input_field(
     bob_agent_user_client: Client,
 ) -> None:
-    """
-    Ensure the job create form uses an HTML5 date input for the date field.
+    """Ensure the job create form uses an HTML5 date input for the date field.
 
     Args:
         bob_agent_user_client (Client): A test client configured for Bob, an agent user.
@@ -415,8 +394,7 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
         bob_agent_user_client: Client,
         marnie_user: User,
     ) -> None:
-        """
-        Ensure agents see a success message when a job is successfully created.
+        """Ensure agents see a success message when a job is successfully created.
 
         Args:
             bob_agent_user_client (Client): A test client configured for Bob, an agent
@@ -445,8 +423,7 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
         caplog: pytest.LogCaptureFixture,
         superuser_user: User,
     ) -> None:
-        """
-        Test that agents see an error message when no Marnie user exists.
+        """Test that agents see an error message when no Marnie user exists.
 
         Args:
             bob_agent_user_client (Client): A test client for Bob, an agent user.
