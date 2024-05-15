@@ -44,6 +44,12 @@ pylint \
 echo "Running pre-commit checks..."
 pre-commit run --all-files
 
+# Check for security issues:
+echo "Check for security issues..."
+# The ignored numbers here are known, and don't apply, and also I'm (currently) already
+# using the latest available versions of the affected PyPI packages.
+safety check --ignore 51457,67599
+
 # Done with tools from under the python venv, so deactivate that now.
 deactivate
 
