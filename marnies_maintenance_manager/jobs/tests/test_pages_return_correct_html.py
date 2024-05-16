@@ -1,4 +1,3 @@
-# pylint: disable=duplicate-code
 """Tests for HTML content validation in Marnie's Maintenance Manager application views.
 
 This module checks the HTML content returned by various views in the Marnie's
