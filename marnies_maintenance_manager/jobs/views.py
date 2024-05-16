@@ -317,15 +317,6 @@ class _UserInfo:
         return count_agent_users() == 0
 
     @staticmethod
-    def users() -> list[User]:
-        """Get all users in the system.
-
-        Returns:
-            list[User]: A list of all users in the system.
-        """
-        return list(User.objects.all())
-
-    @staticmethod
     def users_with_no_validated_email_address() -> list[User]:
         """Get all users with no validated email address.
 
@@ -340,6 +331,16 @@ class _UserInfo:
                 verified=True,
             ).exists()
         ]
+
+    @staticmethod
+    def users_with_no_email_address() -> list[User]:
+        """Get all users with no email address.
+
+        Returns:
+            list[User]: A list of all users with no email address.
+        """
+        users = cast(QuerySet[User], User.objects.all())
+        return [user for user in users if not user.email]
 
 
 def home_page(request: HttpRequest) -> HttpResponse:
