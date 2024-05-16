@@ -170,6 +170,10 @@ def test_create_maintenance_job_page_returns_correct_html(
 class TestAdminSpecificHomePageWarnings:
     """Tests for the home page warnings related to Admin users."""
 
+    # pylint: disable=too-many-public-methods
+
+    # Tests for when there are no admin users
+
     def test_warning_for_no_admin_user(self, bob_agent_user_client: Client) -> None:
         """Test that a warning is shown when there are no Admin users.
 
@@ -186,6 +190,27 @@ class TestAdminSpecificHomePageWarnings:
         assert (
             USER_COUNT_PROBLEM_MESSAGES["NO_ADMIN_USERS"] in response.content.decode()
         )
+
+    def test_no_warning_for_no_admin_user_when_there_is_an_admin_usr(
+        self,
+        admin_client: Client,
+    ) -> None:
+        """Ensure no warning for no Admin users when there is an Admin user.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Make sure there is at least one admin user
+        assert count_admin_users() >= 1
+
+        response = admin_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["NO_ADMIN_USERS"]
+            not in response.content.decode()
+        )
+
+    # Tests for when there are multiple admin users in the system.
 
     def test_warning_for_multiple_admin_users(
         self,
@@ -215,6 +240,25 @@ class TestAdminSpecificHomePageWarnings:
             USER_COUNT_PROBLEM_MESSAGES["MANY_ADMIN_USERS"] in response.content.decode()
         )
 
+    def test_no_warnings_for_multiple_admins_when_there_is_one_admin(
+        self,
+        admin_client: Client,
+    ) -> None:
+        """Ensure no warning for multiple Admin users when there is only one Admin user.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Make sure there is only one admin user
+        assert count_admin_users() == 1
+
+        response = admin_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["MANY_ADMIN_USERS"]
+            not in response.content.decode()
+        )
+
     def test_no_warning_for_multiple_admin_users_when_i_am_not_admin(
         self,
         admin_user: User,
@@ -242,6 +286,8 @@ class TestAdminSpecificHomePageWarnings:
             not in response.content.decode()
         )
 
+    # Tests for when there is no Marnie user in the system
+
     def test_warning_for_no_marnie_user(self, admin_client: Client) -> None:
         """Test that a warning is shown when there are no Marnie users.
 
@@ -255,6 +301,27 @@ class TestAdminSpecificHomePageWarnings:
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
         assert (
             USER_COUNT_PROBLEM_MESSAGES["NO_MARNIE_USERS"] in response.content.decode()
+        )
+
+    def test_no_warning_for_no_marnie_user_when_there_is_a_marnie_user(
+        self,
+        marnie_user: User,
+        admin_client: Client,
+    ) -> None:
+        """Ensure no warning for no Marnie users when there is a Marnie user.
+
+        Args:
+            marnie_user (User): User instance representing Marnie.
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Make sure there is at least one Marnie user
+        assert count_marnie_users() >= 1
+
+        response = admin_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["NO_MARNIE_USERS"]
+            not in response.content.decode()
         )
 
     def test_no_warning_for_no_marnie_user_when_i_am_not_admin(
@@ -280,6 +347,8 @@ class TestAdminSpecificHomePageWarnings:
             not in response.content.decode()
         )
 
+    # Tests for when there are multiple Marnie users.
+
     def test_warning_for_multiple_marnie_users(
         self,
         marnie_user: User,
@@ -304,6 +373,27 @@ class TestAdminSpecificHomePageWarnings:
         assert (
             USER_COUNT_PROBLEM_MESSAGES["MANY_MARNIE_USERS"]
             in response.content.decode()
+        )
+
+    def test_no_warning_for_multiple_marnie_users_when_there_is_one_marnie_user(
+        self,
+        marnie_user: User,
+        admin_client: Client,
+    ) -> None:
+        """Ensure no warning for multiple Marnie users when there is one Marnie user.
+
+        Args:
+            marnie_user (User): User instance representing Marnie.
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Make sure there is only one Marnie user
+        assert count_marnie_users() == 1
+
+        response = admin_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["MANY_MARNIE_USERS"]
+            not in response.content.decode()
         )
 
     def test_no_warning_for_multiple_marnie_users_when_i_am_not_admin(
@@ -339,6 +429,8 @@ class TestAdminSpecificHomePageWarnings:
             not in response.content.decode()
         )
 
+    # Tests for when there are no agent users
+
     def test_warning_for_no_agent_users(self, admin_client: Client) -> None:
         """Test that a warning is shown when there are no Agent users.
 
@@ -352,6 +444,27 @@ class TestAdminSpecificHomePageWarnings:
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
         assert (
             USER_COUNT_PROBLEM_MESSAGES["NO_AGENT_USERS"] in response.content.decode()
+        )
+
+    def test_no_warning_for_no_agent_users_when_there_is_an_agent_user(
+        self,
+        bob_agent_user: User,
+        admin_client: Client,
+    ) -> None:
+        """Ensure no warning for no Agent users when there is an Agent user.
+
+        Args:
+            bob_agent_user (User): User instance for Bob, an agent user.
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Make sure there is at least one agent user
+        assert count_agent_users() >= 1
+
+        response = admin_client.get("/")
+        assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+        assert (
+            USER_COUNT_PROBLEM_MESSAGES["NO_AGENT_USERS"]
+            not in response.content.decode()
         )
 
     @pytest.mark.django_db()
@@ -379,6 +492,8 @@ class TestAdminSpecificHomePageWarnings:
             not in response.content.decode()
         )
 
+    # Tests for when there are users with no email addresses
+
     def test_warning_for_users_with_no_email_addresses(
         self,
         admin_client: Client,
@@ -396,6 +511,25 @@ class TestAdminSpecificHomePageWarnings:
         expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES["NO_EMAIL_ADDRESS"]
         expected_msg = expected_msg_template.format(username=username)
         assert expected_msg in response.content.decode()
+
+    @pytest.mark.django_db()
+    def test_no_missing_email_warning_for_users_with_email(
+        self,
+        admin_client: Client,
+    ) -> None:
+        """Test no warning for users with email addresses.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Create a user with an email address
+        username = "terry"
+        User.objects.create(username=username, email="terry@email.com")
+
+        response = admin_client.get("/")
+        expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES["NO_EMAIL_ADDRESS"]
+        expected_msg = expected_msg_template.format(username=username)
+        assert expected_msg not in response.content.decode()
 
     @pytest.mark.django_db()
     def test_no_warning_for_users_with_no_email_addresses_when_i_am_not_admin(
@@ -417,6 +551,8 @@ class TestAdminSpecificHomePageWarnings:
         expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES["NO_EMAIL_ADDRESS"]
         expected_msg = expected_msg_template.format(username=username)
         assert expected_msg not in response.content.decode()
+
+    # Tests for when there are users with unvalidated email addresses
 
     def test_warning_for_users_with_no_validated_email_addresses(
         self,
@@ -440,6 +576,35 @@ class TestAdminSpecificHomePageWarnings:
         ]
         expected_msg = expected_msg_template.format(username=username)
         assert expected_msg in response.content.decode()
+
+    def test_no_warning_unvalidated_email_for_users_with_validated_email(
+        self,
+        admin_client: Client,
+    ) -> None:
+        """Test no warning for users with validated email addresses.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Create a user with a validated email address
+        username = "jack"
+        user = User.objects.create(
+            username=username,
+            email=f"{username}@email.com",
+        )
+        user.emailaddress_set.create(  # type: ignore[attr-defined]
+            email=f"{username}@email.com",
+            primary=True,
+            verified=True,
+        )
+
+        response = admin_client.get("/")
+        expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
+            "NO_VALIDATED_EMAIL_ADDRESS"
+        ]
+        expected_msg = expected_msg_template.format(username=username)
+
+        assert expected_msg not in response.content.decode()
 
     @pytest.mark.django_db()
     def test_no_warning_unvalidated_email_non_admin(self, client: Client) -> None:
