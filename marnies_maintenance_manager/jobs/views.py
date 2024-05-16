@@ -144,6 +144,42 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
         raise ValueError(msg)  # pragma: no cover
 
 
+def _generate_email_body(job: Job) -> str:
+    """Generate the email body for the maintenance request email.
+
+    Args:
+        job (Job): The Job object.
+
+    Returns:
+        str: The email body.
+    """
+    return (
+        f"{job.agent.username} has made a new maintenance request.\n\n"
+        f"Date: {job.date}\n\n"
+        f"Address Details:\n\n{job.address_details}\n\n"
+        f"GPS Link:\n\n{job.gps_link}\n\n"
+        f"Quote Request Details:\n\n{job.quote_request_details}\n\n"
+        f"PS: This mail is sent from an unmonitored email address. "
+        "Please do not reply to this email.\n\n"
+    )
+
+
+def _log_exception_and_flash_for_marnie_user_not_found(request: HttpRequest) -> None:
+    """Log an exception and send a flash message for a Marnie user not found.
+
+    Args:
+        request (HttpRequest): The HTTP request.
+    """
+    logger.exception(
+        "No Marnie user found. Unable to send maintenance request email.",
+    )
+    messages.error(
+        request,
+        "No Marnie user found.\nUnable to send maintenance request.\n"
+        "Please contact the system administrator at " + get_sysadmin_email(),
+    )
+
+
 class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # type: ignore[type-arg]
     """Provide a form to create a new Maintenance Job.
 
@@ -210,15 +246,7 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
 
         email_subject = f"New maintenance request by {job.agent.username}"
 
-        email_body = (
-            f"{job.agent.username} has made a new maintenance request.\n\n"
-            f"Date: {job.date}\n\n"
-            f"Address Details:\n\n{job.address_details}\n\n"
-            f"GPS Link:\n\n{job.gps_link}\n\n"
-            f"Quote Request Details:\n\n{job.quote_request_details}\n\n"
-            f"PS: This mail is sent from an unmonitored email address. "
-            "Please do not reply to this email.\n\n"
-        )
+        email_body = _generate_email_body(job)
 
         email_from = DEFAULT_FROM_EMAIL
         email_cc = self.request.user.email
@@ -231,30 +259,26 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
             # Log the message here, then send a flash message to the user (it
             # will appear on their next web page). We don't raise an exception
             # further than this point.
-            logger.exception(
-                "No Marnie user found. Unable to send maintenance request email.",
-            )
-            messages.error(
+            _log_exception_and_flash_for_marnie_user_not_found(
                 self.request,
-                "No Marnie user found.\nUnable to send maintenance request.\n"
-                "Please contact the system administrator at " + get_sysadmin_email(),
             )
-        else:
-            # Marnie's user account was found, so we can send the email:
-            email = EmailMessage(
-                subject=email_subject,
-                body=email_body,
-                from_email=email_from,
-                to=[email_to],
-                cc=[email_cc],
-            )
-            email.send()
+            return response
 
-            # And send the success flash message to the user:
-            messages.success(
-                self.request,
-                "Your maintenance request has been sent to Marnie.",
-            )
+        # Marnie's user account was found, so we can send the email:
+        email = EmailMessage(
+            subject=email_subject,
+            body=email_body,
+            from_email=email_from,
+            to=[email_to],
+            cc=[email_cc],
+        )
+        email.send()
+
+        # And send the success flash message to the user:
+        messages.success(
+            self.request,
+            "Your maintenance request has been sent to Marnie.",
+        )
 
         return response
 
