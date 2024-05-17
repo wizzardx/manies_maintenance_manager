@@ -10,7 +10,7 @@ returned HTML. This setup ensures not only a successful HTTP response but also v
 the accuracy of the HTML content against expected patterns and structures.
 
 To execute these tests, run the following command:
-`docker compose -f local.yml run --rm django pytest \
+`docker compose -f docker-compose.local.yml run --rm django pytest \
     marnies_maintenance_manager/jobs/tests/test_pages_return_correct_html.py`
 """
 

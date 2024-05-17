@@ -90,7 +90,7 @@ class TestUserAdmin:
         # pylint: disable=import-outside-toplevel
         import marnies_maintenance_manager.users.admin as users_admin
 
-        with contextlib.suppress(admin.sites.AlreadyRegistered):
+        with contextlib.suppress(admin.sites.AlreadyRegistered):  # type: ignore[attr-defined]
             reload(users_admin)
 
     @pytest.mark.django_db()

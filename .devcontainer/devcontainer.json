@@ -2,7 +2,7 @@
 {
     "name": "marnies_maintenance_manager_dev",
     "dockerComposeFile": [
-        "../local.yml"
+        "../docker-compose.local.yml"
     ],
     "init": true,
     "mounts": [

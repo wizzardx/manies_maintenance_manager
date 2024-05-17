@@ -76,8 +76,8 @@ django.setup()
 
 # pylint: disable=invalid-name
 project = "Marnie's Maintenance Manager"
-copyright = """2024, David Purdy"""  # pylint: disable=redefined-builtin
-author = "David Purdy"
+copyright = """2024, David"""  # pylint: disable=redefined-builtin
+author = "David"
 
 
 # -- General configuration ---------------------------------------------------

@@ -9,7 +9,7 @@ Documentation can be written as rst files in `marnies_maintenance_manager/docs`.
 
 To build and serve docs, use the commands::
 
-    docker compose -f local.yml up docs
+    docker compose -f docker-compose.local.yml up docs
 
 
 

@@ -1,6 +1,6 @@
 # Translations for the Marnie's Maintenance Manager project
-# Copyright (C) 2024 David Purdy
-# David Purdy <wizzardx@gmail.com>, 2024.
+# Copyright (C) 2024 David
+# David <wizzardx@gmail.com>, 2024.
 #
 #, fuzzy
 msgid ""

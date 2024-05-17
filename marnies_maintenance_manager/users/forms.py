@@ -11,7 +11,7 @@ from .models import User
 class UserAdminChangeForm(admin_forms.UserChangeForm):  # type: ignore[type-arg]
     """Provide form for changing existing users in the admin area."""
 
-    class Meta(admin_forms.UserChangeForm.Meta):
+    class Meta(admin_forms.UserChangeForm.Meta):  # type: ignore[name-defined,misc]
         """Define metadata for the UserAdminChangeForm class."""
 
         model = User
@@ -24,7 +24,7 @@ class UserAdminCreationForm(admin_forms.UserCreationForm):  # type: ignore[type-
     To change user signup, see UserSignupForm and UserSocialSignupForm.
     """
 
-    class Meta(admin_forms.UserCreationForm.Meta):
+    class Meta(admin_forms.UserCreationForm.Meta):  # type: ignore[name-defined,misc]
         """Define metadata and handle unique constraint violations."""
 
         model = User

@@ -55,26 +55,26 @@ safety check --ignore 51457,67599
 
 # Check for out of date packages:
 echo "Check for outdated packages..."
-scripts/check_outdated_packages.py --ignore Django,django-allauth,django-stubs,mypy,regex,Werkzeug
+scripts/check_outdated_packages.py --ignore Django,regex
 
 # Done with tools from under the python venv, so deactivate that now.
 echo "Deactivate python virtualenv."
 deactivate
 
 echo "Running Django's system checks..."
-docker compose -f local.yml exec django python manage.py check
+docker compose -f docker-compose.local.yml exec django python manage.py check
 
 echo "Unit and functional tests (under docker), with coverage..."
-docker compose -f local.yml exec django coverage run --rcfile=.coveragerc -m pytest --showlocals
+docker compose -f docker-compose.local.yml exec django coverage run --rcfile=.coveragerc -m pytest --showlocals
 
 echo "Coverage report (console)..."
 # Run both coverage reports, even if one of them fails, before returning with an exit.
 # This is so that we can have both type of output report (terminal, and HTML).
 COVERAGE_ERROR=0
-docker compose -f local.yml exec django coverage report --rcfile=.coveragerc || COVERAGE_ERROR=1
+docker compose -f docker-compose.local.yml exec django coverage report --rcfile=.coveragerc || COVERAGE_ERROR=1
 
 echo "Coverage report (html)..."
-docker compose -f local.yml exec django coverage html --rcfile=.coveragerc || COVERAGE_ERROR=1
+docker compose -f docker-compose.local.yml exec django coverage html --rcfile=.coveragerc || COVERAGE_ERROR=1
 
 # Stop now if there was an error (eg, not enough coverage %) returned by one of the
 # coverage report runs
