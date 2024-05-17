@@ -164,6 +164,42 @@ def _generate_email_body(job: Job) -> str:
     )
 
 
+def _user_has_verified_email_address(user: User) -> bool:
+    """Check if the user has a verified email address.
+
+    Args:
+        user (User): The user.
+
+    Returns:
+        bool: True if the user has a verified email address, False otherwise.
+    """
+    return cast(
+        bool,
+        user.emailaddress_set.filter(  # type: ignore[attr-defined]
+            verified=True,
+        ).exists(),
+    )
+
+
+def _marnie_has_verified_email_address(marnie_email: str) -> bool:
+    """Check if Marnie has a verified email address.
+
+    Args:
+        marnie_email (str): The email address for Marnie.
+
+    Returns:
+        bool: True if Marnie has a verified email address, False otherwise.
+    """
+    return cast(
+        bool,
+        User.objects.get(email=marnie_email)
+        .emailaddress_set.filter(  # type: ignore[attr-defined]
+            verified=True,
+        )
+        .exists(),
+    )
+
+
 def _log_exception_and_flash_for_marnie_user_not_found(request: HttpRequest) -> None:
     """Log an exception and send a flash message for a Marnie user not found.
 
@@ -175,8 +211,83 @@ def _log_exception_and_flash_for_marnie_user_not_found(request: HttpRequest) -> 
     )
     messages.error(
         request,
-        "No Marnie user found.\nUnable to send maintenance request.\n"
+        "No Marnie user found.\nUnable to send maintenance request email.\n"
         "Please contact the system administrator at " + get_sysadmin_email(),
+    )
+
+
+def _log_error_and_flash_for_user_no_email_address(request: HttpRequest) -> None:
+    """Log an error and send a flash message for a user with no email address.
+
+    Args:
+        request (HttpRequest): The HTTP request.
+    """
+    logger.error(
+        "User %s has no email address. Unable to send maintenance request email.",
+        request.user.username,
+    )
+    messages.error(
+        request,
+        "Your email address is missing.\nUnable to send maintenance "
+        "request email.\nPlease contact the system administrator at "
+        + get_sysadmin_email(),
+    )
+
+
+def _log_error_and_flash_for_user_no_verified_email_address(
+    request: HttpRequest,
+) -> None:
+    """Log an error and send a flash message for a user with no verified email address.
+
+    Args:
+        request (HttpRequest): The HTTP request.
+    """
+    logger.error(
+        "User %s has not verified their email address. Unable to send"
+        " maintenance request email.",
+        request.user.username,
+    )
+    messages.error(
+        request,
+        "Your email address is not verified.\nUnable to send maintenance "
+        "request email.\nPlease verify your email address and try again.",
+    )
+
+
+def _log_error_and_flash_for_marnie_user_no_email_address(request: HttpRequest) -> None:
+    """Log an error and send a flash message for a Marnie user with no email address.
+
+    Args:
+        request (HttpRequest): The HTTP request.
+    """
+    logger.error(
+        "User marnie has no email address. Unable to send maintenance request email.",
+    )
+    messages.error(
+        request,
+        "Marnie's email address is missing.\nUnable to send maintenance "
+        "request email.\nPlease contact the system administrator at "
+        + get_sysadmin_email(),
+    )
+
+
+def _log_error_and_flash_for_marnie_user_no_verified_email_address(
+    request: HttpRequest,
+) -> None:
+    """Log error and send a flash message for a Marnie user with no verified email.
+
+    Args:
+        request (HttpRequest): The HTTP request.
+    """
+    logger.error(
+        "Marnie's email address is not verified. "
+        "Unable to send maintenance request email.",
+    )
+    messages.error(
+        request,
+        "Marnie's email address is not verified.\nUnable to send maintenance "
+        "request email.\nPlease contact the system administrator at "
+        + get_sysadmin_email(),
     )
 
 
@@ -254,7 +365,7 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         # One main error that can happen here is if the Marnie user account does
         # not exist.
         try:
-            email_to = get_marnie_email()
+            marnie_email = get_marnie_email()
         except MarnieUserNotFoundError:
             # Log the message here, then send a flash message to the user (it
             # will appear on their next web page). We don't raise an exception
@@ -264,7 +375,39 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
             )
             return response
 
-        # Marnie's user account was found, so we can send the email:
+        # Marnie's user account was found. Next, check the user's own email address
+        # to see if it's valid. If it's not, we can't send the email.
+        if not self.request.user.email:
+            # The user's email address is missing. Log the message, then send a
+            # flash message to the user (it will appear on their next web page).
+            _log_error_and_flash_for_user_no_email_address(self.request)
+            return response
+
+        # Users email address was found. Check if Marnie user has an email address.
+        if not marnie_email:
+            # The Marnie user's email address is missing. Log the message, then send
+            # a flash message to the user (it will appear on their next web page).
+            _log_error_and_flash_for_marnie_user_no_email_address(self.request)
+            return response
+
+        # Check if the agent user has a verified email address
+        if not _user_has_verified_email_address(self.request.user):
+            # The user's email address is not verified. Log the message, then send a
+            # flash message to the user (it will appear on their next web page).
+            _log_error_and_flash_for_user_no_verified_email_address(self.request)
+            return response
+
+        # Check if Marnie has a verified email address
+        if not _marnie_has_verified_email_address(marnie_email=marnie_email):
+            # Marnies email address is not verified. Log the message, then send a
+            # flash message to the user (it will appear on their next web page).
+            _log_error_and_flash_for_marnie_user_no_verified_email_address(self.request)
+            return response
+
+        # Marnie's user account and other required details were found, so we can
+        # send the email:
+        email_to = get_marnie_email()
+
         email = EmailMessage(
             subject=email_subject,
             body=email_body,

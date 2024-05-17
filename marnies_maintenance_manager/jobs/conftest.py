@@ -26,6 +26,27 @@ def bob_agent_user_client(client: Client, bob_agent_user: User) -> Client:
 
 
 @pytest.fixture()
+def bob_agent_user_without_verified_email_client(
+    client: Client,
+    bob_agent_user_without_verified_email: User,
+) -> Client:
+    """Provide a logged-in test client for agent user Bob without a verified email.
+
+    Args:
+        client (Client): The fixture to use for creating an HTTP client.
+        bob_agent_user_without_verified_email (User): The agent user Bob from the
+            user model.
+
+    Returns:
+        Client: A Django test client logged in as agent user Bob without a verified
+            email.
+    """
+    logged_in = client.login(username="bob", password="password")  # noqa: S106
+    assert logged_in
+    return client
+
+
+@pytest.fixture()
 def peter_agent_user_client(client: Client, peter_agent_user: User) -> Client:
     """Supply a logged-in test client for agent user Peter.
 

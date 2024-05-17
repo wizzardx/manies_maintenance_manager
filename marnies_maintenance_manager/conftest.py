@@ -48,13 +48,15 @@ def user(db: None) -> User:  # pylint: disable=unused-argument
     return UserFactory()
 
 
-def _make_user(
+def _make_user(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     django_user_model: type[User],
     username: str,
     *,
     is_agent: bool = False,
     is_superuser: bool = False,
     is_marnie: bool = False,
+    email_verified: bool = True,
+    email_primary: bool = True,
 ) -> User:
     """Create and return a new user with optional agent and superuser status.
 
@@ -68,6 +70,8 @@ def _make_user(
         is_agent (bool): Flag to indicate if the user is an agent.
         is_superuser (bool): Flag to indicate if the user is a superuser.
         is_marnie (bool): Flag to indicate if the user is Marnie.
+        email_verified (bool): Flag to indicate if the email is verified.
+        email_primary (bool): Flag to indicate if the email is the primary email.
 
     Returns:
         User: The newly created user instance.
@@ -82,8 +86,8 @@ def _make_user(
     )
     user_.emailaddress_set.create(  # type: ignore[attr-defined]
         email=f"{username}@example.com",
-        primary=True,
-        verified=True,
+        primary=email_primary,
+        verified=email_verified,
     )
     return user_
 
@@ -99,6 +103,19 @@ def bob_agent_user(django_user_model: type[User]) -> User:
         User: A Django User instance configured as an agent, named 'bob'.
     """
     return _make_user(django_user_model, "bob", is_agent=True)
+
+
+@pytest.fixture()
+def bob_agent_user_without_verified_email(django_user_model: type[User]) -> User:
+    """Create a user fixture named 'bob' for testing job creation and login.
+
+    Args:
+        django_user_model (type[User]): The Django User model.
+
+    Returns:
+        User: A Django User instance configured as an agent, named 'bob'.
+    """
+    return _make_user(django_user_model, "bob", is_agent=True, email_verified=False)
 
 
 @pytest.fixture()
@@ -125,6 +142,19 @@ def marnie_user(django_user_model: type[User]) -> User:
         User: A Django User instance configured as 'marnie', without agent privileges.
     """
     return _make_user(django_user_model, "marnie", is_marnie=True)
+
+
+@pytest.fixture()
+def marnie_user_without_verified_email(django_user_model: type[User]) -> User:
+    """Create a user fixture named 'marnie' for testing job creation and login.
+
+    Args:
+        django_user_model (type[User]): The Django User model.
+
+    Returns:
+        User: A Django User instance configured as 'marnie', without agent privileges.
+    """
+    return _make_user(django_user_model, "marnie", is_marnie=True, email_verified=False)
 
 
 @pytest.fixture()

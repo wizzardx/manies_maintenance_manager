@@ -11,7 +11,7 @@ from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
 from marnies_maintenance_manager.users.models import User
 
-# pylint: disable=no-self-use, magic-value-comparison
+# pylint: disable=no-self-use, magic-value-comparison, too-many-arguments
 
 
 @pytest.fixture()
@@ -448,7 +448,7 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
             str(messages[0])
             == (
                 "No Marnie user found.\n"
-                "Unable to send maintenance request.\n"
+                "Unable to send maintenance request email.\n"
                 "Please contact the system administrator at "
             )
             + get_sysadmin_email()
@@ -460,4 +460,216 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
         assert (
             caplog.records[0].message
             == "No Marnie user found. Unable to send maintenance request email."
+        )
+
+    def test_error_flash_when_agent_user_has_no_email_address(  # noqa: PLR0913
+        self,
+        bob_agent_user_client: Client,
+        bob_agent_user: User,
+        caplog: pytest.LogCaptureFixture,
+        superuser_user: User,
+        marnie_user: User,
+    ) -> None:
+        """Test that agents see an error message when their user has no email address.
+
+        Args:
+            bob_agent_user_client (Client): A test client for Bob, an agent user.
+            bob_agent_user (User): Bob's user instance, used for validation in this
+                                   test.
+            caplog (LogCaptureFixture): Pytest fixture to capture log outputs.
+            marnie_user (User): Marnie's user instance, used for validation in this
+                                test.
+            superuser_user (User): A superuser instance used for additional validation.
+        """
+        bob_agent_user.email = ""
+        bob_agent_user.save()
+        response = bob_agent_user_client.post(
+            reverse("jobs:job_create"),
+            {
+                "date": "2022-01-01",
+                "address_details": "1234 Main St, Springfield, IL",
+                "gps_link": "https://www.google.com/maps",
+                "quote_request_details": "Replace the kitchen sink",
+            },
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
+
+        response = bob_agent_user_client.get(response.url)  # type: ignore[attr-defined]
+        messages = list(response.context["messages"])
+        assert len(messages) == 1
+        assert (
+            str(messages[0])
+            == (
+                "Your email address is missing.\n"
+                "Unable to send maintenance request email.\n"
+                "Please contact the system administrator at "
+            )
+            + get_sysadmin_email()
+        )
+
+        # Also check that an error message was logged at the same time
+        assert len(caplog.records) == 1
+        assert caplog.records[0].levelname == "ERROR"
+        assert (
+            caplog.records[0].message
+            == "User bob has no email address. Unable to send maintenance "
+            "request email."
+        )
+
+    def test_error_flash_when_marnie_user_has_no_email_address(  # noqa: PLR0913
+        self,
+        bob_agent_user_client: Client,
+        bob_agent_user: User,
+        caplog: pytest.LogCaptureFixture,
+        superuser_user: User,
+        marnie_user: User,
+    ) -> None:
+        """Test that agents see an error message when Marnie has no email address.
+
+        Args:
+            bob_agent_user_client (Client): A test client for Bob, an agent user.
+            bob_agent_user (User): Bob's user instance, used for validation in this
+                                   test.
+            caplog (LogCaptureFixture): Pytest fixture to capture log outputs.
+            marnie_user (User): Marnie's user instance, used for validation in this
+                                test.
+            superuser_user (User): A superuser instance used for additional validation.
+        """
+        marnie_user.email = ""
+        marnie_user.save()
+        response = bob_agent_user_client.post(
+            reverse("jobs:job_create"),
+            {
+                "date": "2022-01-01",
+                "address_details": "1234 Main St, Springfield, IL",
+                "gps_link": "https://www.google.com/maps",
+                "quote_request_details": "Replace the kitchen sink",
+            },
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
+
+        response = bob_agent_user_client.get(response.url)  # type: ignore[attr-defined]
+        messages = list(response.context["messages"])
+        assert len(messages) == 1
+        assert (
+            str(messages[0])
+            == (
+                "Marnie's email address is missing.\n"
+                "Unable to send maintenance request email.\n"
+                "Please contact the system administrator at "
+            )
+            + get_sysadmin_email()
+        )
+
+        # Also check that an error message was logged at the same time
+        assert len(caplog.records) == 1
+        assert caplog.records[0].levelname == "ERROR"
+        assert (
+            caplog.records[0].message
+            == "User marnie has no email address. Unable to send maintenance "
+            "request email."
+        )
+
+    def test_error_flash_when_agent_user_email_address_not_verified(  # noqa: PLR0913
+        self,
+        bob_agent_user_without_verified_email_client: Client,
+        bob_agent_user_without_verified_email: User,
+        caplog: pytest.LogCaptureFixture,
+        superuser_user: User,
+        marnie_user: User,
+    ) -> None:
+        """Test that agents see an error message when their email is not verified.
+
+        Args:
+            bob_agent_user_without_verified_email_client (Client): A test client for
+                Bob, an agent user without a verified email address.
+            bob_agent_user_without_verified_email (User): Bob's user instance without a
+                verified email address.
+            caplog (LogCaptureFixture): Pytest fixture to capture log outputs.
+            marnie_user (User): Marnie's user instance, used for validation in this
+                               test.
+            superuser_user (User): A superuser instance used for additional validation.
+        """
+        response = bob_agent_user_without_verified_email_client.post(
+            reverse("jobs:job_create"),
+            {
+                "date": "2022-01-01",
+                "address_details": "1234 Main St, Springfield, IL",
+                "gps_link": "https://www.google.com/maps",
+                "quote_request_details": "Replace the kitchen sink",
+            },
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
+
+        response = bob_agent_user_without_verified_email_client.get(
+            response.url,  # type: ignore[attr-defined]
+        )
+        messages = list(response.context["messages"])
+        assert len(messages) == 1
+        assert str(messages[0]) == (
+            "Your email address is not verified.\n"
+            "Unable to send maintenance request email.\n"
+            "Please verify your email address and try again."
+        )
+
+        # Also check that an error message was logged at the same time
+        assert len(caplog.records) == 1
+        assert caplog.records[0].levelname == "ERROR"
+        assert (
+            caplog.records[0].message
+            == "User bob has not verified their email address. Unable to send "
+            "maintenance request email."
+        )
+
+    def test_error_flash_when_marnie_user_email_address_not_verified(
+        self,
+        bob_agent_user_client: Client,
+        marnie_user_without_verified_email: User,
+        caplog: pytest.LogCaptureFixture,
+        superuser_user: User,
+    ) -> None:
+        """Test that agents see an error message when Marnie's email is not verified.
+
+        Args:
+            bob_agent_user_client (Client): A test client for Bob, an agent user.
+            marnie_user_without_verified_email (User): Marnie's user instance without
+                                                       a verified email address.
+            caplog (LogCaptureFixture): Pytest fixture to capture log outputs.
+            superuser_user (User): A superuser instance used for additional validation.
+        """
+        response = bob_agent_user_client.post(
+            reverse("jobs:job_create"),
+            {
+                "date": "2022-01-01",
+                "address_details": "1234 Main St, Springfield, IL",
+                "gps_link": "https://www.google.com/maps",
+                "quote_request_details": "Replace the kitchen sink",
+            },
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
+
+        response = bob_agent_user_client.get(response.url)  # type: ignore[attr-defined]
+        messages = list(response.context["messages"])
+        assert len(messages) == 1
+        assert (
+            str(messages[0])
+            == (
+                "Marnie's email address is not verified.\n"
+                "Unable to send maintenance request email.\n"
+                "Please contact the system administrator at "
+            )
+            + get_sysadmin_email()
+        )
+
+        # Also check that an error message was logged at the same time
+        assert len(caplog.records) == 1
+        assert caplog.records[0].levelname == "ERROR"
+        assert (
+            caplog.records[0].message
+            == "Marnie's email address is not verified. Unable to send "
+            "maintenance request email."
         )
