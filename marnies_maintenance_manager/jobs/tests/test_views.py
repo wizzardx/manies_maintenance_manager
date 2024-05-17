@@ -2,7 +2,10 @@
 
 # pylint: disable=unused-argument,redefined-outer-name,unused-argument
 
+from typing import cast
+
 import pytest
+from django.contrib.messages.storage.base import Message
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
@@ -386,6 +389,66 @@ def test_create_job_form_uses_date_type_for_date_input_field(
     assert date_widget.input_type == "date"
 
 
+def _get_flashed_message_after_creating_a_job(client: Client) -> Message:
+    """Get the flashed message after creating a job.
+
+    Args:
+        client (Client): A test client used to create a job.
+
+    Returns:
+        Message: The flashed message displayed after creating a job.
+    """
+    response = client.post(
+        reverse("jobs:job_create"),
+        {
+            "date": "2022-01-01",
+            "address_details": "1234 Main St, Springfield, IL",
+            "gps_link": "https://www.google.com/maps",
+            "quote_request_details": "Replace the kitchen sink",
+        },
+    )
+    assert response.status_code == status.HTTP_302_FOUND
+    response = client.get(response.url)  # type: ignore[attr-defined]
+    messages = list(response.context["messages"])
+    assert len(messages) == 1
+    return cast(Message, messages[0])
+
+
+def _check_one_error_logged_with_message(
+    caplog: pytest.LogCaptureFixture,
+    message: str,
+) -> None:
+    """Check that exactly one error was logged with the specified message.
+
+    Args:
+        caplog (LogCaptureFixture): Pytest fixture to capture log outputs.
+        message (str): The message to check for in the log.
+    """
+    assert len(caplog.records) == 1
+    assert caplog.records[0].levelname == "ERROR"
+    assert caplog.records[0].message == message
+
+
+def _check_creating_a_job_flashes_and_logs_errors(
+    client: Client,
+    caplog: pytest.LogCaptureFixture,
+    expected_flashed_error_message: str,
+    expected_logged_error: str,
+) -> None:
+    """Check that creating a job shows a flash message and logs an error.
+
+    Args:
+        client (Client): A test client used to create a job.
+        caplog (LogCaptureFixture): Pytest fixture to capture log outputs.
+        expected_flashed_error_message (str): The expected flashed error.
+        expected_logged_error (str): The expected error message.
+    """
+    flashed_message = _get_flashed_message_after_creating_a_job(client)
+    assert flashed_message.message == expected_flashed_error_message
+    assert flashed_message.level_tag == "error"
+    _check_one_error_logged_with_message(caplog, expected_logged_error)
+
+
 class TestAgentCreatingAJobShowsThemFlashMessages:
     """Test that agents see flash messages when creating a job."""
 
@@ -401,21 +464,14 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
                                             user.
             marnie_user (User): Marnie's user instance, included for context in tests.
         """
-        response = bob_agent_user_client.post(
-            reverse("jobs:job_create"),
-            {
-                "date": "2022-01-01",
-                "address_details": "1234 Main St, Springfield, IL",
-                "gps_link": "https://www.google.com/maps",
-                "quote_request_details": "Replace the kitchen sink",
-            },
+        flashed_message = _get_flashed_message_after_creating_a_job(
+            bob_agent_user_client,
         )
-        assert response.status_code == status.HTTP_302_FOUND
-        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
-        response = bob_agent_user_client.get(response.url)  # type: ignore[attr-defined]
-        messages = list(response.context["messages"])
-        assert len(messages) == 1
-        assert str(messages[0]) == "Your maintenance request has been sent to Marnie."
+        assert (
+            flashed_message.message
+            == "Your maintenance request has been sent to Marnie."
+        )
+        assert flashed_message.level_tag == "success"
 
     def test_error_flash_when_no_marnie_user_exists(
         self,
@@ -430,36 +486,20 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
             caplog (LogCaptureFixture): Pytest fixture to capture log outputs.
             superuser_user (User): A superuser instance used for additional validation.
         """
-        response = bob_agent_user_client.post(
-            reverse("jobs:job_create"),
-            {
-                "date": "2022-01-01",
-                "address_details": "1234 Main St, Springfield, IL",
-                "gps_link": "https://www.google.com/maps",
-                "quote_request_details": "Replace the kitchen sink",
-            },
+        expected_flashed_message = (
+            "No Marnie user found.\n"
+            "Unable to send maintenance request email.\n"
+            "Please contact the system administrator at " + get_sysadmin_email()
         )
-        assert response.status_code == status.HTTP_302_FOUND
-        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
-        response = bob_agent_user_client.get(response.url)  # type: ignore[attr-defined]
-        messages = list(response.context["messages"])
-        assert len(messages) == 1
-        assert (
-            str(messages[0])
-            == (
-                "No Marnie user found.\n"
-                "Unable to send maintenance request email.\n"
-                "Please contact the system administrator at "
-            )
-            + get_sysadmin_email()
+        expected_logged_error = (
+            "No Marnie user found. Unable to send maintenance request email."
         )
 
-        # Also check that an error message was logged at the same time
-        assert len(caplog.records) == 1
-        assert caplog.records[0].levelname == "ERROR"
-        assert (
-            caplog.records[0].message
-            == "No Marnie user found. Unable to send maintenance request email."
+        _check_creating_a_job_flashes_and_logs_errors(
+            bob_agent_user_client,
+            caplog,
+            expected_flashed_message,
+            expected_logged_error,
         )
 
     def test_error_flash_when_agent_user_has_no_email_address(  # noqa: PLR0913
@@ -483,38 +523,21 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
         """
         bob_agent_user.email = ""
         bob_agent_user.save()
-        response = bob_agent_user_client.post(
-            reverse("jobs:job_create"),
-            {
-                "date": "2022-01-01",
-                "address_details": "1234 Main St, Springfield, IL",
-                "gps_link": "https://www.google.com/maps",
-                "quote_request_details": "Replace the kitchen sink",
-            },
-        )
-        assert response.status_code == status.HTTP_302_FOUND
-        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
 
-        response = bob_agent_user_client.get(response.url)  # type: ignore[attr-defined]
-        messages = list(response.context["messages"])
-        assert len(messages) == 1
-        assert (
-            str(messages[0])
-            == (
-                "Your email address is missing.\n"
-                "Unable to send maintenance request email.\n"
-                "Please contact the system administrator at "
-            )
-            + get_sysadmin_email()
+        expected_flashed_message = (
+            "Your email address is missing.\n"
+            "Unable to send maintenance request email.\n"
+            "Please contact the system administrator at " + get_sysadmin_email()
+        )
+        expected_logged_error = (
+            "User bob has no email address. Unable to send maintenance request email."
         )
 
-        # Also check that an error message was logged at the same time
-        assert len(caplog.records) == 1
-        assert caplog.records[0].levelname == "ERROR"
-        assert (
-            caplog.records[0].message
-            == "User bob has no email address. Unable to send maintenance "
-            "request email."
+        _check_creating_a_job_flashes_and_logs_errors(
+            bob_agent_user_client,
+            caplog,
+            expected_flashed_message,
+            expected_logged_error,
         )
 
     def test_error_flash_when_marnie_user_has_no_email_address(  # noqa: PLR0913
@@ -538,38 +561,22 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
         """
         marnie_user.email = ""
         marnie_user.save()
-        response = bob_agent_user_client.post(
-            reverse("jobs:job_create"),
-            {
-                "date": "2022-01-01",
-                "address_details": "1234 Main St, Springfield, IL",
-                "gps_link": "https://www.google.com/maps",
-                "quote_request_details": "Replace the kitchen sink",
-            },
-        )
-        assert response.status_code == status.HTTP_302_FOUND
-        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
 
-        response = bob_agent_user_client.get(response.url)  # type: ignore[attr-defined]
-        messages = list(response.context["messages"])
-        assert len(messages) == 1
-        assert (
-            str(messages[0])
-            == (
-                "Marnie's email address is missing.\n"
-                "Unable to send maintenance request email.\n"
-                "Please contact the system administrator at "
-            )
-            + get_sysadmin_email()
+        expected_flashed_message = (
+            "Marnie's email address is missing.\n"
+            "Unable to send maintenance request email.\n"
+            "Please contact the system administrator at " + get_sysadmin_email()
+        )
+        expected_logged_error = (
+            "User marnie has no email address. "
+            "Unable to send maintenance request email."
         )
 
-        # Also check that an error message was logged at the same time
-        assert len(caplog.records) == 1
-        assert caplog.records[0].levelname == "ERROR"
-        assert (
-            caplog.records[0].message
-            == "User marnie has no email address. Unable to send maintenance "
-            "request email."
+        _check_creating_a_job_flashes_and_logs_errors(
+            bob_agent_user_client,
+            caplog,
+            expected_flashed_message,
+            expected_logged_error,
         )
 
     def test_error_flash_when_agent_user_email_address_not_verified(  # noqa: PLR0913
@@ -592,36 +599,21 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
                                test.
             superuser_user (User): A superuser instance used for additional validation.
         """
-        response = bob_agent_user_without_verified_email_client.post(
-            reverse("jobs:job_create"),
-            {
-                "date": "2022-01-01",
-                "address_details": "1234 Main St, Springfield, IL",
-                "gps_link": "https://www.google.com/maps",
-                "quote_request_details": "Replace the kitchen sink",
-            },
-        )
-        assert response.status_code == status.HTTP_302_FOUND
-        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
-
-        response = bob_agent_user_without_verified_email_client.get(
-            response.url,  # type: ignore[attr-defined]
-        )
-        messages = list(response.context["messages"])
-        assert len(messages) == 1
-        assert str(messages[0]) == (
+        expected_flashed_message = (
             "Your email address is not verified.\n"
             "Unable to send maintenance request email.\n"
             "Please verify your email address and try again."
         )
+        expected_logged_error = (
+            "User bob has not verified their email address. "
+            "Unable to send maintenance request email."
+        )
 
-        # Also check that an error message was logged at the same time
-        assert len(caplog.records) == 1
-        assert caplog.records[0].levelname == "ERROR"
-        assert (
-            caplog.records[0].message
-            == "User bob has not verified their email address. Unable to send "
-            "maintenance request email."
+        _check_creating_a_job_flashes_and_logs_errors(
+            bob_agent_user_without_verified_email_client,
+            caplog,
+            expected_flashed_message,
+            expected_logged_error,
         )
 
     def test_error_flash_when_marnie_user_email_address_not_verified(
@@ -640,36 +632,19 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
             caplog (LogCaptureFixture): Pytest fixture to capture log outputs.
             superuser_user (User): A superuser instance used for additional validation.
         """
-        response = bob_agent_user_client.post(
-            reverse("jobs:job_create"),
-            {
-                "date": "2022-01-01",
-                "address_details": "1234 Main St, Springfield, IL",
-                "gps_link": "https://www.google.com/maps",
-                "quote_request_details": "Replace the kitchen sink",
-            },
+        expected_flashed_message = (
+            "Marnie's email address is not verified.\n"
+            "Unable to send maintenance request email.\n"
+            "Please contact the system administrator at " + get_sysadmin_email()
         )
-        assert response.status_code == status.HTTP_302_FOUND
-        assert response.url == reverse("jobs:job_list")  # type: ignore[attr-defined]
-
-        response = bob_agent_user_client.get(response.url)  # type: ignore[attr-defined]
-        messages = list(response.context["messages"])
-        assert len(messages) == 1
-        assert (
-            str(messages[0])
-            == (
-                "Marnie's email address is not verified.\n"
-                "Unable to send maintenance request email.\n"
-                "Please contact the system administrator at "
-            )
-            + get_sysadmin_email()
+        expected_logged_error = (
+            "Marnie's email address is not verified. "
+            "Unable to send maintenance request email."
         )
 
-        # Also check that an error message was logged at the same time
-        assert len(caplog.records) == 1
-        assert caplog.records[0].levelname == "ERROR"
-        assert (
-            caplog.records[0].message
-            == "Marnie's email address is not verified. Unable to send "
-            "maintenance request email."
+        _check_creating_a_job_flashes_and_logs_errors(
+            bob_agent_user_client,
+            caplog,
+            expected_flashed_message,
+            expected_logged_error,
         )
