@@ -7,5 +7,7 @@ set -e
 # Run the script itself
 time scripts/all_tests.sh || true
 
-# That script can take a while, so run kdialog to bring my attention back to it.
-kdialog --msgbox "Tests done"
+# That script can take a while, so play a noise and run kdialog to bring my attention
+# back to it.
+paplay /usr/share/sounds/sound-icons/message
+kdialog --msgbox "Tests done" || true
