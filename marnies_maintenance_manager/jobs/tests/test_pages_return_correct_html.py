@@ -551,41 +551,41 @@ class TestAdminSpecificHomePageWarnings:
         expected_msg = expected_msg_template.format(username=username)
         assert expected_msg not in response.content.decode()
 
-    # Tests for when there are users with unvalidated email addresses
+    # Tests for when there are users with unverified email addresses
 
-    def test_warning_for_users_with_no_validated_email_addresses(
+    def test_warning_for_users_with_no_verified_email_addresses(
         self,
         admin_client: Client,
     ) -> None:
-        """Test warning for users with unvalidated email addresses.
+        """Test warning for users with unverified email addresses.
 
         Args:
             admin_client (Client): A test client with admin privileges.
         """
-        # Create a user with an unvalidated email address
-        username = "unvalidated_email_user"
+        # Create a user with an unverified email address
+        username = "unverified_email_user"
         User.objects.create(
             username=username,
-            email="unvalidated_email_user@example.com",
+            email="unverified_email_user@example.com",
         )
 
         response = admin_client.get("/")
         expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
-            "NO_VALIDATED_EMAIL_ADDRESS"
+            "NO_VERIFIED_EMAIL_ADDRESS"
         ]
         expected_msg = expected_msg_template.format(username=username)
         assert expected_msg in response.content.decode()
 
-    def test_no_warning_unvalidated_email_for_users_with_validated_email(
+    def test_no_warning_unverified_email_for_users_with_verified_email(
         self,
         admin_client: Client,
     ) -> None:
-        """Test no warning for users with validated email addresses.
+        """Test no warning for users with verified email addresses.
 
         Args:
             admin_client (Client): A test client with admin privileges.
         """
-        # Create a user with a validated email address
+        # Create a user with a verified email address
         username = "jack"
         user = User.objects.create(
             username=username,
@@ -599,51 +599,51 @@ class TestAdminSpecificHomePageWarnings:
 
         response = admin_client.get("/")
         expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
-            "NO_VALIDATED_EMAIL_ADDRESS"
+            "NO_VERIFIED_EMAIL_ADDRESS"
         ]
         expected_msg = expected_msg_template.format(username=username)
 
         assert expected_msg not in response.content.decode()
 
     @pytest.mark.django_db()
-    def test_no_warning_unvalidated_email_non_admin(self, client: Client) -> None:
-        """Test warning for users with unvalidated email addresses.
+    def test_no_warning_verified_email_non_admin(self, client: Client) -> None:
+        """Test warning for users with verified email addresses.
 
         Args:
             client (Client): A test client.
         """
-        # Create a user with an unvalidated email address
-        username = "unvalidated_email_user"
+        # Create a user with an unverified email address
+        username = "verified_email_user"
         User.objects.create(
             username=username,
-            email="unvalidated_email_user@example.com",
+            email="verified_email_user@example.com",
         )
 
         response = client.get("/")
         expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
-            "NO_VALIDATED_EMAIL_ADDRESS"
+            "NO_VERIFIED_EMAIL_ADDRESS"
         ]
         expected_msg = expected_msg_template.format(username=username)
         assert expected_msg not in response.content.decode()
 
-    def test_no_warning_validated_email_admin(
+    def test_no_warning_verified_email_admin(
         self,
         superuser_user: User,
         superuser_client: Client,
         bob_agent_user: User,
     ) -> None:
-        """Test no warning for validated email addresses when user is an admin.
+        """Test no warning for verified email addresses when user is an admin.
 
         Args:
-            superuser_user (User): A superuser instance with validated email address.
+            superuser_user (User): A superuser instance with verified email address.
             superuser_client (Client): A test client configured for a superuser.
-            bob_agent_user (User): User instance for Bob, who is an agent with validated
+            bob_agent_user (User): User instance for Bob, who is an agent with verified
                                    email address.
         """
         response = superuser_client.get("/")
 
         expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
-            "NO_VALIDATED_EMAIL_ADDRESS"
+            "NO_VERIFIED_EMAIL_ADDRESS"
         ]
         expected_msg = expected_msg_template.format(username=superuser_user.username)
         assert expected_msg not in response.content.decode()
