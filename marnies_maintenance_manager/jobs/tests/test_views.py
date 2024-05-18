@@ -2,6 +2,7 @@
 
 # pylint: disable=unused-argument,redefined-outer-name,unused-argument
 
+import functools
 from typing import cast
 
 import pytest
@@ -748,3 +749,20 @@ class TestBasicHomePageText:
             "If you're a property agent then please contact Marnie so that this "
             "website can be setup for you!" in response.content.decode()
         )
+
+
+def test_limited_number_of_queries_on_home_page_for_admin_user(
+    superuser_client: Client,
+    django_assert_max_num_queries: functools.partial,  # type: ignore[type-arg]
+) -> None:
+    """Test the number of queries on the home page for a superuser.
+
+    To help us avoid various N+1 issues with querying on the home page for Admin user.
+
+    Args:
+        superuser_client (Client): A test client for a superuser.
+        django_assert_max_num_queries (functools.partial): Pytest fixture to check the
+            number of queries executed.
+    """
+    with django_assert_max_num_queries(6):
+        superuser_client.get(reverse("home"))

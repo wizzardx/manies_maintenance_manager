@@ -23,15 +23,13 @@ from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
+from zen_queries import fetch
 
 from marnies_maintenance_manager.users.models import User
 
 from .constants import DEFAULT_FROM_EMAIL
 from .exceptions import MarnieUserNotFoundError
 from .models import Job
-from .utils import count_admin_users
-from .utils import count_agent_users
-from .utils import count_marnie_users
 from .utils import get_marnie_email
 from .utils import get_sysadmin_email
 
@@ -173,11 +171,9 @@ def _user_has_verified_email_address(user: User) -> bool:
     Returns:
         bool: True if the user has a verified email address, False otherwise.
     """
-    return cast(
-        bool,
-        user.emailaddress_set.filter(  # type: ignore[attr-defined]
-            verified=True,
-        ).exists(),
+    return any(
+        emailaddress.verified
+        for emailaddress in user.emailaddress_set.all()  # type: ignore[attr-defined]
     )
 
 
@@ -435,79 +431,107 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         return user.is_agent or user.is_superuser
 
 
-class _UserInfo:
-    """Class to provide information about the users in the system."""
+class UserInfo:
+    """Class to efficiently provide information about the users to Templates.
 
-    @staticmethod
-    def has_no_admin_users() -> bool:
+    One reason we use this is to avoid a very large amount of user-related querying
+    when rendering the home page jor users. Instead, we instantiate this object once
+    pass it as a template context variable to the home page view, and in there
+    it uses its internal cache or calculates details without repeatedly querying
+    the db in a horrible set of N+1 patterns.
+    """
+
+    def __init__(self) -> None:
+        """Initialize the UserInfo object."""
+        self._cached_users = fetch(
+            User.objects.all().prefetch_related(
+                "emailaddress_set",
+            ),
+        )
+
+    def count_admin_users(self) -> int:
+        """Return the number of superusers.
+
+        Returns:
+            int: The number of superusers.
+        """
+        return sum(user.is_superuser for user in self._cached_users)
+
+    def count_marnie_users(self) -> int:
+        """Return the number of Marnie users.
+
+        Returns:
+            int: The number of Marnie users.
+        """
+        return sum(user.is_marnie for user in self._cached_users)
+
+    def count_agent_users(self) -> int:
+        """Return the number of Agent users.
+
+        Returns:
+            int: The number of Agent users.
+        """
+        return sum(user.is_agent for user in self._cached_users)
+
+    def has_no_admin_users(self) -> bool:
         """Check if there are no superusers.
 
         Returns:
             bool: True if there are no superusers, False otherwise.
         """
-        return count_admin_users() == 0
+        return self.count_admin_users() == 0
 
-    @staticmethod
-    def has_many_admin_users() -> bool:
+    def has_many_admin_users(self) -> bool:
         """Check if there are more than one superusers.
 
         Returns:
             bool: True if there are more than one superusers, False otherwise.
         """
-        return count_admin_users() > 1
+        return self.count_admin_users() > 1
 
-    @staticmethod
-    def has_no_marnie_users() -> bool:
+    def has_no_marnie_users(self) -> bool:
         """Check if there are no Marnie users.
 
         Returns:
             bool: True if there are no Marnie users, False otherwise.
         """
-        return count_marnie_users() == 0
+        return self.count_marnie_users() == 0
 
-    @staticmethod
-    def has_many_marnie_users() -> bool:
+    def has_many_marnie_users(self) -> bool:
         """Check if there are more than one Marnie users.
 
         Returns:
             bool: True if there are more than one Marnie users, False otherwise.
         """
-        return count_marnie_users() > 1
+        return self.count_marnie_users() > 1
 
-    @staticmethod
-    def has_no_agent_users() -> bool:
+    def has_no_agent_users(self) -> bool:
         """Check if there are no agent users.
 
         Returns:
             bool: True if there are no agent users, False otherwise.
         """
-        return count_agent_users() == 0
+        return self.count_agent_users() == 0
 
-    @staticmethod
-    def users_with_no_verified_email_address() -> list[User]:
+    def users_with_no_verified_email_address(self) -> list[User]:
         """Get all users with no verified email address.
 
         Returns:
             list[User]: A list of all users with no verified email address.
         """
-        users = cast(QuerySet[User], User.objects.all())
         return [
             user
-            for user in users
-            if not user.emailaddress_set.filter(  # type: ignore[attr-defined]
-                verified=True,
-            ).exists()
+            for user in self._cached_users
+            if not _user_has_verified_email_address(user)
         ]
 
-    @staticmethod
-    def users_with_no_email_address() -> list[User]:
+    def users_with_no_email_address(self) -> list[User]:
         """Get all users with no email address.
 
         Returns:
             list[User]: A list of all users with no email address.
         """
-        users = cast(QuerySet[User], User.objects.all())
-        return [user for user in users if not user.email]
+        return [user for user in self._cached_users if not user.email]
 
 
 def home_page(request: HttpRequest) -> HttpResponse:
@@ -520,7 +544,7 @@ def home_page(request: HttpRequest) -> HttpResponse:
         HttpResponse: The HTTP response.
     """
     context = {
-        "userinfo": _UserInfo,
+        "userinfo": UserInfo(),
         "warnings": USER_COUNT_PROBLEM_MESSAGES,
     }
     return render(request, "pages/home.html", context)
