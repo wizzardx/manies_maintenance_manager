@@ -13,7 +13,8 @@ def check_outdated_packages(ignore_list: list[str]) -> int:
         ignore_list (list): List of package names to ignore.
 
     Returns:
-        int: 1 if there are non-ignored outdated packages, 0 otherwise.
+        int: 1 if there are non-ignored outdated packages, 2 if there are ignored
+             packages not in the list, 0 otherwise.
     """
     try:
         # Run pip list --outdated and capture the output
@@ -41,6 +42,20 @@ def check_outdated_packages(ignore_list: list[str]) -> int:
             outdated_packages.append(parts[0])
         elif len(parts) > 0 and parts[0] in ignore_list:
             print(f"An upgrade for {parts[0]} is being ignored")  # noqa: T201
+
+    # Find ignored packages not in the list of outdated packages
+    ignored_but_not_outdated = [
+        pkg for pkg in ignore_list if pkg not in [line.split()[0] for line in lines[2:]]
+    ]
+
+    if ignored_but_not_outdated:
+        print(  # noqa: T201
+            "\nWarning: The following ignored packages are not in the list of "
+            "outdated packages:",
+        )
+        for pkg in ignored_but_not_outdated:
+            print(pkg)  # noqa: T201
+        return 2
 
     # Print remaining packages that need an upgrade
     if outdated_packages:
