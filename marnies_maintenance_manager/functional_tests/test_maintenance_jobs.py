@@ -81,19 +81,7 @@ def wait_until(fn: Callable[[], Any]) -> Any:
             time.sleep(0.1)
 
 
-def _create_new_job(
-    browser: WebDriver,
-    live_server_url: str,
-) -> None:
-    # pylint: disable=too-many-locals
-
-    # Marnie's client Bob has heard of Marnie's cool new maintenance management site.
-    # He goes to check out its homepage.
-    browser.get(live_server_url)
-
-    # He notices the page title
-    assert "Marnie's Maintenance Manager" in browser.title
-
+def _sign_into_website(browser, username):
     # He sees the Sign In button in the navbar
     sign_in_button = browser.find_element(By.LINK_TEXT, "Sign In")
 
@@ -126,9 +114,31 @@ def _create_new_job(
     sign_in_button = browser.find_element(By.CLASS_NAME, "btn-primary")
     sign_in_button.click()
 
-    # This takes him to his user page (where he can manage his user further). He
-    # also sees this in the page title bar
-    assert "User: bob" in browser.title
+    # This takes him to his user page (where he can manage his user further).
+    # He also sees this in the page title bar
+    assert f"User: {username}" in browser.title
+
+
+def _create_new_job(
+    browser: WebDriver,
+    live_server_url: str,
+) -> None:
+    # pylint: disable=too-many-locals
+
+    # Marnie's client Bob has heard of Marnie's cool new maintenance management site.
+    # He goes to check out its homepage.
+    browser.get(live_server_url)
+
+    # He notices the page title
+    assert "Marnie's Maintenance Manager" in browser.title
+
+    ## Go through the process of logging into the website as 'bob' user:
+    _sign_into_website(browser, "bob")
+
+    # He sees some basic instructions on this page that tell him the next step, that
+    # he should click on the "Maintenance Jobs" link next.
+    expected_msg = "Click on the 'Maintenance Jobs' link to create a new job."
+    assert expected_msg in browser.page_source
 
     # He sees the "Maintenance Jobs" link in the navbar
     maintenance_jobs_link = browser.find_element(By.LINK_TEXT, "Maintenance Jobs")
@@ -242,6 +252,10 @@ def _create_new_job(
     ):
         sign_out_button.click()
 
+    # ALso tidy up here by cleaning up all the browser cookies.
+    browser.delete_all_cookies()
+    pytest.fail("Check that the above line works")
+
     # Satisfied, he goes back to sleep
 
 
@@ -310,3 +324,132 @@ def test_agent_creating_a_new_job_should_send_notification_emails(
         "PS: This mail is sent from an unmonitored email address. "
         "Please do not reply to this email." in email.body
     )
+
+
+def test_marnie_can_view_agents_job(
+    browser: WebDriver,
+    live_server_url: str,
+    marnie_user: User,
+    bob_agent_user: User) -> None:
+
+    ## First, quickly run through the steps of an Agent creating a new Job.
+    _create_new_job(browser, live_server_url)
+
+    # Marnie received the notification email (in an earlier step), and so now he wants
+    # to take a look at the Maintenance Job details
+    # that were submitted by the Agent.
+
+    # Marnie logs into the system.
+    _sign_into_website(browser, "marnie")
+
+    # He sees some text on the current page that informs him that he can see the
+    # per-agent "spreadsheets" over under the "Agents" link.
+    expected_msg = "Click on the 'Agents' view each Agents Maintenance Jobs"
+
+    # He also notices an "Agents" links in the navbar.
+    agents_link = browser.find_element(By.LINK_TEXT, "Agents")
+
+    # He clicks on the Agents link
+    agents_link.click()
+
+    # This takes him to a page listing the Agents. Each Agent is a link.
+    assert "Agents" in browser.title
+    assert "Agents" in browser.find_element(By.TAG_NAME, "h1").text
+    assert "bob" in browser.page_source
+
+    # He clicks on the link for Bob.
+    bob_agent_link = browser.find_element(By.LINK_TEXT, "bob")
+    bob_agent_link.click()
+
+    # This takes him to the Maintenance Jobs page for Bob the Agent.
+    assert "Maintenance Jobs for bob" in browser.title
+    assert "Maintenance Jobs for bob" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # On this page he can see the list of Maintenance Jobs that Bob has submitted.
+    table = browser.find_element(By.ID, "id_list_table")
+    rows = table.find_elements(By.TAG_NAME, "tr")
+
+    ## There should be exactly one row here
+    assert len(rows) == 2
+    # First row is the header row
+    header_row = rows[0]
+    header_cell_texts = [cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")]
+    assert header_cell_texts == ["Number", "Date", "Address Details", "GPS Link", "Quote Request Details"]
+
+    # Second row is the set of job details submitted by Bob earlier
+    row = rows[1]
+    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
+    assert cell_texts == ["1", "2021-01-01", "Department of Home Affairs Bellville", "GPS", "Please fix the leaky faucet in the staff bathroom"]
+
+    # Since he's not an Agent, he does not see the "Create Maintenance Job" link.
+    with pytest.raises(ElementClickInterceptedException):
+        browser.find_element(By.LINK_TEXT, "Create Maintenance Job").click()
+
+    # He sees that the #1 in the Number column is a link.
+    number_link = browser.find_element(By.LINK_TEXT, "1")
+
+    # He sees an instruction which tells him to click on the link in the Number column
+    # to view the details of each Maintenance Job.
+    expected_msg = "Click on the number in each row to go to the Job details"
+    assert expected_msg in browser.page_source
+
+    # He clicks on the #1 link in the Number column.
+    number_link.click()
+
+    # This takes him to a page where he can see (but not modify) the previously -
+    # submitted details, such as the Date, Address Details, GPS Link, and Quote Request
+    # Details.
+    assert "Maintenance Job Details" in browser.title
+    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # The previously submitted Maintenance Job details are displayed on the page.
+    assert "2021-01-01" in browser.page_source
+    assert "Department of Home Affairs Bellville" in browser.page_source
+    assert "GPS" in browser.page_source
+    assert "Please fix the leaky faucet in the staff bathroom" in browser.page_source
+
+    # Just below the existing details, he sees input fields where he can submit the
+    # inspection date and also upload a Quote invoice. And below that, there is a
+    # "submit" field.
+    inspection_date_field = browser.find_element(By.ID, "id_inspection_date")
+    quote_invoice_field = browser.find_element(By.ID, "id_quote")
+    submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
+
+    # He inputs a date into the inspection date field.
+    inspection_date_field.send_keys("02012021")
+
+    # He uploads a Quote invoice.
+    # TODO: Figure out how to do this part properly.
+    quote_invoice_field.send_keys("/path/to/quote/invoice.pdf")
+    pytest.fail("Finish the test!")
+
+    # He clicks the "submit" button.
+    submit_button.click()
+
+    # This takes him back to the Maintenance Jobs page for Bob the Agent.
+    assert "Maintenance Jobs for bob" in browser.title
+    assert "Maintenance Jobs for bob" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He also sees a flash notification that an email has been sent to Bob.
+    expected_msg = "An email has been sent to bob."
+    assert expected_msg in browser.page_source
+
+    # He sees that the new details are now listed in the table.
+    table = browser.find_element(By.ID, "id_list_table")
+    rows = table.find_elements(By.TAG_NAME, "tr")
+
+    ## There should be exactly one row here
+    assert len(rows) == 2
+
+    # Get the row, and confirm that the details include everything submitted up until
+    # now.
+    row = rows[1]
+    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
+    assert cell_texts == ["1", "2021-01-01", "Department of Home Affairs Bellville", "GPS", "Please fix the leaky faucet in the staff bathroom"]
+
+    # He clicks on the Sign Out button.
+    sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")
+    sign_out_button.click()
+
+    # Satisfied, he goes back to sleep.
+    pytest.fail("Finish the test!")
