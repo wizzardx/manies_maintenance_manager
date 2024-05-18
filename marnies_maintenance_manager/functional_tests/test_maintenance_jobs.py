@@ -81,7 +81,7 @@ def wait_until(fn: Callable[[], Any]) -> Any:
             time.sleep(0.1)
 
 
-def _sign_into_website(browser, username):
+def _sign_into_website(browser: WebDriver, username: str) -> None:
     # He sees the Sign In button in the navbar
     sign_in_button = browser.find_element(By.LINK_TEXT, "Sign In")
 
@@ -326,12 +326,20 @@ def test_agent_creating_a_new_job_should_send_notification_emails(
     )
 
 
-def test_marnie_can_view_agents_job(
+def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-many-statements,too-many-locals
     browser: WebDriver,
     live_server_url: str,
     marnie_user: User,
-    bob_agent_user: User) -> None:
+    bob_agent_user: User,
+) -> None:
+    """Ensure Marnie can view the jobs submitted by Bob the Agent.
 
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+        marnie_user (User): The user instance for Marnie.
+        bob_agent_user (User): The user instance for Bob, who is an agent.
+    """
     ## First, quickly run through the steps of an Agent creating a new Job.
     _create_new_job(browser, live_server_url)
 
@@ -370,16 +378,30 @@ def test_marnie_can_view_agents_job(
     rows = table.find_elements(By.TAG_NAME, "tr")
 
     ## There should be exactly one row here
-    assert len(rows) == 2
+    assert len(rows) == 2  # noqa: PLR2004
     # First row is the header row
     header_row = rows[0]
-    header_cell_texts = [cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")]
-    assert header_cell_texts == ["Number", "Date", "Address Details", "GPS Link", "Quote Request Details"]
+    header_cell_texts = [
+        cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")
+    ]
+    assert header_cell_texts == [
+        "Number",
+        "Date",
+        "Address Details",
+        "GPS Link",
+        "Quote Request Details",
+    ]
 
     # Second row is the set of job details submitted by Bob earlier
     row = rows[1]
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-    assert cell_texts == ["1", "2021-01-01", "Department of Home Affairs Bellville", "GPS", "Please fix the leaky faucet in the staff bathroom"]
+    assert cell_texts == [
+        "1",
+        "2021-01-01",
+        "Department of Home Affairs Bellville",
+        "GPS",
+        "Please fix the leaky faucet in the staff bathroom",
+    ]
 
     # Since he's not an Agent, he does not see the "Create Maintenance Job" link.
     with pytest.raises(ElementClickInterceptedException):
@@ -419,9 +441,8 @@ def test_marnie_can_view_agents_job(
     inspection_date_field.send_keys("02012021")
 
     # He uploads a Quote invoice.
-    # TODO: Figure out how to do this part properly.
     quote_invoice_field.send_keys("/path/to/quote/invoice.pdf")
-    pytest.fail("Finish the test!")
+    pytest.fail("Find out how to do the above section (file uploads) in Selenium")
 
     # He clicks the "submit" button.
     submit_button.click()
@@ -439,13 +460,19 @@ def test_marnie_can_view_agents_job(
     rows = table.find_elements(By.TAG_NAME, "tr")
 
     ## There should be exactly one row here
-    assert len(rows) == 2
+    assert len(rows) == 2  # noqa: PLR2004
 
     # Get the row, and confirm that the details include everything submitted up until
     # now.
     row = rows[1]
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-    assert cell_texts == ["1", "2021-01-01", "Department of Home Affairs Bellville", "GPS", "Please fix the leaky faucet in the staff bathroom"]
+    assert cell_texts == [
+        "1",
+        "2021-01-01",
+        "Department of Home Affairs Bellville",
+        "GPS",
+        "Please fix the leaky faucet in the staff bathroom",
+    ]
 
     # He clicks on the Sign Out button.
     sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")
