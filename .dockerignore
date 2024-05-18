@@ -11,3 +11,9 @@ venv
 .venv
 .git
 .envs/
+.mypy_cache
+htmlcov/
+**/__pycache__/
+.ipython/
+.ruff_cache/
+.pytest_cache/
