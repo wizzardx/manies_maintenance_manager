@@ -49,9 +49,8 @@ def check_outdated_packages(ignore_list: list[str]) -> int:
     ]
 
     if ignored_but_not_outdated:
-        print(  # noqa: T201
-            "\nWarning: The following ignored packages are not in the list of "
-            "outdated packages:",
+        print(  # noqa: T201p
+            "\nWarning: The following ignored packages are not out of date:",
         )
         for pkg in ignored_but_not_outdated:
             print(pkg)  # noqa: T201
