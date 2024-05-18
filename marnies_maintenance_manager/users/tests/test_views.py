@@ -15,9 +15,11 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import HttpRequest
 from django.http import HttpResponseRedirect
+from django.test import Client
 from django.test import RequestFactory
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from rest_framework import status
 
 from marnies_maintenance_manager.users.forms import UserAdminChangeForm
 from marnies_maintenance_manager.users.models import User
@@ -188,3 +190,32 @@ class TestUserDetailView:
         assert isinstance(response, HttpResponseRedirect)
         assert response.status_code == HTTPStatus.FOUND
         assert response.url == f"{login_url}?next=/fake-url/"
+
+    agent_tip = "Click on the 'Maintenance Jobs' link to create a new job."
+
+    def test_agent_user_sees_agent_tip(self, bob_agent_user_client: Client) -> None:
+        """Ensure that agent users see the agent tip on their profile page.
+
+        Args:
+            bob_agent_user_client (Client): The test client for Bob.
+        """
+        response = bob_agent_user_client.get(
+            reverse("users:detail", kwargs={"username": "bob"}),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert self.agent_tip in response.content.decode()
+
+    def test_none_agent_user_does_not_see_agent_tip(
+        self,
+        marnie_user_client: Client,
+    ) -> None:
+        """Ensure that non-agent users do not see the agent tip.
+
+        Args:
+            marnie_user_client (Client): The test client for Marnie.
+        """
+        response = marnie_user_client.get(
+            reverse("users:detail", kwargs={"username": "marnie"}),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert self.agent_tip not in response.content.decode()

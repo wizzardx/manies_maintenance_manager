@@ -213,3 +213,19 @@ def unknown_user_client(client: Client, unknown_user: User) -> Client:
     logged_in = client.login(username="unknown", password="password")  # noqa: S106
     assert logged_in
     return client
+
+
+@pytest.fixture()
+def bob_agent_user_client(client: Client, bob_agent_user: User) -> Client:
+    """Provide a logged-in test client for agent user Bob.
+
+    Args:
+        client (Client): The fixture to use for creating an HTTP client.
+        bob_agent_user (User): The agent user Bob from the user model.
+
+    Returns:
+        Client: A Django test client logged in as agent user Bob.
+    """
+    logged_in = client.login(username="bob", password="password")  # noqa: S106
+    assert logged_in
+    return client
