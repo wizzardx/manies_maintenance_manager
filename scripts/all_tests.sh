@@ -83,4 +83,4 @@ if [ "$COVERAGE_ERROR" != "0" ]; then
     exit 1
 fi
 
-echo "Done with all_tests.sh"
+echo "Done with all_tests.sh - SUCCESS"

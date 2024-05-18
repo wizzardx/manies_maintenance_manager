@@ -5,9 +5,16 @@ set -e
 # terminal
 
 # Run the script itself
-time scripts/all_tests.sh || true
+RETCODE=0
+
+time scripts/all_tests.sh || RETCODE=1
 
 # That script can take a while, so play a noise and run kdialog to bring my attention
 # back to it.
 paplay /usr/share/sounds/sound-icons/message
-kdialog --msgbox "Tests done" || true
+
+if [ "$RETCODE" == 0 ]; then
+    kdialog --msgbox "Tests done - SUCCESS"
+else
+    kdialog --msgbox "Tests done - FAILURE"
+fi
