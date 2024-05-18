@@ -184,3 +184,32 @@ def marnie_user_client(client: Client, marnie_user: User) -> Client:
     logged_in = client.login(username="marnie", password="password")  # noqa: S106
     assert logged_in
     return client
+
+
+@pytest.fixture()
+def unknown_user(django_user_model: type[User]) -> User:
+    """Create a user fixture named 'unknown' for testing job creation and login.
+
+    Args:
+        django_user_model (type[User]): The Django User model.
+
+    Returns:
+        User: A Django User instance configured as an unknown user.
+    """
+    return _make_user(django_user_model, "unknown")
+
+
+@pytest.fixture()
+def unknown_user_client(client: Client, unknown_user: User) -> Client:
+    """Generate a logged-in test client for an unknown user.
+
+    Args:
+        client (Client): The fixture to use for creating an HTTP client.
+        unknown_user (User): The unknown user from the user model.
+
+    Returns:
+        Client: A Django test client logged in as an unknown user.
+    """
+    logged_in = client.login(username="unknown", password="password")  # noqa: S106
+    assert logged_in
+    return client

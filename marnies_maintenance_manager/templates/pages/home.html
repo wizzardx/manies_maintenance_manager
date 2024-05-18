@@ -1,7 +1,25 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <p>Use this document as a way to quick start any new project.</p>
+  <p>Welcome to Marnie's Maintenance Manager!</p>
+  {% if not request.user.is_authenticated %}
+    <p>Please Sign In to the system to book a home visit by Marnie.</p>
+    <p>If you don't have an account yet, then please Sign Up!</p>
+  {% endif %}
+  {% if request.user.is_authenticated %}
+    {% if request.user.is_marnie %}
+      <p>
+        Welcome back Marnie. You can click on the "Agents" link above, to see the per-Agent listing of Maintenance Jobs, aka their "spreadsheets".
+      </p>
+    {% elif request.user.is_agent %}
+      <p>
+        Welcome back. You can click the "Maintenance Jobs" link above, to see the list of Maintenance Visits scheduled for Marnie.
+      </p>
+    {% else %}
+      <p>You're signed in to this website, but we don't know who you are!</p>
+      <p>If you're a property agent then please contact Marnie so that this website can be setup for you!</p>
+    {% endif %}
+  {% endif %}
   {% if userinfo.has_no_admin_users %}<p>{{ warnings.NO_ADMIN_USERS }}</p>{% endif %}
   {% if request.user.is_superuser %}
     {% if userinfo.has_many_admin_users %}<p>{{ warnings.MANY_ADMIN_USERS }}</p>{% endif %}

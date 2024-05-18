@@ -648,3 +648,103 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
             expected_flashed_message,
             expected_logged_error,
         )
+
+
+class TestBasicHomePageText:
+    """Test the basic welcome text on the home page."""
+
+    @pytest.mark.django_db()
+    def test_basic_welcome_text(self, client: Client) -> None:
+        """Test the basic welcome text on the home page.
+
+        Args:
+            client (Client): A test client for an unknown user.
+        """
+        response = client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert "Welcome to Marnie's Maintenance Manager!" in str(
+            response.content.decode(),
+        )
+
+    @pytest.mark.django_db()
+    def test_generic_django_cookicutter_text_not_displayed(
+        self,
+        client: Client,
+    ) -> None:
+        """Test that the generic Django Cookiecutter text is not displayed.
+
+        Args:
+            client (Client): A test client for an unknown user.
+        """
+        response = client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            "Use this document as a way to quick start any new project."
+            not in response.content.decode()
+        )
+
+    @pytest.mark.django_db()
+    def test_not_signed_in(self, client: Client) -> None:
+        """Test the home page for an unknown user.
+
+        Args:
+            client (Client): A test client for an unknown user.
+        """
+        response = client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            "Please Sign In to the system to book a home visit by Marnie."
+            in response.content.decode()
+        )
+        assert (
+            "If you don't have an account yet, then please Sign Up!"
+            in response.content.decode()
+        )
+
+    @pytest.mark.django_db()
+    def test_marnie_signed_in(self, marnie_user_client: Client) -> None:
+        """Test the home page for Marnie.
+
+        Args:
+            marnie_user_client (Client): A test client for user Marnie.
+        """
+        response = marnie_user_client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            'Welcome back Marnie. You can click on the "Agents" link above, to see '
+            'the per-Agent listing of Maintenance Jobs, aka their "spreadsheets".'
+            in response.content.decode()
+        )
+
+    @pytest.mark.django_db()
+    def test_agent_signed_in(self, bob_agent_user_client: Client) -> None:
+        """Test the home page for an agent user.
+
+        Args:
+            bob_agent_user_client (Client): A test client for agent user Bob.
+        """
+        response = bob_agent_user_client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            'Welcome back. You can click the "Maintenance Jobs" link above, to see '
+            "the list of Maintenance Visits scheduled for Marnie."
+            in response.content.decode()
+        )
+
+    @pytest.mark.django_db()
+    def test_unknown_user_signed_in(self, unknown_user_client: Client) -> None:
+        """Test the home page for an unknown user.
+
+        Args:
+            unknown_user_client (Client): A test client for an unknown user.
+        """
+        response = unknown_user_client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            "You're signed in to this website, but we don't know who you are!"
+            in response.content.decode()
+        )
+        assert (
+            "If you're a property agent then please contact Marnie so that this "
+            "website can be setup for you!" in response.content.decode()
+        )
