@@ -104,7 +104,7 @@ def _sign_into_website(browser: WebDriver, username: str) -> None:
 
     # He types "bob" into the Username field
     username_field = browser.find_element(By.ID, "id_login")
-    username_field.send_keys("bob")
+    username_field.send_keys(username)
 
     # He types "secret" into the Password field
     password_field = browser.find_element(By.ID, "id_password")
@@ -252,9 +252,13 @@ def _create_new_job(
     ):
         sign_out_button.click()
 
+    # A "Are you sure you want to sign out?" dialog pops up, asking him to confirm
+    # that he wants to sign out.
+    confirm_sign_out_button = browser.find_element(By.CLASS_NAME, "btn-primary")
+    confirm_sign_out_button.click()
+
     # ALso tidy up here by cleaning up all the browser cookies.
     browser.delete_all_cookies()
-    pytest.fail("Check that the above line works")
 
     # Satisfied, he goes back to sleep
 
