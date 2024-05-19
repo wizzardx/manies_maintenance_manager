@@ -16,7 +16,7 @@ from marnies_maintenance_manager.users.models import User
 
 def _maintenance_jobs_link_in_navbar_is_present(client: Client) -> bool:
     # Get the response text for visiting the home page:
-    response = client.get("/")
+    response = client.get(reverse("home"))
     response_text = response.content.decode()
 
     # Use BeautifulSoup to fetch the link with the text "Maintenance Jobs" in it:
