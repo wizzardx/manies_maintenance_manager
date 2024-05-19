@@ -18,6 +18,7 @@ Access the job list with `/jobs/` and the creation page with `/jobs/create/`.
 from django.urls import path
 
 from .views import JobCreateView
+from .views import JobDetailView
 from .views import JobListView
 from .views import agent_list
 
@@ -25,5 +26,6 @@ app_name = "jobs"
 urlpatterns = [
     path("", JobListView.as_view(), name="job_list"),
     path("create/", JobCreateView.as_view(), name="job_create"),
+    path("<uuid:pk>/", JobDetailView.as_view(), name="job_detail"),
     path("agents/", agent_list, name="agent_list"),
 ]

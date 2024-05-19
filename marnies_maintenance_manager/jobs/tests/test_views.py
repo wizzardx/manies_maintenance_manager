@@ -1,6 +1,6 @@
 """Provide tests for job view access control in Marnie's Maintenance Manager."""
 
-# pylint: disable=unused-argument,redefined-outer-name,unused-argument
+# pylint: disable=unused-argument,redefined-outer-name,unused-argument,too-many-lines
 
 import functools
 from typing import cast
@@ -349,6 +349,75 @@ class TestMarnieAccessingJobListView:
         )
         assert response.status_code == status.HTTP_200_OK
         assert expected_text not in response.content.decode()
+
+    def test_number_cell_is_a_link_to_the_job_details(  # pylint: disable=too-many-locals
+        self,
+        job_created_by_bob: Job,
+        marnie_user_client: Client,
+        bob_agent_user: User,
+    ) -> None:
+        """Ensure the number cell is a link to the job details page.
+
+        Args:
+            job_created_by_bob (Job): A job instance created by Bob.
+            marnie_user_client (Client): A test client configured for Marnie.
+            bob_agent_user (User): The agent user Bob.
+        """
+        # The 'job_created_by_bob' fixture gives us the required Job. Now see if
+        # Marnie can see a link in the "Number" cell of the table.
+
+        # Start by getting the page:
+        response = marnie_user_client.get(
+            reverse("jobs:job_list") + f"?agent={bob_agent_user.username}",
+        )
+        page_text = response.content.decode()
+
+        # Then use BeautifulSoup to find the table in the page:
+        soup = BeautifulSoup(page_text, "html.parser")
+        table = soup.find("table")
+
+        # Confirm the header row in the table has the expected columns:
+        header_row = table.find("tr")
+        assert header_row
+        header_cells = header_row.find_all("th")
+        assert len(header_cells) == 5  # noqa: PLR2004
+        header_cells_text_list = [cell.text for cell in header_cells]
+        assert header_cells_text_list == [
+            "Number",
+            "Date",
+            "Address Details",
+            "GPS Link",
+            "Quote Request Details",
+        ]
+
+        # Grab the first row, it contains our Job details:
+        first_row = table.find_all("tr")[1]
+
+        # Grab the text from the cells in the row:
+        first_row_text_list = [cell.text.strip() for cell in first_row.find_all("td")]
+
+        # Confirm the expected text in the first row:
+        expected_row_text_list = [
+            "1",
+            "2022-01-01",
+            "1234 Main St, Springfield, IL",
+            "GPS",
+            "Replace the kitchen sink",
+        ]
+        assert first_row_text_list == expected_row_text_list
+
+        # Confirm the first cell in the row is a link:
+        first_cell = first_row.find_all("td")[0]
+        assert first_cell.find("a") is not None
+
+        # Get the actual link:
+        link = first_cell.find("a")
+
+        # And check that it has the expected value:
+        assert link["href"] == reverse(
+            "jobs:job_detail",
+            kwargs={"pk": job_created_by_bob.pk},
+        )
 
 
 class TestSuperUserAccessingJobListView:

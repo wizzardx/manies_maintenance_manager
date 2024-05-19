@@ -21,6 +21,7 @@ from django.http import HttpResponseBadRequest
 from django.http import HttpResponseBase
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
 from zen_queries import fetch
@@ -589,3 +590,7 @@ def agent_list(request: HttpRequest) -> HttpResponse:
         return HttpResponse(status=403)
     context = {"agent_list": User.objects.filter(is_agent=True)}
     return render(request, "jobs/agent_list.html", context=context)
+
+
+class JobDetailView(DetailView):  # type: ignore[type-arg]
+    """Display details of a specific Maintenance Job."""
