@@ -158,7 +158,6 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
             context["title"] = f"Maintenance Jobs for {agent_username}"
         else:
             context["title"] = "Maintenance Jobs"
-
         return context
 
 
