@@ -548,3 +548,19 @@ def home_page(request: HttpRequest) -> HttpResponse:
         "warnings": USER_COUNT_PROBLEM_MESSAGES,
     }
     return render(request, "pages/home.html", context)
+
+
+def agent_list(request: HttpRequest) -> HttpResponse:
+    """Render the list of Agent users.
+
+    Or more precisely, we want to - for the benefit of Marnie - map between each
+    Agent, and the jobs created by them, in something spiritually similar to a
+    'per-agent spreadsheet'
+
+    Args:
+        request (HttpRequest): The HTTP request.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
+    raise NotImplementedError

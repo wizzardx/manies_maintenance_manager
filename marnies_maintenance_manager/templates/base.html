@@ -68,6 +68,11 @@
                     <a class="nav-link" href="{% url 'jobs:job_list' %}">Maintenance Jobs</a>
                   </li>
                 {% endif %}
+                {% if request.user.is_authenticated and request.user.is_marnie %}
+                  <li class="nav-item">
+                    <a class="nav-link" href="{% url 'jobs:agent_list' %}">Agents</a>
+                  </li>
+                {% endif %}
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'about' %}">About</a>
                 </li>

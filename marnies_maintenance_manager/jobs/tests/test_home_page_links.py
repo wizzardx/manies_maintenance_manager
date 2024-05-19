@@ -9,6 +9,7 @@ navigation links on the home page based on user authentication and roles.
 import pytest
 from bs4 import BeautifulSoup
 from django.test.client import Client
+from django.urls import reverse
 
 from marnies_maintenance_manager.users.models import User
 
@@ -73,3 +74,80 @@ def test_maintenance_jobs_link_in_navbar_is_not_present_for_marnie_user(
     assert logged_in
 
     assert not _maintenance_jobs_link_in_navbar_is_present(client)
+
+
+def test_agents_link_is_visible_for_marnie_user(
+    client: Client,
+    marnie_user: User,
+) -> None:
+    """Check that the 'Agents' link is visible for Marnie.
+
+    Args:
+        client (Client): Django's test client instance used for making requests.
+        marnie_user (User): User instance representing Marnie, who is not an agent.
+    """
+    # Log in as Marnie
+    logged_in = client.login(username="marnie", password="password")  # noqa: S106
+    assert logged_in
+
+    # Get the response text for visiting the home page:
+    response = client.get(reverse("home"))
+    response_text = response.content.decode()
+
+    # Use BeautifulSoup to fetch the link with the text "Agents" in it:
+    soup = BeautifulSoup(response_text, "html.parser")
+    agents_link = soup.find("a", string="Agents")
+
+    # It is None if not found, otherwise the link was found.
+    assert agents_link is not None
+
+
+def test_agents_link_is_not_visible_for_none_marnie_users(
+    client: Client,
+    bob_agent_user: User,
+) -> None:
+    """Check that the 'Agents' link is not visible for agent user Bob.
+
+    Args:
+        client (Client): Django's test client instance used for making requests.
+        bob_agent_user (User): User instance representing Bob, an agent user.
+    """
+    # Log in as Bob
+    logged_in = client.login(username="bob", password="password")  # noqa: S106
+    assert logged_in
+
+    # Get the response text for visiting the home page:
+    response = client.get(reverse("home"))
+    response_text = response.content.decode()
+
+    # Use BeautifulSoup to fetch the link with the text "Agents" in it:
+    soup = BeautifulSoup(response_text, "html.parser")
+    agents_link = soup.find("a", string="Agents")
+
+    # It is None if not found, otherwise the link was found.
+    assert agents_link is None
+
+
+def test_agents_link_points_to_agents_page(
+    client: Client,
+    marnie_user: User,
+) -> None:
+    """Check that the 'Agents' link points to the 'agents' page.
+
+    Args:
+        client (Client): Django's test client instance used for making requests.
+        marnie_user (User): User instance representing Marnie, who is not an agent.
+    """
+    # Log in as Marnie
+    logged_in = client.login(username="marnie", password="password")  # noqa: S106
+    assert logged_in
+
+    # Get the response for visiting the home page:
+    response = client.get(reverse("home"))
+
+    # Use BeautifulSoup to fetch the link with the text "Agents" in it:
+    soup = BeautifulSoup(response.content.decode(), "html.parser")
+    agents_link = soup.find("a", string="Agents")
+
+    # The link should point to the 'agents' page
+    assert agents_link["href"] == reverse("jobs:agent_list")
