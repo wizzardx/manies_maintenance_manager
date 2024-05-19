@@ -18,7 +18,7 @@ def _maintenance_jobs_link_in_navbar_is_present(client: Client) -> bool:
     response = client.get("/")
     response_text = response.content.decode()
 
-    # Use BeautifulSup to fetch the link with the text "Maintenance Jobs" in it:
+    # Use BeautifulSoup to fetch the link with the text "Maintenance Jobs" in it:
     soup = BeautifulSoup(response_text, "html.parser")
     maintenance_jobs_link = soup.find("a", string="Maintenance Jobs")
 
