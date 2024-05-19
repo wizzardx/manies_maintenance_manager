@@ -323,6 +323,33 @@ class TestMarnieAccessingJobListView:
         # Check that its updated correctly for the agent:
         assert header.text == "Maintenance Jobs"
 
+    def test_create_maintenance_job_button_present_for_agent_but_not_for_marnie(
+        self,
+        bob_agent_user_client: Client,
+        marnie_user_client: Client,
+        bob_agent_user: User,
+    ) -> None:
+        """Ensure the 'Create Maintenance Job' button is only visible to agents.
+
+        Args:
+            bob_agent_user_client (Client): A test client configured for Bob, an agent.
+            marnie_user_client (Client): A test client configured for Marnie.
+            bob_agent_user (User): The agent user Bob.
+        """
+        expected_text = "Create Maintenance Job"
+
+        # Confirm that the button is present for Bob the Agent:
+        response = bob_agent_user_client.get(reverse("jobs:job_list"))
+        assert response.status_code == status.HTTP_200_OK, response.content
+        assert expected_text in response.content.decode()
+
+        # But that it isn't present for Marnie:
+        response = marnie_user_client.get(
+            reverse("jobs:job_list") + f"?agent={bob_agent_user.username}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert expected_text not in response.content.decode()
+
 
 class TestSuperUserAccessingJobListView:
     """Test superusers access to the job list view with different agent parameters."""

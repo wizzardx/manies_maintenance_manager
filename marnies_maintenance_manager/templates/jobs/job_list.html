@@ -5,7 +5,9 @@
 {% endblock title %}
 {% block content %}
   <h1>{{ title }}</h1>
-  <a href="{% url 'jobs:job_create' %}" class="create-link">Create Maintenance Job</a>
+  {% if request.user.is_agent %}
+    <a href="{% url 'jobs:job_create' %}" class="create-link">Create Maintenance Job</a>
+  {% endif %}
   <table id="id_list_table">
     <thead>
       <tr>
