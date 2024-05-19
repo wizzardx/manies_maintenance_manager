@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Agents
+{% endblock title %}
+{% block content %}
+  <h1>Agents</h1>
+  <p>This page contains a list of Property Agents registered in the system.</p>
+  <p>You can click on the Property Agent to see the Maintenance Jobs that each of them registered.</p>
+  <p>
+    This is meant to simulate the idea that each Agent (and the company they represent) has their own "spreadsheet".
+  </p>
+  <ul>
+    {% for agent in agent_list %}<li>{{ agent.username }}</li>{% endfor %}
+  </ul>
+{% endblock content %}

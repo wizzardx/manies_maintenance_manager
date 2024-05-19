@@ -766,3 +766,53 @@ def test_limited_number_of_queries_on_home_page_for_admin_user(
     """
     with django_assert_max_num_queries(6):
         superuser_client.get(reverse("home"))
+
+
+class TestAgentsView:
+    """Test the Agents view in the Jobs app."""
+
+    def test_marnie_can_reach_agents_view(self, marnie_user_client: Client) -> None:
+        """Ensure Marnie can access the agents view.
+
+        Args:
+            marnie_user_client (Client): A test client for Marnie.
+        """
+        response = marnie_user_client.get(reverse("jobs:agent_list"))
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_none_marnie_user_cannot_reach_agents_view(
+        self,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Ensure non-Marnie users cannot access the agents view.
+
+        Args:
+            bob_agent_user_client (Client): A test client for Bob, an agent user.
+        """
+        response = bob_agent_user_client.get(reverse("jobs:agent_list"))
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_agents_view_contains_agent_list(
+        self,
+        marnie_user_client: Client,
+        bob_agent_user: User,
+        admin_user: User,
+    ) -> None:
+        """Ensure the agents view contains a list of agents.
+
+        Args:
+            marnie_user_client (Client): A test client for Marnie.
+            bob_agent_user (User): Bob's user instance, an agent.
+            admin_user (User): Admin user instance, not an agent.
+        """
+        response = marnie_user_client.get(reverse("jobs:agent_list"))
+        assert response.status_code == status.HTTP_200_OK
+
+        # Bob is an Agent, so his username should be in the list.
+        page_text = response.content.decode()
+        assert bob_agent_user.username in page_text
+
+        # Admin is not an Agent, so despite being a user, his username should not be in
+        # the list.
+        assert User.objects.filter(username=admin_user.username).exists()
+        assert admin_user.username not in page_text

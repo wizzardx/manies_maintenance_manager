@@ -563,4 +563,10 @@ def agent_list(request: HttpRequest) -> HttpResponse:
     Returns:
         HttpResponse: The HTTP response.
     """
-    raise NotImplementedError
+    # Only Marnie user may access this view. Return a 403 Forbidden response if some
+    # other user is trying to access this view.
+    user = cast(User, request.user)
+    if not user.is_marnie:
+        return HttpResponse(status=403)
+    context = {"agent_list": User.objects.filter(is_agent=True)}
+    return render(request, "jobs/agent_list.html", context=context)
