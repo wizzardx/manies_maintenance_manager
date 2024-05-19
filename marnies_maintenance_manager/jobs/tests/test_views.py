@@ -259,6 +259,70 @@ class TestMarnieAccessingJobListView:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.content.decode() == "Agent username not found"
 
+    def test_with_agent_username_url_includes_username_in_title_and_header(
+        self,
+        bob_agent_user: User,
+        marnie_user_client: Client,
+    ) -> None:
+        """Ensure the agent username is included in the header when filtering by agent.
+
+        Args:
+            bob_agent_user (User): The agent user Bob whose jobs are to be filtered.
+            marnie_user_client (Client): A test client used by Marnie.
+        """
+        response = marnie_user_client.get(
+            reverse("jobs:job_list") + f"?agent={bob_agent_user.username}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        page_text = response.content.decode()
+
+        # Use beautifulsoup to get the title:
+        soup = BeautifulSoup(page_text, "html.parser")
+        title = soup.find("title")
+        assert title is not None
+
+        # Check that its updated correctly for the agent:
+        expected_title = f"Maintenance Jobs for {bob_agent_user.username}"
+        assert title.text.strip() == expected_title
+
+        # Get the header text:
+        header = soup.find("h1")
+        assert header is not None
+
+        # Check that its updated correctly for the agent:
+        assert header.text == expected_title
+
+    def test_without_agent_username_url_does_not_include_username_in_title_and_header(
+        self,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Ensure the title, header, do not include an agent username when not filtered.
+
+        Args:
+            bob_agent_user_client (Client):
+                A test client configured for Bob, an agent
+        """
+        response = bob_agent_user_client.get(reverse("jobs:job_list"))
+        assert response.status_code == status.HTTP_200_OK
+
+        page_text = response.content.decode()
+
+        # Use beautifulsoup to get the title:
+        soup = BeautifulSoup(page_text, "html.parser")
+        title = soup.find("title")
+        assert title is not None
+
+        # Check that its updated correctly for the agent:
+        assert title.text.strip() == "Maintenance Jobs"
+
+        # Get the header text:
+        header = soup.find("h1")
+        assert header is not None
+
+        # Check that its updated correctly for the agent:
+        assert header.text == "Maintenance Jobs"
+
 
 class TestSuperUserAccessingJobListView:
     """Test superusers access to the job list view with different agent parameters."""

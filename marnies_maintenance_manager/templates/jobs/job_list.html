@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  Maintenance Jobs
+  {{ title }}
 {% endblock title %}
 {% block content %}
-  <h1>Maintenance Jobs</h1>
+  <h1>{{ title }}</h1>
   <a href="{% url 'jobs:job_create' %}" class="create-link">Create Maintenance Job</a>
   <table id="id_list_table">
     <thead>

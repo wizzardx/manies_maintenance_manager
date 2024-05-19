@@ -141,6 +141,26 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
         msg = "Unknown user type"  # pragma: no cover
         raise ValueError(msg)  # pragma: no cover
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        """Add additional context data to the template.
+
+        Args:
+            **kwargs (Any): Additional keyword arguments.
+
+        Returns:
+            dict[str, Any]: The context data.
+        """
+        context = super().get_context_data(**kwargs)
+
+        # Present a different title to the template if "agent" is in the
+        # query parameters.
+        if agent_username := self.request.GET.get("agent"):
+            context["title"] = f"Maintenance Jobs for {agent_username}"
+        else:
+            context["title"] = "Maintenance Jobs"
+
+        return context
+
 
 def _generate_email_body(job: Job) -> str:
     """Generate the email body for the maintenance request email.
