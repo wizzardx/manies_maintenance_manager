@@ -60,7 +60,7 @@ def job_created_by_peter(peter_agent_user: User) -> Job:
 
 
 @pytest.mark.django_db()
-class TestOnlyAgentUsersCanAccessJobListView:
+class TestOnlySomeUsersCanAccessJobListView:
     """Test access levels to the job list view based on user roles."""
 
     def test_bob_agent_user_can_access_job_list_view(
