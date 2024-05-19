@@ -16,6 +16,7 @@ from django.core import mail
 from pytest_django.live_server_helper import LiveServer
 from selenium import webdriver
 from selenium.common.exceptions import ElementClickInterceptedException
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -408,7 +409,7 @@ def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-man
     ]
 
     # Since he's not an Agent, he does not see the "Create Maintenance Job" link.
-    with pytest.raises(ElementClickInterceptedException):
+    with pytest.raises(NoSuchElementException):
         browser.find_element(By.LINK_TEXT, "Create Maintenance Job").click()
 
     # He sees that the #1 in the Number column is a link.
