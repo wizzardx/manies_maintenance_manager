@@ -171,16 +171,16 @@ def superuser_user(django_user_model: type[User]) -> User:
 
 
 @pytest.fixture()
-def marnie_user_client(client: Client, marnie_user: User) -> Client:
+def marnie_user_client(marnie_user: User) -> Client:
     """Generate a logged-in test client for user Marnie.
 
     Args:
-        client (Client): The fixture to use for creating an HTTP client.
         marnie_user (User): The non-agent user Marnie from the user model.
 
     Returns:
         Client: A Django test client logged in as non-agent user Marnie.
     """
+    client = Client()
     logged_in = client.login(username="marnie", password="password")  # noqa: S106
     assert logged_in
     return client
@@ -200,32 +200,32 @@ def unknown_user(django_user_model: type[User]) -> User:
 
 
 @pytest.fixture()
-def unknown_user_client(client: Client, unknown_user: User) -> Client:
+def unknown_user_client(unknown_user: User) -> Client:
     """Generate a logged-in test client for an unknown user.
 
     Args:
-        client (Client): The fixture to use for creating an HTTP client.
         unknown_user (User): The unknown user from the user model.
 
     Returns:
         Client: A Django test client logged in as an unknown user.
     """
+    client = Client()
     logged_in = client.login(username="unknown", password="password")  # noqa: S106
     assert logged_in
     return client
 
 
 @pytest.fixture()
-def bob_agent_user_client(client: Client, bob_agent_user: User) -> Client:
+def bob_agent_user_client(bob_agent_user: User) -> Client:
     """Provide a logged-in test client for agent user Bob.
 
     Args:
-        client (Client): The fixture to use for creating an HTTP client.
         bob_agent_user (User): The agent user Bob from the user model.
 
     Returns:
         Client: A Django test client logged in as agent user Bob.
     """
+    client = Client()
     logged_in = client.login(username="bob", password="password")  # noqa: S106
     assert logged_in
     return client
