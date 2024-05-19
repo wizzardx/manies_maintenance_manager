@@ -10,7 +10,11 @@
   <p>
     This is meant to simulate the idea that each Agent (and the company they represent) has their own "spreadsheet".
   </p>
-  <ul>
-    {% for agent in agent_list %}<li>{{ agent.username }}</li>{% endfor %}
+  <ul id="agent_list">
+    {% for agent in agent_list %}
+      <li>
+        <a href="{% url 'jobs:job_list' %}?agent={{ agent.username }}">{{ agent.username }}</a>
+      </li>
+    {% endfor %}
   </ul>
 {% endblock content %}

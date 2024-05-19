@@ -6,6 +6,7 @@ import functools
 from typing import cast
 
 import pytest
+from bs4 import BeautifulSoup
 from django.contrib.messages.storage.base import Message
 from django.test import Client
 from django.urls import reverse
@@ -816,3 +817,43 @@ class TestAgentsView:
         # the list.
         assert User.objects.filter(username=admin_user.username).exists()
         assert admin_user.username not in page_text
+
+    def test_agent_names_are_links_to_their_created_maintenance_jobs(
+        self,
+        marnie_user_client: Client,
+        bob_agent_user: User,
+    ) -> None:
+        """Ensure agent names are links to their created maintenance jobs.
+
+        Args:
+            marnie_user_client (Client): A test client for Marnie.
+            bob_agent_user (User): Bob's user instance, an agent.
+        """
+        response = marnie_user_client.get(reverse("jobs:agent_list"))
+        assert response.status_code == status.HTTP_200_OK
+
+        page_text = response.content.decode()
+
+        # Use beautifulsoup to find the <ul> element with ID "agent_list":
+        soup = BeautifulSoup(page_text, "html.parser")
+        agent_list = soup.find("ul", id="agent_list")
+        assert agent_list is not None
+
+        # Grab the LI elements from there:
+        list_items = agent_list.find_all("li")
+
+        # There should be exactly one of them:
+        assert len(list_items) == 1
+
+        # The list item should be a link.
+        assert list_items[0].a is not None
+
+        # The link text should be the agent's username.
+        assert list_items[0].a.string == bob_agent_user.username
+
+        # The link URL should point to the correct location where we can
+        # find the maintenance jobs that were created by this Agent:
+        assert (
+            list_items[0].a["href"]
+            == reverse("jobs:job_list") + f"?agent={bob_agent_user.username}"
+        )
