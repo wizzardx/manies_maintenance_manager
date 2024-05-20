@@ -592,5 +592,17 @@ def agent_list(request: HttpRequest) -> HttpResponse:
     return render(request, "jobs/agent_list.html", context=context)
 
 
-class JobDetailView(DetailView):  # type: ignore[type-arg]
+class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # type: ignore[type-arg]
     """Display details of a specific Maintenance Job."""
+
+    model = Job
+
+    def test_func(self) -> bool:
+        """Check the user can access this view.
+
+        Returns:
+            bool: True if the user can access this view, False otherwise.
+        """
+        # For now, we only allow Marnie to access this view.
+        user = cast(User, self.request.user)
+        return user.is_marnie
