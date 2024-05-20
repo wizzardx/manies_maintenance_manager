@@ -44,6 +44,9 @@ mapfile -t files < <(find . -type f -name "*.py" ! -path "*/.*/*" ! -path "*/mig
 # Run pylint with the dynamically found files
 pylint --django-settings-module=config.settings --output-format=colorized --enable-all-extensions "${files[@]}"
 
+echo "darglint..."
+darglint "${files[@]}"
+
 echo "Running pre-commit checks..."
 pre-commit run --all-files
 
