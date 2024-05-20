@@ -19,6 +19,7 @@ if [ "$RETCODE" == "0" ]; then
     echo "Done with all_tests_under_pycharm.sh - SUCCESS"
 else
     echo "Tests done - FAILURE"
+    kdialog --msgbox "Tests done - FAILURE"
     echo "Done with all_tests_under_pycharm.sh - FAILURE"
 fi
 
