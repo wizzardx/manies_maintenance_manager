@@ -369,3 +369,19 @@ class TestSuperUserAccessingJobListView:
         response = superuser_client.get(reverse("jobs:job_list") + "?agent=nonexistent")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.content.decode() == "Agent username not found"
+
+
+def test_job_list_view_contains_basic_usage_advice(
+    superuser_client: Client,
+) -> None:
+    """Ensure the job list view contains basic usage advice.
+
+    Args:
+        superuser_client (Client): A test client with superuser permissions.
+    """
+    response = superuser_client.get(reverse("jobs:job_list"))
+    assert response.status_code == status.HTTP_200_OK
+    assert (
+        "Click on the number in each row to go to the Job details."
+        in response.content.decode()
+    )

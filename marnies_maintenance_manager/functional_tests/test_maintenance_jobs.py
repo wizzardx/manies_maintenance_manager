@@ -417,7 +417,7 @@ def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-man
 
     # He sees an instruction which tells him to click on the link in the Number column
     # to view the details of each Maintenance Job.
-    expected_msg = "Click on the number in each row to go to the Job details"
+    expected_msg = "Click on the number in each row to go to the Job details."
     assert expected_msg in browser.page_source
 
     # He clicks on the #1 link in the Number column.

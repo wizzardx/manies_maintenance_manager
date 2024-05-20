@@ -8,6 +8,7 @@
   {% if request.user.is_agent %}
     <a href="{% url 'jobs:job_create' %}" class="create-link">Create Maintenance Job</a>
   {% endif %}
+  <p>Click on the number in each row to go to the Job details.</p>
   <table id="id_list_table">
     <thead>
       <tr>
