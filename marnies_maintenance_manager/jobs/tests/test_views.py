@@ -1,6 +1,7 @@
 """Provide tests for job view access control in Marnie's Maintenance Manager."""
 
-# pylint: disable=unused-argument,redefined-outer-name,unused-argument,too-many-lines
+# pylint: disable=no-self-use, redefined-outer-name, unused-argument
+# pylint: disable=magic-value-comparison,too-many-arguments
 
 import functools
 from typing import cast
@@ -15,8 +16,6 @@ from rest_framework import status
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
 from marnies_maintenance_manager.users.models import User
-
-# pylint: disable=no-self-use, magic-value-comparison, too-many-arguments
 
 
 @pytest.fixture()
