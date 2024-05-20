@@ -1,89 +1,142 @@
-"""Tests for HTML content validation in Marnie's Maintenance Manager application views.
+"""Unit tests for the home page view."""
 
-This module checks the HTML content returned by various views in the Marnie's
-Maintenance Manager application. It covers tests for the home page, maintenance jobs
-page, and the create maintenance job page. Each test ensures that the respective page
-renders the expected HTML structure, elements, and uses the appropriate template.
+# pylint: disable=unused-argument,no-self-use,magic-value-comparison
 
-The Django test client is used for making requests, and BeautifulSoup for parsing the
-returned HTML. This setup ensures not only a successful HTTP response but also verifies
-the accuracy of the HTML content against expected patterns and structures.
-
-To execute these tests, run the following command:
-`docker compose -f docker-compose.local.yml run --rm django pytest \
-    marnies_maintenance_manager/jobs/tests/test_pages_return_correct_html.py`
-"""
-
-# pylint: disable=unused-argument
-
-from typing import cast
+import functools
 
 import pytest
 from bs4 import BeautifulSoup
-from django.http.response import HttpResponse
-from django.test.client import Client
-from django.views.generic.base import View as BaseView
+from django.test import Client
+from django.urls import reverse
+from rest_framework import status
 
+from marnies_maintenance_manager.jobs.tests.views.utils import HTTP_SUCCESS_STATUS_CODE
+from marnies_maintenance_manager.jobs.tests.views.utils import (
+    check_basic_page_html_structure,
+)
 from marnies_maintenance_manager.jobs.utils import count_admin_users
 from marnies_maintenance_manager.jobs.utils import count_agent_users
 from marnies_maintenance_manager.jobs.utils import count_marnie_users
 from marnies_maintenance_manager.jobs.views import USER_COUNT_PROBLEM_MESSAGES
 from marnies_maintenance_manager.jobs.views import USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES
-from marnies_maintenance_manager.jobs.views import JobCreateView
-from marnies_maintenance_manager.jobs.views import JobListView
 from marnies_maintenance_manager.users.models import User
 
-HTTP_SUCCESS_STATUS_CODE = 200
 
+class TestBasicHomePageText:
+    """Test the basic welcome text on the home page."""
 
-# pylint: disable=too-many-arguments, no-self-use, magic-value-comparison
-def _run_shared_logic(  # noqa: PLR0913
-    client: Client,
-    url: str,
-    expected_title: str,
-    expected_template_name: str,
-    expected_h1_text: str | None,
-    expected_func_name: str,
-    expected_url_name: str,
-    expected_view_class: type[BaseView] | None,
-) -> HttpResponse:
-    # pylint: disable=too-many-statements
+    @pytest.mark.django_db()
+    def test_basic_welcome_text(self, client: Client) -> None:
+        """Test the basic welcome text on the home page.
 
-    response = client.get(url)
-    assert response.status_code == HTTP_SUCCESS_STATUS_CODE
-
-    # Parse HTML so that we can check for specific elements
-    response_text = response.content.decode()
-    soup = BeautifulSoup(response_text, "html.parser")
-
-    # Check the title tag
-    title_tag = soup.find("title")
-    assert title_tag, "Title tag should exist in the HTML"
-    assert title_tag.get_text(strip=True) == expected_title
-
-    # Check a h1 tag
-    if expected_h1_text is not None:
-        h1_tag = soup.find("h1")
-        assert h1_tag, "H1 tag should exist in the HTML"
-        assert h1_tag.get_text(strip=True) == expected_h1_text
-
-    # Check additional expected HTML strings:
-    assert '<html lang="en">' in response_text
-    assert "</html>" in response_text
-
-    # Verify that the correct template was used
-    assert expected_template_name in [t.name for t in response.templates]
-
-    # Validate details about the view function used to handle the route
-    assert response.resolver_match.func.__name__ == expected_func_name
-    assert response.resolver_match.url_name == expected_url_name
-    if expected_view_class is not None:
-        assert (
-            response.resolver_match.func.view_class  # type: ignore[attr-defined]
-            == expected_view_class
+        Args:
+            client (Client): A test client for an unknown user.
+        """
+        response = client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert "Welcome to Marnie's Maintenance Manager!" in str(
+            response.content.decode(),
         )
 
-    return cast(HttpResponse, response)
+    @pytest.mark.django_db()
+    def test_generic_django_cookicutter_text_not_displayed(
+        self,
+        client: Client,
+    ) -> None:
+        """Test that the generic Django Cookiecutter text is not displayed.
+
+        Args:
+            client (Client): A test client for an unknown user.
+        """
+        response = client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            "Use this document as a way to quick start any new project."
+            not in response.content.decode()
+        )
+
+    @pytest.mark.django_db()
+    def test_not_signed_in(self, client: Client) -> None:
+        """Test the home page for an unknown user.
+
+        Args:
+            client (Client): A test client for an unknown user.
+        """
+        response = client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            "Please Sign In to the system to book a home visit by Marnie."
+            in response.content.decode()
+        )
+        assert (
+            "If you don't have an account yet, then please Sign Up!"
+            in response.content.decode()
+        )
+
+    @pytest.mark.django_db()
+    def test_marnie_signed_in(self, marnie_user_client: Client) -> None:
+        """Test the home page for Marnie.
+
+        Args:
+            marnie_user_client (Client): A test client for user Marnie.
+        """
+        response = marnie_user_client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            'Welcome back Marnie. You can click on the "Agents" link above, to see '
+            'the per-Agent listing of Maintenance Jobs, aka their "spreadsheets".'
+            in response.content.decode()
+        )
+
+    @pytest.mark.django_db()
+    def test_agent_signed_in(self, bob_agent_user_client: Client) -> None:
+        """Test the home page for an agent user.
+
+        Args:
+            bob_agent_user_client (Client): A test client for agent user Bob.
+        """
+        response = bob_agent_user_client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            'Welcome back. You can click the "Maintenance Jobs" link above, to see '
+            "the list of Maintenance Visits scheduled for Marnie."
+            in response.content.decode()
+        )
+
+    @pytest.mark.django_db()
+    def test_unknown_user_signed_in(self, unknown_user_client: Client) -> None:
+        """Test the home page for an unknown user.
+
+        Args:
+            unknown_user_client (Client): A test client for an unknown user.
+        """
+        response = unknown_user_client.get(reverse("home"))
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            "You're signed in to this website, but we don't know who you are!"
+            in response.content.decode()
+        )
+        assert (
+            "If you're a property agent then please contact Marnie so that this "
+            "website can be setup for you!" in response.content.decode()
+        )
+
+
+def test_limited_number_of_queries_on_home_page_for_admin_user(
+    superuser_client: Client,
+    django_assert_max_num_queries: functools.partial,  # type: ignore[type-arg]
+) -> None:
+    """Test the number of queries on the home page for a superuser.
+
+    To help us avoid various N+1 issues with querying on the home page for Admin user.
+
+    Args:
+        superuser_client (Client): A test client for a superuser.
+        django_assert_max_num_queries (functools.partial): Pytest fixture to check the
+            number of queries executed.
+    """
+    with django_assert_max_num_queries(6):
+        superuser_client.get(reverse("home"))
 
 
 @pytest.mark.django_db()
@@ -93,7 +146,7 @@ def test_home_page_returns_correct_html(client: Client) -> None:
     Args:
         client (Client): Django test client used to make requests.
     """
-    _run_shared_logic(
+    check_basic_page_html_structure(
         client=client,
         url="/",
         expected_title="Marnie's Maintenance Manager",
@@ -102,67 +155,6 @@ def test_home_page_returns_correct_html(client: Client) -> None:
         expected_func_name="home_page",
         expected_url_name="home",
         expected_view_class=None,
-    )
-
-
-@pytest.mark.django_db()
-def test_maintenance_jobs_page_returns_correct_html(
-    bob_agent_user_client: Client,
-) -> None:
-    """Verify the maintenance jobs page loads with the correct HTML.
-
-    Args:
-        bob_agent_user_client (Client): A test client for user Bob who is an agent.
-    """
-    response = _run_shared_logic(
-        client=bob_agent_user_client,
-        url="/jobs/",
-        expected_title="Maintenance Jobs",
-        expected_h1_text="Maintenance Jobs",
-        expected_template_name="jobs/job_list.html",
-        expected_func_name="view",
-        expected_url_name="job_list",
-        expected_view_class=JobListView,
-    )
-
-    # Parse HTML so that we can check for specific elements
-    response_text = response.content.decode()
-    soup = BeautifulSoup(response_text, "html.parser")
-
-    # Grab the table element
-    table = soup.find("table")
-    assert table, "Table element should exist in the HTML"
-
-    # Check the table headers
-    headers = table.find_all("th")
-    assert headers, "Table headers should exist in the HTML"
-    assert [header.get_text(strip=True) for header in headers] == [
-        "Number",
-        "Date",
-        "Address Details",
-        "GPS Link",
-        "Quote Request Details",
-    ]
-
-
-@pytest.mark.django_db()
-def test_create_maintenance_job_page_returns_correct_html(
-    bob_agent_user_client: Client,
-) -> None:
-    """Ensure the create maintenance job page returns the expected HTML content.
-
-    Args:
-        bob_agent_user_client (Client): A test client for user Bob who is an agent.
-    """
-    _run_shared_logic(
-        client=bob_agent_user_client,
-        url="/jobs/create/",
-        expected_title="Create Maintenance Job",
-        expected_h1_text="Create Maintenance Job",
-        expected_template_name="jobs/job_create.html",
-        expected_func_name="view",
-        expected_url_name="job_create",
-        expected_view_class=JobCreateView,
     )
 
 
@@ -647,3 +639,142 @@ class TestAdminSpecificHomePageWarnings:
         ]
         expected_msg = expected_msg_template.format(username=superuser_user.username)
         assert expected_msg not in response.content.decode()
+
+
+@pytest.mark.django_db()
+def test_maintenance_jobs_link_in_navbar_is_present_for_logged_in_agent_users(
+    client: Client,
+    bob_agent_user: User,
+) -> None:
+    """Ensure 'Maintenance Jobs' link is visible for logged-in agent users.
+
+    Args:
+        client (Client): Django's test client instance used for making requests.
+        bob_agent_user (User): User instance representing Bob, an agent user.
+    """
+    # Log in as the agent user
+    logged_in = client.login(username="bob", password="password")  # noqa: S106
+    assert logged_in
+
+    # Check that the "Maintenance Jobs" link is present in the navbar
+    assert _maintenance_jobs_link_in_navbar_is_present(client)
+
+
+@pytest.mark.django_db()
+def test_maintenance_jobs_link_in_navbar_is_not_present_for_logged_out_users(
+    client: Client,
+) -> None:
+    """Verify that 'Maintenance Jobs' link is not visible for logged-out users.
+
+    Args:
+        client (Client): Django's test client instance used for making requests.
+    """
+    # No users are logged in, so we don't use client.log here.
+    assert not _maintenance_jobs_link_in_navbar_is_present(client)
+
+
+def test_maintenance_jobs_link_in_navbar_is_not_present_for_marnie_user(
+    client: Client,
+    marnie_user: User,
+) -> None:
+    """Check 'Maintenance Jobs' link is not visible for non-agent user Marnie.
+
+    Args:
+        client (Client): Django's test client instance used for making requests.
+        marnie_user (User): User instance representing Marnie, who is not an agent.
+    """
+    # Log in as Marnie
+    logged_in = client.login(username="marnie", password="password")  # noqa: S106
+    assert logged_in
+
+    assert not _maintenance_jobs_link_in_navbar_is_present(client)
+
+
+def test_agents_link_is_visible_for_marnie_user(
+    client: Client,
+    marnie_user: User,
+) -> None:
+    """Check that the 'Agents' link is visible for Marnie.
+
+    Args:
+        client (Client): Django's test client instance used for making requests.
+        marnie_user (User): User instance representing Marnie, who is not an agent.
+    """
+    # Log in as Marnie
+    logged_in = client.login(username="marnie", password="password")  # noqa: S106
+    assert logged_in
+
+    # Get the response text for visiting the home page:
+    response = client.get(reverse("home"))
+    response_text = response.content.decode()
+
+    # Use BeautifulSoup to fetch the link with the text "Agents" in it:
+    soup = BeautifulSoup(response_text, "html.parser")
+    agents_link = soup.find("a", string="Agents")
+
+    # It is None if not found, otherwise the link was found.
+    assert agents_link is not None
+
+
+def test_agents_link_is_not_visible_for_none_marnie_users(
+    client: Client,
+    bob_agent_user: User,
+) -> None:
+    """Check that the 'Agents' link is not visible for agent user Bob.
+
+    Args:
+        client (Client): Django's test client instance used for making requests.
+        bob_agent_user (User): User instance representing Bob, an agent user.
+    """
+    # Log in as Bob
+    logged_in = client.login(username="bob", password="password")  # noqa: S106
+    assert logged_in
+
+    # Get the response text for visiting the home page:
+    response = client.get(reverse("home"))
+    response_text = response.content.decode()
+
+    # Use BeautifulSoup to fetch the link with the text "Agents" in it:
+    soup = BeautifulSoup(response_text, "html.parser")
+    agents_link = soup.find("a", string="Agents")
+
+    # It is None if not found, otherwise the link was found.
+    assert agents_link is None
+
+
+def test_agents_link_points_to_agents_page(
+    client: Client,
+    marnie_user: User,
+) -> None:
+    """Check that the 'Agents' link points to the 'agents' page.
+
+    Args:
+        client (Client): Django's test client instance used for making requests.
+        marnie_user (User): User instance representing Marnie, who is not an agent.
+    """
+    # Log in as Marnie
+    logged_in = client.login(username="marnie", password="password")  # noqa: S106
+    assert logged_in
+
+    # Get the response for visiting the home page:
+    response = client.get(reverse("home"))
+
+    # Use BeautifulSoup to fetch the link with the text "Agents" in it:
+    soup = BeautifulSoup(response.content.decode(), "html.parser")
+    agents_link = soup.find("a", string="Agents")
+
+    # The link should point to the 'agents' page
+    assert agents_link["href"] == reverse("jobs:agent_list")
+
+
+def _maintenance_jobs_link_in_navbar_is_present(client: Client) -> bool:
+    # Get the response text for visiting the home page:
+    response = client.get(reverse("home"))
+    response_text = response.content.decode()
+
+    # Use BeautifulSoup to fetch the link with the text "Maintenance Jobs" in it:
+    soup = BeautifulSoup(response_text, "html.parser")
+    maintenance_jobs_link = soup.find("a", string="Maintenance Jobs")
+
+    # It is None if not found, otherwise the link was found.
+    return maintenance_jobs_link is not None
