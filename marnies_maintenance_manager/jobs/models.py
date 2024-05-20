@@ -4,6 +4,7 @@ import uuid
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import UUIDModel
 
@@ -58,3 +59,11 @@ class Job(UUIDModel):
         """
         shortened_address = self.address_details[:50].replace("\n", " ")
         return f"{self.date}: {shortened_address}"
+
+    def get_absolute_url(self) -> str:
+        """Get URL for the job's detail view.
+
+        Returns:
+            str: URL for the job detail.
+        """
+        return reverse("jobs:job_detail", kwargs={"pk": self.pk})

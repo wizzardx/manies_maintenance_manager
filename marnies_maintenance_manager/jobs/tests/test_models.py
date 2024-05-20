@@ -6,6 +6,7 @@ import uuid
 import pytest
 from django.core.exceptions import ValidationError
 from django.forms.models import ModelForm
+from django.urls import reverse
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
@@ -203,3 +204,15 @@ def test_str_method_converts_newlines_in_address_to_spaces(
     )
 
     assert str(job) == "2022-01-01: 1234 Main St, Springfield, IL"
+
+
+def test_job_model_has_a_canonical_website_location(job_created_by_bob: Job) -> None:
+    """Ensure the Job model has a canonical website location.
+
+    Args:
+        job_created_by_bob (Job): Job instance created by Bob.
+    """
+    assert job_created_by_bob.get_absolute_url() == reverse(
+        "jobs:job_detail",
+        kwargs={"pk": job_created_by_bob.pk},
+    )
