@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-# # Reset permissions/ownerships on files, our docker logic can set it to be root-owned.
-# echo "Resetting ownerships..."
-# sudo chown david:david . -R
+# Reset permissions/ownerships on files, our docker logic can set it to be root-owned.
+echo "Resetting ownerships..."
+sudo chown david:david . -R
 
 # Run unit tests first, to get useful things setup under .venv.
 echo "Fast unit tests (using sqlite mem, outside of docker)..."
