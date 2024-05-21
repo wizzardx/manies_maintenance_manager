@@ -6,6 +6,7 @@ import uuid
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
 from django.forms.models import ModelForm
 from django.urls import reverse
 
@@ -259,3 +260,150 @@ def test_job_model_ordered_by_db_insertion_time(bob_agent_user: User) -> None:
     assert jobs[0].date == datetime.date(2022, 1, 1)
     assert jobs[1].date == datetime.date(2022, 1, 2)
     assert jobs[2].date == datetime.date(2022, 1, 3)
+
+
+class TestJobModelPerAgentAutoIncrementingNumberField:
+    """Define tests for the Job model's auto-incrementing 'number' field per agent."""
+
+    @pytest.mark.django_db()
+    def test_number_field_auto_increment_per_agent(
+        self,
+        bob_agent_user: User,
+        peter_agent_user: User,
+    ) -> None:
+        """Ensure the 'number' field auto-increments per agent.
+
+        Args:
+            bob_agent_user (User): The agent user Bob used to create a Job instance.
+            peter_agent_user (User): The agent user Peter used to create a Job instance.
+        """
+        job1 = Job.objects.create(
+            agent=bob_agent_user,
+            date="2022-01-01",
+            address_details="1234 Main St, Springfield, IL",
+            gps_link="https://www.google.com/maps",
+            quote_request_details="Replace the kitchen sink",
+        )
+        job1.full_clean()
+
+        job2 = Job.objects.create(
+            agent=bob_agent_user,
+            date="2022-01-02",
+            address_details="1235 Main St, Springfield, IL",
+            gps_link="https://www.google.com/maps",
+            quote_request_details="Replace the bathroom sink",
+        )
+        job2.full_clean()
+
+        job3 = Job.objects.create(
+            agent=peter_agent_user,
+            date="2022-01-01",
+            address_details="1236 Main St, Springfield, IL",
+            gps_link="https://www.google.com/maps",
+            quote_request_details="Replace the toilet",
+        )
+        job3.full_clean()
+
+        assert job1.number == 1
+        assert job2.number == 2  # noqa: PLR2004
+        assert job3.number == 1
+
+    @pytest.mark.django_db()
+    def test_number_field_is_readonly(self) -> None:
+        """Ensure the 'number' field is read-only in the Job model form."""
+
+        class JobForm(ModelForm):  # type: ignore[type-arg]
+            """ModelForm for the Job model."""
+
+            class Meta:
+                model = Job
+                fields = "__all__"  # noqa: DJ007
+
+        form = JobForm()
+        assert "number" not in form.fields
+
+    @pytest.mark.django_db()
+    def test_number_field_increment_only_within_agent(
+        self,
+        bob_agent_user: User,
+        peter_agent_user: User,
+    ) -> None:
+        """Ensure the 'number' field increments only within the same agent.
+
+        Args:
+            bob_agent_user (User): The agent user Bob used to create a Job instance.
+            peter_agent_user (User): The agent user Peter used to create a Job instance.
+        """
+        job1 = Job.objects.create(
+            agent=bob_agent_user,
+            date="2022-01-01",
+            address_details="1234 Main St, Springfield, IL",
+            gps_link="https://www.google.com/maps",
+            quote_request_details="Replace the kitchen sink",
+        )
+        job1.full_clean()
+
+        job2 = Job.objects.create(
+            agent=bob_agent_user,
+            date="2022-01-02",
+            address_details="1235 Main St, Springfield, IL",
+            gps_link="https://www.google.com/maps",
+            quote_request_details="Replace the bathroom sink",
+        )
+        job2.full_clean()
+
+        job3 = Job.objects.create(
+            agent=peter_agent_user,
+            date="2022-01-01",
+            address_details="1236 Main St, Springfield, IL",
+            gps_link="https://www.google.com/maps",
+            quote_request_details="Replace the toilet",
+        )
+        job3.full_clean()
+
+        job4 = Job.objects.create(
+            agent=peter_agent_user,
+            date="2022-01-02",
+            address_details="1237 Main St, Springfield, IL",
+            gps_link="https://www.google.com/maps",
+            quote_request_details="Replace the toilet",
+        )
+        job4.full_clean()
+
+        assert job1.number == 1
+        assert job2.number == 2  # noqa: PLR2004
+        assert job3.number == 1
+        assert job4.number == 2  # noqa: PLR2004
+
+    def test_agent_and_number_unique_together(self, bob_agent_user: User) -> None:
+        """Ensure that the combination of agent and number is unique together.
+
+        Args:
+            bob_agent_user (User): The agent user Bob used to create a Job instance.
+
+        """
+        # Create job twice, with the same user.
+        job1 = Job.objects.create(
+            agent=bob_agent_user,
+            date="2022-01-01",
+            address_details="1234 Main St, Springfield, IL",
+            gps_link="https://www.google.com/maps",
+            quote_request_details="Replace the kitchen sink",
+        )
+
+        job2 = Job.objects.create(
+            agent=bob_agent_user,
+            date="2022-01-01",
+            address_details="1234 Main St, Springfield, IL",
+            gps_link="https://www.google.com/maps",
+            quote_request_details="Replace the kitchen sink",
+        )
+
+        # Confirm that they got the expected job number.
+        assert job1.number == 1
+        assert job2.number == 2  # noqa: PLR2004
+
+        # Confirm that it's an error to try to reuse the same agent job  number.
+        job1.number = 2
+        with pytest.raises(IntegrityError):
+            job1.save()
