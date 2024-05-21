@@ -1,5 +1,6 @@
 """Tests for the job models of Marnie's Maintenance Manager."""
 
+import datetime
 import re
 import uuid
 
@@ -216,3 +217,45 @@ def test_job_model_has_a_canonical_website_location(job_created_by_bob: Job) -> 
         "jobs:job_detail",
         kwargs={"pk": job_created_by_bob.pk},
     )
+
+
+def test_job_model_ordered_by_db_insertion_time(bob_agent_user: User) -> None:
+    """Ensure Job instances are ordered by the time of insertion into the database.
+
+    Args:
+        bob_agent_user (User): The agent user Bob used to create Job instances.
+    """
+    job1 = Job.objects.create(
+        agent=bob_agent_user,
+        date="2022-01-01",
+        address_details="1234 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the kitchen sink",
+    )
+
+    job2 = Job.objects.create(
+        agent=bob_agent_user,
+        date="2022-01-02",
+        address_details="1235 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the bathroom sink",
+    )
+
+    job3 = Job.objects.create(
+        agent=bob_agent_user,
+        date="2022-01-03",
+        address_details="1236 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the toilet",
+    )
+
+    # Check that "ordering by creation time" is the default setting in the model:
+    # (this is not really BDD/behavioral testing, but it's a good sanity check)
+    assert Job._meta.ordering == ["created"]  # noqa: SLF001
+
+    # If the above works, then the following checks should always pass:
+    jobs = Job.objects.all()
+    assert list(jobs) == [job1, job2, job3]
+    assert jobs[0].date == datetime.date(2022, 1, 1)
+    assert jobs[1].date == datetime.date(2022, 1, 2)
+    assert jobs[2].date == datetime.date(2022, 1, 3)

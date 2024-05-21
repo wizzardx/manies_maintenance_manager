@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from model_utils.models import TimeStampedModel
 from model_utils.models import UUIDModel
 
 from marnies_maintenance_manager.users.models import User
@@ -28,7 +29,7 @@ def _validate_user_is_agent(user_id: uuid.UUID) -> None:
         )
 
 
-class Job(UUIDModel):
+class Job(UUIDModel, TimeStampedModel):
     """Represents a maintenance job with all relevant details.
 
     Attributes:
@@ -49,6 +50,11 @@ class Job(UUIDModel):
         editable=False,
         validators=[_validate_user_is_agent],
     )
+
+    class Meta:
+        """Meta options for the Job model."""
+
+        ordering = ["created"]
 
     def __str__(self) -> str:
         """Return a basic string representation of the job.
