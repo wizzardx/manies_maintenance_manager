@@ -18,6 +18,10 @@ fi
 # shellcheck disable=SC1091
 source .venv/bin/activate
 
+# Clear out the pycached "lastfailed" marker if it refers to something besides the
+# unit test tests:
+scripts/clear_functional_tests_pytest_lastfailed_marker.py
+
 # Get md5sum of requirements/local.txt, and use that to determine if we need to
 # run pip install.
 LOCAL_TXT_MD5=$(md5sum requirements/local.txt | awk '{print $1}')
