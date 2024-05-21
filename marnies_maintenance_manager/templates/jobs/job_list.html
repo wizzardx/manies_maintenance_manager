@@ -23,7 +23,7 @@
       {% for job in job_list %}
         <tr>
           <td>
-            <a href="{{ job.get_absolute_url }}">{{ forloop.counter }}</a>
+            <a href="{{ job.get_absolute_url }}">{{ job.number }}</a>
           </td>
           <td>{{ job.date|date:"Y-m-d" }}</td>
           <td>{{ job.address_details }}</td>
