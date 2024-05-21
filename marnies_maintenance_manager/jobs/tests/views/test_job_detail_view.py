@@ -30,12 +30,12 @@ class TestAbilityToReachJobDetailView:
         )
         assert response.status_code == status.HTTP_302_FOUND
 
-    def test_agent_users_cannot_access_job_detail_views(
+    def test_agent_users_can_access_detail_view_for_job_they_created(
         self,
         bob_agent_user_client: Client,
         job_created_by_bob: Job,
     ) -> None:
-        """Ensure that an agent user cannot access the job detail view.
+        """Ensure Bob can access the job detail view for the job he created.
 
         Args:
             bob_agent_user_client (Client): The Django test client for Bob.
@@ -43,6 +43,22 @@ class TestAbilityToReachJobDetailView:
         """
         response = bob_agent_user_client.get(
             reverse("jobs:job_detail", kwargs={"pk": job_created_by_bob.pk}),
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_agent_users_cannot_access_detail_view_for_jobs_they_did_not_create(
+        self,
+        bob_agent_user_client: Client,
+        job_created_by_peter: Job,
+    ) -> None:
+        """Ensure Bob cannot access the job detail view for the job Peter created.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for Bob.
+            job_created_by_peter (Job): The job created by Peter.
+        """
+        response = bob_agent_user_client.get(
+            reverse("jobs:job_detail", kwargs={"pk": job_created_by_peter.pk}),
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 

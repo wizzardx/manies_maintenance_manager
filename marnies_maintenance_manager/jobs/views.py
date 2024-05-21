@@ -603,6 +603,6 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         Returns:
             bool: True if the user can access this view, False otherwise.
         """
-        # For now, we only allow Marnie to access this view.
         user = cast(User, self.request.user)
-        return user.is_marnie
+        obj = self.get_object()
+        return user.is_marnie or user == obj.agent
