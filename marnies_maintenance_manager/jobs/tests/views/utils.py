@@ -77,15 +77,24 @@ def check_basic_page_html_structure(  # noqa: PLR0913
     assert "</html>" in response_text
 
     # Verify that the correct template was used
-    assert expected_template_name in [t.name for t in response.templates]
+    assert expected_template_name in [
+        t.name for t in response.templates
+    ], f"Expected template {expected_template_name} not used"
 
     # Validate details about the view function used to handle the route
-    assert response.resolver_match.func.__name__ == expected_func_name
-    assert response.resolver_match.url_name == expected_url_name
+    assert (
+        response.resolver_match.func.__name__ == expected_func_name
+    ), f"Found {response.resolver_match.func.__name__} instead of {expected_func_name}"
+    assert (
+        response.resolver_match.url_name == expected_url_name
+    ), f"Found {response.resolver_match.url_name} instead of {expected_url_name}"
     if expected_view_class is not None:
         assert (
             response.resolver_match.func.view_class  # type: ignore[attr-defined]
             == expected_view_class
+        ), (
+            f"Found {response.resolver_match.func.view_class} "  # type: ignore[attr-defined]
+            f"instead of {expected_view_class}"
         )
 
     return cast(HttpResponse, response)

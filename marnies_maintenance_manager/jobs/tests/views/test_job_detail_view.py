@@ -8,6 +8,8 @@ from rest_framework import status
 
 from marnies_maintenance_manager.jobs.models import Job
 
+from .utils import check_basic_page_html_structure
+
 
 class TestAbilityToReachJobDetailView:
     """Tests to ensure that users job detail view is correctly restricted."""
@@ -59,3 +61,25 @@ class TestAbilityToReachJobDetailView:
             reverse("jobs:job_detail", kwargs={"pk": job_created_by_bob.pk}),
         )
         assert response.status_code == status.HTTP_200_OK
+
+
+def test_job_detail_view_has_correct_basic_structure(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Ensure that the job detail view has the correct basic structure.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    check_basic_page_html_structure(
+        client=marnie_user_client,
+        url=reverse("jobs:job_detail", kwargs={"pk": job_created_by_bob.pk}),
+        expected_title="Maintenance Job Details",
+        expected_template_name="jobs/job_detail.html",
+        expected_h1_text="Maintenance Job Details",
+        expected_func_name="view",
+        expected_url_name="job_detail",
+        expected_view_class=None,
+    )
