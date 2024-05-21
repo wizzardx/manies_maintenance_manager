@@ -12,17 +12,22 @@ RETCODE=0
 
 time scripts/all_tests.sh || RETCODE=$?
 
-# That script can take a while, so play a noise and run kdialog to bring my attention
+# That script can take a while, so play a noise and run `yad` to bring my attention
 # back to it.
 paplay /usr/share/sounds/sound-icons/message
 
+show_message() {
+    local message="$1"
+    yad --text="$message" --button=gtk-ok --on-top --width=300 --height=100 --center
+}
+
 if [ "$RETCODE" == "0" ]; then
     echo "Tests done - SUCCESS"
-    kdialog --msgbox "Tests done - SUCCESS"
+    show_message "Tests done""Tests done - SUCCESS"
     echo "Done with all_tests_under_pycharm.sh - SUCCESS"
 else
     echo "Tests done - FAILURE"
-    kdialog --msgbox "Tests done - FAILURE"
+    show_message "Tests done - FAILURE"
     echo "Done with all_tests_under_pycharm.sh - FAILURE"
 fi
 
