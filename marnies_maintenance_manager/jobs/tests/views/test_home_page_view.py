@@ -640,6 +640,142 @@ class TestAdminSpecificHomePageWarnings:
         expected_msg = expected_msg_template.format(username=superuser_user.username)
         assert expected_msg not in response.content.decode()
 
+    # Tests for when there are users who do not have a primary email address
+
+    def test_warning_for_users_with_no_primary_email_address(
+        self,
+        admin_client: Client,
+    ) -> None:
+        """Test that a warning is shown.
+
+        - When there are users with no primary email address.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Create a user with no primary email address
+        username = "no_primary_email_user"
+        user = User.objects.create(username=username, email="no_primary@example.com")
+        user.emailaddress_set.create(  # type: ignore[attr-defined]
+            email="no_primary@example.com",
+            primary=False,
+            verified=True,
+        )
+
+        response = admin_client.get("/")
+        expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
+            "NO_PRIMARY_EMAIL_ADDRESS"
+        ]
+        expected_msg = expected_msg_template.format(username=username)
+        assert expected_msg in response.content.decode()
+
+    def test_no_warning_for_users_with_primary_email_address(
+        self,
+        admin_client: Client,
+    ) -> None:
+        """Ensure no warning for users with a primary email address.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Create a user with a primary email address
+        username = "primary_email_user"
+        user = User.objects.create(username=username, email="primary@example.com")
+        user.emailaddress_set.create(  # type: ignore[attr-defined]
+            email="primary@example.com",
+            primary=True,
+            verified=True,
+        )
+
+        response = admin_client.get("/")
+        expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
+            "NO_PRIMARY_EMAIL_ADDRESS"
+        ]
+        expected_msg = expected_msg_template.format(username=username)
+        assert expected_msg not in response.content.decode()
+
+    @pytest.mark.django_db()
+    def test_no_warning_for_no_primary_email_address_when_non_admin(
+        self,
+        client: Client,
+    ) -> None:
+        """Test no warning for users with no primary email address.
+
+        - When user is not admin.
+
+        Args:
+            client (Client): A general test client, not configured as an admin.
+        """
+        # Create a user with no primary email address
+        username = "no_primary_email_user"
+        user = User.objects.create(username=username, email="no_primary@example.com")
+        user.emailaddress_set.create(  # type: ignore[attr-defined]
+            email="no_primary@example.com",
+            primary=False,
+            verified=True,
+        )
+
+        response = client.get("/")
+        expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
+            "NO_PRIMARY_EMAIL_ADDRESS"
+        ]
+        expected_msg = expected_msg_template.format(username=username)
+        assert expected_msg not in response.content.decode()
+
+    # Tests for when there are users whose "user" models' email address does
+    # not correspond to an "accounts" email address that is both validated and
+    # primary.
+
+    def test_warning_for_users_with_mismatched_email_address(
+        self,
+        admin_client: Client,
+    ) -> None:
+        """Test that a warning is shown when users' email addresses are mismatched.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Create a user with mismatched email addresses
+        username = "mismatched_email_user"
+        user = User.objects.create(username=username, email="mismatch@example.com")
+        user.emailaddress_set.create(  # type: ignore[attr-defined]
+            email="correct@example.com",
+            primary=True,
+            verified=True,
+        )
+
+        response = admin_client.get("/")
+        expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES["EMAIL_MISMATCH"]
+        expected_msg = expected_msg_template.format(username=username)
+        assert expected_msg in response.content.decode()
+
+    def test_warning_for_users_with_unverified_primary_email_address(
+        self,
+        admin_client: Client,
+    ) -> None:
+        """Test that a warning is shown.
+
+        - When users' primary email addresses are unverified.
+
+        Args:
+            admin_client (Client): A test client with admin privileges.
+        """
+        # Create a user with a primary email address that is not verified
+        username = "unverified_primary_email_user"
+        user = User.objects.create(username=username, email="unverified@example.com")
+        user.emailaddress_set.create(  # type: ignore[attr-defined]
+            email="unverified@example.com",
+            primary=True,
+            verified=False,
+        )
+
+        response = admin_client.get("/")
+        expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
+            "NO_VERIFIED_EMAIL_ADDRESS"
+        ]
+        expected_msg = expected_msg_template.format(username=username)
+        assert expected_msg in response.content.decode()
+
 
 @pytest.mark.django_db()
 def test_maintenance_jobs_link_in_navbar_is_present_for_logged_in_agent_users(

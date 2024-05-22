@@ -50,6 +50,13 @@ USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES = {
     "NO_VERIFIED_EMAIL_ADDRESS": (
         "WARNING: User {username} has not verified their email address."
     ),
+    "NO_PRIMARY_EMAIL_ADDRESS": (
+        "WARNING: User {username} has no primary email address."
+    ),
+    "EMAIL_MISMATCH": (
+        "WARNING: User {username}'s email address does not match the verified "
+        "primary email address."
+    ),
 }
 
 
@@ -193,6 +200,21 @@ def _user_has_verified_email_address(user: User) -> bool:
     """
     return any(
         emailaddress.verified
+        for emailaddress in user.emailaddress_set.all()  # type: ignore[attr-defined]
+    )
+
+
+def _user_has_primary_email_address(user: User) -> bool:
+    """Check if the user has a primary email address.
+
+    Args:
+        user (User): The user.
+
+    Returns:
+        bool: True if the user has a primary email address, False otherwise.
+    """
+    return any(
+        emailaddress.primary
         for emailaddress in user.emailaddress_set.all()  # type: ignore[attr-defined]
     )
 
@@ -468,6 +490,9 @@ class UserInfo:
                 "emailaddress_set",
             ),
         )
+        self._user_emails = {
+            user.id: list(user.emailaddress_set.all()) for user in self._cached_users
+        }
 
     def count_admin_users(self) -> int:
         """Return the number of superusers.
@@ -544,6 +569,47 @@ class UserInfo:
             for user in self._cached_users
             if not _user_has_verified_email_address(user)
         ]
+
+    def users_with_no_primary_email_address(self) -> list[User]:
+        """Get all users with no primary email address.
+
+        Returns:
+            list[User]: A list of all users with no primary email address.
+        """
+        return [
+            user
+            for user in self._cached_users
+            if not _user_has_primary_email_address(user)
+        ]
+
+    def users_with_primary_verified_email_mismatch(self) -> list[User]:
+        """Get all users with a mismatch between primary and verified email addresses.
+
+        Returns:
+            list[User]: A list of all users with a mismatch between primary and
+                        verified email addresses.
+        """
+        mismatched_users = []
+
+        for user in self._cached_users:
+            primary_email_found = False
+            verified_primary_email = False
+            primary_email_matches = False
+
+            for emailaddress in self._user_emails[user.id]:
+                if emailaddress.primary:
+                    primary_email_found = True
+                    if emailaddress.verified:
+                        verified_primary_email = True
+                    if emailaddress.email == user.email:
+                        primary_email_matches = True
+
+            if primary_email_found and (
+                not verified_primary_email or not primary_email_matches
+            ):
+                mismatched_users.append(user)
+
+        return mismatched_users
 
     def users_with_no_email_address(self) -> list[User]:
         """Get all users with no email address.
