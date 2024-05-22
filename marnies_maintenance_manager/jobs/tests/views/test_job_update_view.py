@@ -25,7 +25,7 @@ def test_anonymous_user_cannot_access_the_view(
     )
     # This should be a redirect to a login page:
     assert response.status_code == status.HTTP_302_FOUND
-    expected_url = f"/accounts/login/?next=/jobs/{job_created_by_bob.id}/edit/"
+    expected_url = f"/accounts/login/?next=/jobs/{job_created_by_bob.id}/update/"
     assert response.url == expected_url  # type: ignore[attr-defined]
 
 

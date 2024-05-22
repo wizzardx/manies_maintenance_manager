@@ -435,16 +435,16 @@ def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-man
     assert "GPS" in browser.page_source
     assert "Please fix the leaky faucet in the staff bathroom" in browser.page_source
 
-    # Just below the existing details, he sees an "Edit" link.
-    edit_link = browser.find_element(By.LINK_TEXT, "Edit")
+    # Just below the existing details, he sees an "Update" link.
+    update_link = browser.find_element(By.LINK_TEXT, "Update")
 
     # He clicks on the Edit link
-    edit_link.click()
+    update_link.click()
 
-    # On the next page, he sees that the page title and header mention "Edit
+    # On the next page, he sees that the page title and header mention "Update
     # Maintenance Job"
-    assert "Edit Maintenance Job" in browser.title
-    assert "Edit Maintenance Job" in browser.find_element(By.TAG_NAME, "h1").text
+    assert "Update Maintenance Job" in browser.title
+    assert "Update Maintenance Job" in browser.find_element(By.TAG_NAME, "h1").text
 
     # He also sees on this page, that he can edit (only) these fields:
     # - Date of Inspection

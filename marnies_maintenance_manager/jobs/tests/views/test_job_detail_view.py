@@ -128,7 +128,7 @@ def test_job_detail_view_shows_expected_job_details(
     assert job.quote_request_details in page
 
 
-def test_page_has_edit_link_going_to_update_view(
+def test_page_has_update_link_going_to_update_view(
     job_created_by_bob: Job,
     marnie_user_client: Client,
 ) -> None:
@@ -148,8 +148,8 @@ def test_page_has_edit_link_going_to_update_view(
     # to the job update view.
     soup = BeautifulSoup(page, "html.parser")
 
-    # Get the link with the text "Edit", using BeautifulSoup.
-    link = soup.find("a", string="Edit")
+    # Get the link with the text "Update", using BeautifulSoup.
+    link = soup.find("a", string="Update")
     assert link is not None
 
     # Confirm that the link goes to the correct URL.
@@ -157,11 +157,11 @@ def test_page_has_edit_link_going_to_update_view(
     assert link["href"] == expected_url
 
 
-def test_edit_link_is_not_visible_for_agent(
+def test_update_link_is_not_visible_for_agent(
     job_created_by_bob: Job,
     bob_agent_user_client: Client,
 ) -> None:
-    """Ensure that the job detail page does not show the edit link to agents.
+    """Ensure that the job detail page does not show the update link to agents.
 
     Args:
         job_created_by_bob (Job): The job created by Bob.
@@ -178,5 +178,5 @@ def test_edit_link_is_not_visible_for_agent(
     soup = BeautifulSoup(page, "html.parser")
 
     # Check with BeautifulSoup that the link is not present.
-    link = soup.find("a", string="Edit")
+    link = soup.find("a", string="Update")
     assert link is None
