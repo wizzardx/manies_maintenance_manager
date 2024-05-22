@@ -141,6 +141,7 @@ def test_page_has_edit_link_going_to_update_view(
     response = marnie_user_client.get(
         reverse("jobs:job_detail", kwargs={"pk": job_created_by_bob.pk}),
     )
+    assert response.status_code == status.HTTP_200_OK
     page = response.content.decode("utf-8")
 
     # Use Python BeautifulSoup to parse the HTML and find the link
@@ -148,7 +149,7 @@ def test_page_has_edit_link_going_to_update_view(
     soup = BeautifulSoup(page, "html.parser")
 
     # Get the link with the text "Edit", using BeautifulSoup.
-    link = soup.find("a", text="Edit")
+    link = soup.find("a", string="Edit")
     assert link is not None
 
     # Confirm that the link goes to the correct URL.
