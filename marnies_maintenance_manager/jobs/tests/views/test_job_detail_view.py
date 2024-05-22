@@ -154,3 +154,28 @@ def test_page_has_edit_link_going_to_update_view(
     # Confirm that the link goes to the correct URL.
     expected_url = reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
     assert link["href"] == expected_url
+
+
+def test_edit_link_is_not_visible_for_agent(
+    job_created_by_bob: Job,
+    bob_agent_user_client: Client,
+) -> None:
+    """Ensure that the job detail page does not show the edit link to agents.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        bob_agent_user_client (Client): The Django test client for Bob.
+    """
+    response = bob_agent_user_client.get(
+        reverse("jobs:job_detail", kwargs={"pk": job_created_by_bob.pk}),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    page = response.content.decode("utf-8")
+
+    # Use Python BeautifulSoup to parse the HTML and find the link
+    # to the job update view.
+    soup = BeautifulSoup(page, "html.parser")
+
+    # Check with BeautifulSoup that the link is not present.
+    link = soup.find("a", string="Edit")
+    assert link is None

@@ -674,6 +674,21 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         obj = self.get_object()
         return user.is_marnie or user == obj.agent
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        """Add additional context data to the template.
 
-class JobUpdateView(UpdateView):  # type: ignore[type-arg]
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            dict: The context data.
+        """
+        # Only Marnie can see the Edit link.
+        user = cast(User, self.request.user)
+        edit_link_present = user.is_marnie
+        context = super().get_context_data(**kwargs)
+        context["edit_link_presnt"] = edit_link_present
+        return context
+
+
     """Update a Maintenance Job."""
