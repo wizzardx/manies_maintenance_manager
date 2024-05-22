@@ -34,25 +34,25 @@ class Job(UUIDModel, TimeStampedModel):
     """Represents a maintenance job with all relevant details.
 
     Attributes:
+        agent(User): The Agent who initially created the maintenance job.j
         number (PositiveIntegerField): The unique-per-Agent number assigned to the job.
         date (DateField): The date on which the job is scheduled.
         address_details (TextField): Description of the job location.
         gps_link (URLField): URL to the GPS coordinates of the job site.
         quote_request_details (TextField): Specifics of the maintenance request.
-        agent(User): The Agent who initially created the maintenance job.
     """
 
-    number = models.PositiveIntegerField(editable=False)
-    date = models.DateField()
-    address_details = models.TextField()
-    gps_link = models.URLField()
-    quote_request_details = models.TextField()
     agent = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         editable=False,
         validators=[_validate_user_is_agent],
     )
+    number = models.PositiveIntegerField(editable=False)
+    date = models.DateField()
+    address_details = models.TextField()
+    gps_link = models.URLField()
+    quote_request_details = models.TextField()
 
     class Meta:
         """Meta options for the Job model."""
