@@ -691,4 +691,19 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         return context
 
 
+class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # type: ignore[type-arg]
     """Update a Maintenance Job."""
+
+    queryset = Job.objects.all()
+    fields = ["date"]
+    template_name = "jobs/job_update.html"
+
+    def test_func(self) -> bool:
+        """Check if the user can access this view.
+
+        Returns:
+            bool: True if the user can access this view, False otherwise.
+        """
+        # Only Marnie and Admin users can reach this view.
+        user = cast(User, self.request.user)
+        return user.is_marnie or user.is_superuser
