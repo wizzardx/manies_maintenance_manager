@@ -20,6 +20,7 @@ from django.urls import path
 from .views import JobCreateView
 from .views import JobDetailView
 from .views import JobListView
+from .views import JobUpdateView
 from .views import agent_list
 
 app_name = "jobs"
@@ -27,5 +28,6 @@ urlpatterns = [
     path("", JobListView.as_view(), name="job_list"),
     path("create/", JobCreateView.as_view(), name="job_create"),
     path("<uuid:pk>/", JobDetailView.as_view(), name="job_detail"),
+    path("<uuid:pk>/edit/", JobUpdateView.as_view(), name="job_update"),
     path("agents/", agent_list, name="agent_list"),
 ]

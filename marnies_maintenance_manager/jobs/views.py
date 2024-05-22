@@ -24,6 +24,7 @@ from django.urls import reverse_lazy
 from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
+from django.views.generic.edit import UpdateView
 from zen_queries import fetch
 
 from marnies_maintenance_manager.users.models import User
@@ -672,3 +673,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         user = cast(User, self.request.user)
         obj = self.get_object()
         return user.is_marnie or user == obj.agent
+
+
+class JobUpdateView(UpdateView):  # type: ignore[type-arg]
+    """Update a Maintenance Job."""

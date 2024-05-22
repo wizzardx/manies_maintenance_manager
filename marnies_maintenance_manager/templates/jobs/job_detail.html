@@ -20,4 +20,5 @@
   <p>
     <strong>Quote Request Details:</strong> {{ job.quote_request_details }}
   </p>
+  <a href="{% url 'jobs:job_update' pk=job.pk %}">Edit</a>
 {% endblock content %}

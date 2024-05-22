@@ -2,6 +2,7 @@
 
 # pylint: disable=no-self-use
 
+from bs4 import BeautifulSoup
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
@@ -125,3 +126,31 @@ def test_job_detail_view_shows_expected_job_details(
     assert job.address_details in page
     assert job.gps_link in page
     assert job.quote_request_details in page
+
+
+def test_page_has_edit_link_going_to_update_view(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Ensure that the job detail page has a link to the update view.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    response = marnie_user_client.get(
+        reverse("jobs:job_detail", kwargs={"pk": job_created_by_bob.pk}),
+    )
+    page = response.content.decode("utf-8")
+
+    # Use Python BeautifulSoup to parse the HTML and find the link
+    # to the job update view.
+    soup = BeautifulSoup(page, "html.parser")
+
+    # Get the link with the text "Edit", using BeautifulSoup.
+    link = soup.find("a", text="Edit")
+    assert link is not None
+
+    # Confirm that the link goes to the correct URL.
+    expected_url = reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
+    assert link["href"] == expected_url
