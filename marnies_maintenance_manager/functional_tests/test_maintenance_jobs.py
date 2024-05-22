@@ -435,12 +435,38 @@ def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-man
     assert "GPS" in browser.page_source
     assert "Please fix the leaky faucet in the staff bathroom" in browser.page_source
 
-    # Just below the existing details, he sees input fields where he can submit the
-    # inspection date and also upload a Quote invoice. And below that, there is a
-    # "submit" field.
+    # Just below the existing details, he sees an "Edit" link.
+    edit_link = browser.find_element(By.LINK_TEXT, "Edit")
+
+    # He clicks on the Edit link
+    edit_link.click()
+
+    # On the next page, he sees that the page title and header mention "Edit
+    # Maintenance Job"
+    assert "Edit Maintenance Job" in browser.title
+    assert "Edit Maintenance Job" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He also sees on this page, that he can edit (only) these fields:
+    # - Date of Inspection
     inspection_date_field = browser.find_element(By.ID, "id_inspection_date")
+
+    # - Quote (an invoice to be uploaded by Marnie, for the fixes to be done for
+    #   the site he has visited)>
     quote_invoice_field = browser.find_element(By.ID, "id_quote")
+
+    # As well as a "submit" button just below those two:
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
+
+    # But in particular, he doesn't see fields that only the Agent should be able to
+    # edit, while submitting the job.
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.ID, "id_date")
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.ID, "id_address_details")
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.ID, "id_gps_link")
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.ID, "id_quote_request_details")
 
     # He inputs a date into the inspection date field.
     inspection_date_field.send_keys("02012021")
