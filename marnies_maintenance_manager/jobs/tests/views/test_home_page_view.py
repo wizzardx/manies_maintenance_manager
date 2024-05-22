@@ -475,7 +475,7 @@ class TestAdminSpecificHomePageWarnings:
         assert count_admin_users() == 0
 
         # Check, as anonymous user on the browser, that there are no warnings for no
-        # # agents.
+        # agents.
         response = client.get("/")
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE
         assert (

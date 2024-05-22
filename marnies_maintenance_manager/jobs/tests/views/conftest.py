@@ -1,5 +1,7 @@
 """Fixtures for the view tests."""
 
+import datetime
+
 import pytest
 
 from marnies_maintenance_manager.jobs.models import Job
@@ -19,7 +21,7 @@ def job_created_by_bob(bob_agent_user: User) -> Job:
     """
     return Job.objects.create(
         agent=bob_agent_user,
-        date="2022-01-01",
+        date=datetime.date(2022, 1, 1),
         address_details="1234 Main St, Springfield, IL",
         gps_link="https://www.google.com/maps",
         quote_request_details="Replace the kitchen sink",
