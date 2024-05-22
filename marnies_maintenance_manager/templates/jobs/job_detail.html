@@ -5,4 +5,19 @@
 {% endblock title %}
 {% block content %}
   <h1>Maintenance Job Details</h1>
+  <p>
+    <strong>Number:</strong> {{ job.number }}
+  </p>
+  <p>
+    <strong>Date:</strong> {{ job.date|date:"Y-m-d" }}
+  </p>
+  <p>
+    <strong>Address Details:</strong> {{ job.address_details }}
+  </p>
+  <p>
+    <strong>GPS Link:</strong> <a href="{{ job.gps_link }}">GPS</a>
+  </p>
+  <p>
+    <strong>Quote Request Details:</strong> {{ job.quote_request_details }}
+  </p>
 {% endblock content %}

@@ -99,3 +99,29 @@ def test_job_detail_view_has_correct_basic_structure(
         expected_url_name="job_detail",
         expected_view_class=None,
     )
+
+
+def test_job_detail_view_shows_expected_job_details(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Ensure that the job detail view shows the expected job details.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    response = marnie_user_client.get(
+        reverse("jobs:job_detail", kwargs={"pk": job_created_by_bob.pk}),
+    )
+    page = response.content.decode("utf-8")
+    job = job_created_by_bob
+
+    # We search for a more complete html fragment for job number, because job number
+    # is just going to be the numeric "1" at this point in the test, so we want
+    # something more unique to search for.
+    assert f"<strong>Number:</strong> {job.number}" in page
+    assert job.date.strftime("%Y-%m-%d") in page
+    assert job.address_details in page
+    assert job.gps_link in page
+    assert job.quote_request_details in page
