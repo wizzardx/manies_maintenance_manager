@@ -174,6 +174,7 @@ def test_view_has_quote_field(
     response = marnie_user_client.post(
         url,
         {
+            "date_of_inspection": "2001-02-05",
             "quote": new_pdf,
         },
         follow=True,
@@ -192,3 +193,30 @@ def test_view_has_quote_field(
 
     # And confirm that the PDF file has been updated
     assert job_created_by_bob.quote.name.endswith("new.pdf")
+
+
+def test_date_of_inspection_field_is_required(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Test that the 'date_of_inspection' field is required.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    response = marnie_user_client.post(
+        reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk}),
+        follow=True,
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    # If there was the expected error with input (because there was no input provided),
+    # then there shouldn't have been any redirections.
+    assert response.redirect_chain == []
+
+    # Check that the expected error is present.
+    field_name = "date_of_inspection"
+    form_errors = response.context["form"].errors
+    assert field_name in form_errors
+    assert form_errors[field_name] == ["This field is required."]

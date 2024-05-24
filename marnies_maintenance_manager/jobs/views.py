@@ -27,6 +27,7 @@ from django.views.generic.edit import CreateView
 from django.views.generic.edit import UpdateView
 from zen_queries import fetch
 
+from marnies_maintenance_manager.jobs.forms import JobUpdateForm
 from marnies_maintenance_manager.users.models import User
 
 from .constants import DEFAULT_FROM_EMAIL
@@ -694,8 +695,8 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
 class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # type: ignore[type-arg]
     """Update a Maintenance Job."""
 
-    queryset = Job.objects.all()
-    fields = ["date_of_inspection", "quote"]
+    model = Job
+    form_class = JobUpdateForm
     template_name = "jobs/job_update.html"
 
     def test_func(self) -> bool:
