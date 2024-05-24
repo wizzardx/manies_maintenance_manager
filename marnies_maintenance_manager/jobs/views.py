@@ -695,7 +695,7 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
     """Update a Maintenance Job."""
 
     queryset = Job.objects.all()
-    fields = ["date"]
+    fields = ["date_of_inspection"]
     template_name = "jobs/job_update.html"
 
     def test_func(self) -> bool:

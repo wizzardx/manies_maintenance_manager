@@ -448,7 +448,7 @@ def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-man
 
     # He also sees on this page, that he can edit (only) these fields:
     # - Date of Inspection
-    inspection_date_field = browser.find_element(By.ID, "id_inspection_date")
+    inspection_date_field = browser.find_element(By.ID, "id_date_of_inspection")
 
     # - Quote (an invoice to be uploaded by Marnie, for the fixes to be done for
     #   the site he has visited)>

@@ -54,6 +54,10 @@ class Job(UUIDModel, TimeStampedModel):
     gps_link = models.URLField()
     quote_request_details = models.TextField()
 
+    # Marnie populates these fields in the UI later on, after doing the initial
+    # requested on-site inspection. The Agent can then see the details of the quote
+    date_of_inspection = models.DateField(null=True, blank=True)
+
     class Meta:
         """Meta options for the Job model."""
 
