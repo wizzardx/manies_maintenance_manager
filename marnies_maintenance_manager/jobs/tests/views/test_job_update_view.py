@@ -2,6 +2,7 @@
 
 import datetime
 
+import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 from django.urls import reverse
@@ -24,13 +25,30 @@ def test_anonymous_user_cannot_access_the_view(
         client (Client): The Django test client.
         job_created_by_bob (User): The job created by Bob.
     """
-    response = client.get(
-        reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk}),
-    )
+    # Note: Django-FastDev causes a DeprecationWarning to be logged when using the
+    # {% if %} template tag. This is somewhere deep within the Django-Allauth package,
+    # while handling a GET request to the /accounts/login/ URL. We can ignore this
+    # for the purpose of our testing.
+    with pytest.warns(
+        DeprecationWarning,
+        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
+        "{% if %}",
+    ):
+        response = client.get(
+            reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk}),
+            follow=True,
+        )
+
     # This should be a redirect to a login page:
-    assert response.status_code == status.HTTP_302_FOUND
-    expected_url = f"/accounts/login/?next=/jobs/{job_created_by_bob.id}/update/"
-    assert response.url == expected_url  # type: ignore[attr-defined]
+    assert response.status_code == status.HTTP_200_OK
+
+    expected_redirect_chain = [
+        (
+            f"/accounts/login/?next=/jobs/{job_created_by_bob.id}/update/",
+            status.HTTP_302_FOUND,
+        ),
+    ]
+    assert response.redirect_chain == expected_redirect_chain
 
 
 def test_agent_user_cannot_access_the_view(
