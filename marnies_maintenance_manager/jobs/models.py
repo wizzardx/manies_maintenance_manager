@@ -59,6 +59,7 @@ class Job(UUIDModel, TimeStampedModel):
     # Marnie populates these fields in the UI later on, after doing the initial
     # requested on-site inspection. The Agent can then see the details of the quote
     date_of_inspection = models.DateField(null=True, blank=True)
+    quote = models.FileField(upload_to="quotes/", blank=True, null=True)
 
     class Meta:
         """Meta options for the Job model."""
