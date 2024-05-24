@@ -149,7 +149,7 @@ class TestHasExpectedFields:  # pylint: disable=too-few-public-methods
         ]
 
         # Refresh the Maintenance Job from the database, and then check the updated
-        # # record:
+        # record:
         job_created_by_bob.refresh_from_db()
         assert job_created_by_bob.date_of_inspection == datetime.date(2001, 2, 5)
 
