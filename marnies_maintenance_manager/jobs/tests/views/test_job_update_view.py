@@ -121,78 +121,74 @@ def test_page_has_basic_correct_structure(
     )
 
 
-class TestHasExpectedFields:  # pylint: disable=too-few-public-methods
-    """Tests for the job update view to check that it has the expected fields."""
+def test_view_has_date_of_inspection_field(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Test that the job update page has the 'date_of_inspection' field.
 
-    @staticmethod
-    def test_has_date_of_inspection_field(
-        job_created_by_bob: Job,
-        marnie_user_client: Client,
-    ) -> None:
-        """Test that the job update page has the 'date_of_inspection' field.
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    response = marnie_user_client.post(
+        reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk}),
+        {"date_of_inspection": "2001-02-05"},
+        follow=True,
+    )
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
 
-        Args:
-            job_created_by_bob (Job): The job created by Bob.
-            marnie_user_client (Client): The Django test client for Marnie.
-        """
-        response = marnie_user_client.post(
-            reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk}),
-            {"date_of_inspection": "2001-02-05"},
-            follow=True,
-        )
-        # Assert the response status code is 200
-        assert response.status_code == status.HTTP_200_OK
+    # Check the redirect chain that leads things up to here:
+    assert response.redirect_chain == [
+        (f"/jobs/{job_created_by_bob.pk}/", status.HTTP_302_FOUND),
+    ]
 
-        # Check the redirect chain that leads things up to here:
-        assert response.redirect_chain == [
-            (f"/jobs/{job_created_by_bob.pk}/", status.HTTP_302_FOUND),
-        ]
+    # Refresh the Maintenance Job from the database, and then check the updated
+    # record:
+    job_created_by_bob.refresh_from_db()
+    assert job_created_by_bob.date_of_inspection == datetime.date(2001, 2, 5)
 
-        # Refresh the Maintenance Job from the database, and then check the updated
-        # record:
-        job_created_by_bob.refresh_from_db()
-        assert job_created_by_bob.date_of_inspection == datetime.date(2001, 2, 5)
 
-    @staticmethod
-    def test_has_quote_field(
-        job_created_by_bob: Job,
-        marnie_user_client: Client,
-    ) -> None:
-        """Test that the job update page has the 'quote' field.
+def test_view_has_quote_field(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Test that the job update page has the 'quote' field.
 
-        Args:
-            job_created_by_bob (Job): The job created by Bob.
-            marnie_user_client (Client): The Django test client for Marnie.
-        """
-        # New PDF file to upload
-        new_pdf = SimpleUploadedFile(
-            "new.pdf",
-            b"new_file_content",
-            content_type="application/pdf",
-        )
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    # New PDF file to upload
+    new_pdf = SimpleUploadedFile(
+        "new.pdf",
+        b"new_file_content",
+        content_type="application/pdf",
+    )
 
-        # URL for updating the PDF document
-        url = reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
+    # URL for updating the PDF document
+    url = reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
 
-        # POST request to upload new PDF
-        response = marnie_user_client.post(
-            url,
-            {
-                "quote": new_pdf,
-            },
-            follow=True,
-        )
+    # POST request to upload new PDF
+    response = marnie_user_client.post(
+        url,
+        {
+            "quote": new_pdf,
+        },
+        follow=True,
+    )
 
-        # Assert the response status code is 200
-        assert response.status_code == status.HTTP_200_OK
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
 
-        # Check the redirect chain that leads things up to here:
-        assert response.redirect_chain == [
-            (f"/jobs/{job_created_by_bob.pk}/", status.HTTP_302_FOUND),
-        ]
+    # Check the redirect chain that leads things up to here:
+    assert response.redirect_chain == [
+        (f"/jobs/{job_created_by_bob.pk}/", status.HTTP_302_FOUND),
+    ]
 
-        # Refresh the Maintenance Job from the database
-        job_created_by_bob.refresh_from_db()
+    # Refresh the Maintenance Job from the database
+    job_created_by_bob.refresh_from_db()
 
-        # And confirm that the PDF file has been updated
-        assert job_created_by_bob.quote.name.endswith("new.pdf")
+    # And confirm that the PDF file has been updated
+    assert job_created_by_bob.quote.name.endswith("new.pdf")
