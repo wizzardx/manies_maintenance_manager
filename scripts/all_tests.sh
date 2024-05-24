@@ -1,11 +1,15 @@
 #!/bin/bash
 set -e
 
-# TODO: Let's see where things foul up because of bad permissions, then be more
-# selective there, because typing in a password here constantly is a bit annoying...
-# # Reset permissions/ownerships on files, our docker logic can set it to be root-owned.
-# echo "Resetting ownerships..."
-# sudo chown david:david . -R
+# The .ipython directory gets populated by the root process under Docker, and can cause
+# permissions-related issues for none-root scripts/etc running outside of docker.
+if [ -d .ipython ]; then
+    echo "Tidying up annoying .ipython directory..."
+    if ! rm -rf .ipython; then
+        echo "Errors removing .ipython directory. I'm going to do it as root user instead!"
+        sudo rm -rf .ipython
+    fi
+fi
 
 # Run unit tests first, to get useful things setup under .venv.
 echo "Fast unit tests (using sqlite mem, outside of docker)..."
