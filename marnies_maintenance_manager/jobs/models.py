@@ -42,6 +42,8 @@ class Job(UUIDModel, TimeStampedModel):
         quote_request_details (TextField): Specifics of the maintenance request.
     """
 
+    # The fields below are populated initially when the Agent makes a new Maintenance
+    # Job in the UI:
     agent = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
