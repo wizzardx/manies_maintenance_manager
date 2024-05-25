@@ -17,5 +17,7 @@ class JobUpdateForm(forms.ModelForm):  # type: ignore[type-arg]
             "quote",
         ]
 
-    date_of_inspection = forms.DateField()
+    date_of_inspection = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
     quote = forms.FileField()

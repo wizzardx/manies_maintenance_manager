@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
-{#{% load crispy_forms_tags %}#}
+{% load crispy_forms_tags %}
+
 {% block title %}
   Update Maintenance Job
 {% endblock title %}
@@ -8,6 +9,6 @@
   <h1>Update Maintenance Job</h1>
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+    {{ form|crispy }}
   </form>
 {% endblock content %}
