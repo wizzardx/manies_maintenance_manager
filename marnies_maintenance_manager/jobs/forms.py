@@ -18,4 +18,4 @@ class JobUpdateForm(forms.ModelForm):  # type: ignore[type-arg]
         ]
 
     date_of_inspection = forms.DateField()
-    quote = forms.FileField(required=False)
+    quote = forms.FileField()

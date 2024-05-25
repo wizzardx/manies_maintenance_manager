@@ -131,9 +131,18 @@ def test_view_has_date_of_inspection_field(
         job_created_by_bob (Job): The job created by Bob.
         marnie_user_client (Client): The Django test client for Marnie.
     """
+    quote_pdf = SimpleUploadedFile(
+        "new.pdf",
+        b"new_file_content",
+        content_type="application/pdf",
+    )
+
     response = marnie_user_client.post(
         reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk}),
-        {"date_of_inspection": "2001-02-05"},
+        {
+            "date_of_inspection": "2001-02-05",
+            "quote": quote_pdf,
+        },
         follow=True,
     )
     # Assert the response status code is 200
@@ -205,8 +214,9 @@ def test_date_of_inspection_field_is_required(
         job_created_by_bob (Job): The job created by Bob.
         marnie_user_client (Client): The Django test client for Marnie.
     """
+    url = reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
     response = marnie_user_client.post(
-        reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk}),
+        url,
         follow=True,
     )
     assert response.status_code == status.HTTP_200_OK
@@ -217,6 +227,39 @@ def test_date_of_inspection_field_is_required(
 
     # Check that the expected error is present.
     field_name = "date_of_inspection"
+    form_errors = response.context["form"].errors
+    assert field_name in form_errors
+    assert form_errors[field_name] == ["This field is required."]
+
+
+def test_quote_field_is_required(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Test that the 'quote' field is required.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    # URL for updating the PDF document
+    url = reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
+
+    # POST request to upload new PDF
+    response = marnie_user_client.post(
+        url,
+        follow=True,
+    )
+
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
+
+    # If there was the expected error with input (because there was no input provided),
+    # then there shouldn't have been any redirections.
+    assert response.redirect_chain == []
+
+    # Check that the expected error is present.
+    field_name = "quote"
     form_errors = response.context["form"].errors
     assert field_name in form_errors
     assert form_errors[field_name] == ["This field is required."]
