@@ -7,8 +7,9 @@
 {% endblock title %}
 {% block content %}
   <h1>Update Maintenance Job</h1>
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form|crispy }}
+    <button class="btn btn-primary" type="submit">Save changes</button>
   </form>
 {% endblock content %}
