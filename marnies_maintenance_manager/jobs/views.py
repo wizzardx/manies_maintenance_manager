@@ -714,27 +714,38 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
         """Get the Job object.
 
         Args:
-            queryset (Any, optional): The queryset. Defaults to None.
+            queryset (Any): The queryset. Defaults to None.
 
         Returns:
             Job: The Job object.
+
+        Raises:
+            LogicalError: If the status of the job is not "pending_inspection".
         """
-        obj = super().get_object(queryset)
+        obj = cast(Job, super().get_object(queryset))
         if obj.status != Job.Status.PENDING_INSPECTION.value:
             msg = (
                 f"Instance status should be {Job.Status.PENDING_INSPECTION.value} "
-                "at this point, but it is {obj.status}."
+                f"at this point, but it is {obj.status}."
             )
             raise LogicalError(msg)
         return obj
 
-    def dispatch(self, request, *args, **kwargs):
+    def dispatch(
+        self,
+        request: HttpRequest,
+        *args: Any,
+        **kwargs: Any,
+    ) -> HttpResponseBase:
         """Handle exceptions in dispatch and provide appropriate responses.
 
         Args:
             request (HttpRequest): The HTTP request.
-            *args (int): Additional positional arguments.
-            **kwargs (int): Additional keyword arguments.
+            *args (Any): Additional positional arguments.
+            **kwargs (Any): Additional keyword arguments.
+
+        Returns:
+            HttpResponseBase: The HTTP response.
         """
         try:
             return super().dispatch(request, *args, **kwargs)
@@ -745,7 +756,7 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
         """Set the status of the job to "inspection_completed" before saving the form.
 
         Args:
-            form (Any): The form instance.
+            form (JobUpdateForm): The form instance.
 
         Returns:
             HttpResponse: The HTTP response.

@@ -268,7 +268,7 @@ def test_quote_field_is_required(
 def test_updating_job_changes_status_to_inspection_completed(
     job_created_by_bob: Job,
     marnie_user_client: Client,
-):
+) -> None:
     """Test that updating the job changes the status to 'Inspection Completed'.
 
     Args:
