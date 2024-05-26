@@ -263,3 +263,48 @@ def test_quote_field_is_required(
     form_errors = response.context["form"].errors
     assert field_name in form_errors
     assert form_errors[field_name] == ["This field is required."]
+
+
+def test_updating_job_changes_status_to_inspection_completed(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+):
+    """Test that updating the job changes the status to 'Inspection Completed'.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    # New PDF file to upload
+    new_pdf = SimpleUploadedFile(
+        "new.pdf",
+        b"new_file_content",
+        content_type="application/pdf",
+    )
+
+    # URL for updating the PDF document
+    url = reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
+
+    # POST request to upload new details:
+    response = marnie_user_client.post(
+        url,
+        {
+            "date_of_inspection": "2001-02-05",
+            "quote": new_pdf,
+        },
+        follow=True,
+    )
+
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
+
+    # Check the redirect chain that leads things up to here:
+    assert response.redirect_chain == [
+        (f"/jobs/{job_created_by_bob.pk}/", status.HTTP_302_FOUND),
+    ]
+
+    # Refresh the Maintenance Job from the database
+    job_created_by_bob.refresh_from_db()
+
+    # Check that the status changed as expected
+    assert job_created_by_bob.status == Job.Status.INSPECTION_COMPLETED.value

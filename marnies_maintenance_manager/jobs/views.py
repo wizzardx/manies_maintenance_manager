@@ -708,3 +708,17 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
         # Only Marnie and Admin users can reach this view.
         user = cast(User, self.request.user)
         return user.is_marnie or user.is_superuser
+
+    def form_valid(self, form: JobUpdateForm) -> HttpResponse:
+        """Set the status of the job to "inspection_completed" before saving the form.
+
+        Args:
+            form (Any): The form instance.
+
+        Returns:
+            HttpResponse: The HTTP response.
+        """
+        instance = form.save(commit=False)
+        instance.status = Job.Status.INSPECTION_COMPLETED.value
+        instance.save()
+        return super().form_valid(form)
