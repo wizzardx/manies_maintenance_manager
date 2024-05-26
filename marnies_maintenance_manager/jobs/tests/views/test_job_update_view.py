@@ -308,3 +308,53 @@ def test_updating_job_changes_status_to_inspection_completed(
 
     # Check that the status changed as expected
     assert job_created_by_bob.status == Job.Status.INSPECTION_COMPLETED.value
+
+
+def test_should_fail_if_status_not_set_to_pending_inspection_at_start(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Test that the view should fail if the status is not set to 'Pending Inspection'.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    # Set the status to 'Inspection Completed' to simulate a job that has already
+    # had its inspection completed.
+    job_created_by_bob.status = Job.Status.INSPECTION_COMPLETED.value
+    job_created_by_bob.save()
+
+    # New PDF file to upload
+    new_pdf = SimpleUploadedFile(
+        "new.pdf",
+        b"new_file_content",
+        content_type="application/pdf",
+    )
+
+    # URL for updating the PDF document
+    url = reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
+
+    # POST request to upload new details:
+    response = marnie_user_client.post(
+        url,
+        {
+            "date_of_inspection": "2001-02-05",
+            "quote": new_pdf,
+        },
+        follow=True,
+    )
+
+    # Assert the response status code is 400
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # Check the redirect chain that leads things up to here:
+    assert response.redirect_chain == []
+
+    # Check that the expected error is present.
+    expected_msg = (
+        "Instance status should be pending_inspection at this point, but "
+        "it is inspection_completed."
+    )
+    found_msg = response.content.decode()
+    assert expected_msg in found_msg

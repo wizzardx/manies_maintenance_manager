@@ -27,6 +27,7 @@ from django.views.generic.edit import CreateView
 from django.views.generic.edit import UpdateView
 from zen_queries import fetch
 
+from marnies_maintenance_manager.jobs.exceptions import LogicalError
 from marnies_maintenance_manager.jobs.forms import JobUpdateForm
 from marnies_maintenance_manager.users.models import User
 
@@ -708,6 +709,37 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
         # Only Marnie and Admin users can reach this view.
         user = cast(User, self.request.user)
         return user.is_marnie or user.is_superuser
+
+    def get_object(self, queryset: Any = None) -> Job:
+        """Get the Job object.
+
+        Args:
+            queryset (Any, optional): The queryset. Defaults to None.
+
+        Returns:
+            Job: The Job object.
+        """
+        obj = super().get_object(queryset)
+        if obj.status != Job.Status.PENDING_INSPECTION.value:
+            msg = (
+                f"Instance status should be {Job.Status.PENDING_INSPECTION.value} "
+                "at this point, but it is {obj.status}."
+            )
+            raise LogicalError(msg)
+        return obj
+
+    def dispatch(self, request, *args, **kwargs):
+        """Handle exceptions in dispatch and provide appropriate responses.
+
+        Args:
+            request (HttpRequest): The HTTP request.
+            *args (int): Additional positional arguments.
+            **kwargs (int): Additional keyword arguments.
+        """
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except LogicalError as e:
+            return HttpResponseBadRequest(str(e))
 
     def form_valid(self, form: JobUpdateForm) -> HttpResponse:
         """Set the status of the job to "inspection_completed" before saving the form.
