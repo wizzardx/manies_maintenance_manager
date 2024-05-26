@@ -167,6 +167,9 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
         # query parameters.
         if agent_username := self.request.GET.get("agent"):
             context["title"] = f"Maintenance Jobs for {agent_username}"
+            # Also put the agent username in the context, so the template can display
+            # the agent's name.
+            context["agent_username"] = agent_username
         else:
             context["title"] = "Maintenance Jobs"
         return context

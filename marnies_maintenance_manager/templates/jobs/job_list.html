@@ -35,4 +35,7 @@
       {% endfor %}
     </tbody>
   </table>
+  {% if request.user.is_marnie and job_list.count == 0 %}
+    There are no Maintenance Jobs for {{ agent_username }}. {{ agent_username }} needs to log in and create a new Maintenance Job before anything will appear here.
+  {% endif %}
 {% endblock content %}

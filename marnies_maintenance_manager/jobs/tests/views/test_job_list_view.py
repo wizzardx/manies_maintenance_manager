@@ -385,3 +385,85 @@ def test_job_list_view_contains_basic_usage_advice(
         "Click on the number in each row to go to the Job details."
         in response.content.decode()
     )
+
+
+class TestTipShownForMarnieIfThereAreNoJobsListed:
+    """Test the message shown to Marnie when no jobs are listed."""
+
+    MESSAGE_TEMPLATE = (
+        "There are no Maintenance Jobs for {agent_username}. "
+        "{agent_username} needs to log in and create a new "
+        "Maintenance Job before anything will appear here."
+    )
+
+    def test_msg_not_shown_if_not_marnie(self, bob_agent_user_client: Client) -> None:
+        """Ensure the correct message is not shown for Bob when no jobs exist.
+
+        Args:
+            bob_agent_user_client (Client): A test client used by Bob.
+        """
+        response = bob_agent_user_client.get(reverse("jobs:job_list"))
+        assert response.status_code == status.HTTP_200_OK
+        msg = self.MESSAGE_TEMPLATE.format(agent_username="bob")
+        page_text = response.content.decode()
+        assert msg not in page_text
+
+    def test_msg_not_shown_if_marnie_and_jobs_exist(
+        self,
+        marnie_user_client: Client,
+        job_created_by_bob: Job,
+    ) -> None:
+        """Ensure the correct message is not shown for Marnie when jobs exist.
+
+        Args:
+            marnie_user_client (Client): A test client used by Marnie.
+            job_created_by_bob (Job): A job created by Bob.
+        """
+        agent_username = job_created_by_bob.agent.username
+        response = marnie_user_client.get(
+            reverse("jobs:job_list") + f"?agent={agent_username}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        page_text = response.content.decode()
+        msg = self.MESSAGE_TEMPLATE.format(agent_username=agent_username)
+        assert msg not in page_text
+
+    def test_msg_shown_if_marnie_and_no_jobs_exist(
+        self,
+        marnie_user_client: Client,
+        bob_agent_user: User,
+    ) -> None:
+        """Ensure the correct message is shown for Bob, the agent with no jobs.
+
+        Args:
+            marnie_user_client (Client): A test client used by Marnie.
+            bob_agent_user (User): The agent user Bob.
+        """
+        agent_username = bob_agent_user.username
+        response = marnie_user_client.get(
+            reverse("jobs:job_list") + f"?agent={agent_username}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        msg = self.MESSAGE_TEMPLATE.format(agent_username=agent_username)
+        page_text = response.content.decode()
+        assert msg in page_text
+
+    def test_peter_msg_shown_for_peter_agent(
+        self,
+        marnie_user_client: Client,
+        peter_agent_user: User,
+    ) -> None:
+        """Ensure the correct message is shown for Peter, the other agent.
+
+        Args:
+            marnie_user_client (Client): A test client used by Marnie.
+            peter_agent_user (User): The agent user Peter.
+        """
+        agent_username = peter_agent_user.username
+        response = marnie_user_client.get(
+            reverse("jobs:job_list") + f"?agent={agent_username}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        page_text = response.content.decode()
+        msg = self.MESSAGE_TEMPLATE.format(agent_username=agent_username)
+        assert msg in page_text
