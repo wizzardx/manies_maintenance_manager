@@ -474,3 +474,32 @@ def test_create_maintenance_job_page_returns_correct_html(
         expected_url_name="job_create",
         expected_view_class=JobCreateView,
     )
+
+
+def test_creating_a_job_sets_status_to_pending_inspection(
+    bob_agent_user_client: Client,
+    bob_agent_user: User,
+    marnie_user: User,
+) -> None:
+    """Creating a job should automatically set the status to `pending inspection`.
+
+    Args:
+        bob_agent_user_client (Client): Client used by Bob, an agent user.
+        bob_agent_user (User): Bob's user instance, an agent.
+        marnie_user (User): Marnie's user instance, used for validation in this test.
+    """
+    client = bob_agent_user_client
+    response = client.post(
+        reverse("jobs:job_create"),
+        {
+            "date": "2022-01-01",
+            "address_details": "1234 Main St, Springfield, IL",
+            "gps_link": "https://www.google.com/maps",
+            "quote_request_details": "Replace the kitchen sink",
+        },
+    )
+    assert response.status_code == status.HTTP_302_FOUND
+    job = Job.objects.first()
+    assert job is not None
+
+    assert job.status == Job.Status.PENDING_INSPECTION.value

@@ -1,12 +1,15 @@
 """Models for managing jobs in the Marnie's Maintenance Manager application."""
 
 import uuid
+from enum import Enum
 from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from model_utils import Choices
+from model_utils.fields import StatusField
 from model_utils.models import TimeStampedModel
 from model_utils.models import UUIDModel
 
@@ -55,6 +58,26 @@ class Job(UUIDModel, TimeStampedModel):
     address_details = models.TextField()
     gps_link = models.URLField()
     quote_request_details = models.TextField()
+
+    # As the job progresses, the status field is updated to reflect the current state.
+    # This pattern of "STATUS" and "status" is the one presented by the
+    # django-model-utils library. The 'status' field defaults to the first item in
+    # the 'STATUS' object.
+
+    # And Status is our own custom Enum that we use on top of that, to help create
+    # some additional type safety.
+    class Status(Enum):
+        """Enum for the status of the job."""
+
+        PENDING_INSPECTION = "pending_inspection"
+        INSPECTION_COMPLETED = "inspection_completed"
+
+    # STATUS is populated from the values seen in the Status Enum above.
+    STATUS = Choices(  # type: ignore[no-untyped-call]
+        (Status.PENDING_INSPECTION.value, _("Pending Inspection")),
+        (Status.INSPECTION_COMPLETED.value, _("Inspection Completed")),
+    )
+    status = StatusField()  # type: ignore[no-untyped-call]
 
     # Marnie populates these fields in the UI later on, after doing the initial
     # requested on-site inspection. The Agent can then see the details of the quote
