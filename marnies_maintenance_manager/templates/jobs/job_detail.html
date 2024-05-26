@@ -20,7 +20,7 @@
   <p>
     <strong>Quote Request Details:</strong> {{ job.quote_request_details }}
   </p>
-  {% if update_link_presnt %}
+  {% if update_link_present %}
     <a href="{% url 'jobs:job_update' pk=job.pk %}">Update</a>
   {% endif %}
 {% endblock content %}

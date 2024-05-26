@@ -689,7 +689,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         user = cast(User, self.request.user)
         update_link_present = user.is_marnie
         context = super().get_context_data(**kwargs)
-        context["update_link_presnt"] = update_link_present
+        context["update_link_present"] = update_link_present
         return context
 
 
