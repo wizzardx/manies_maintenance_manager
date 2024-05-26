@@ -91,7 +91,7 @@ def _sign_into_website(browser: WebDriver, username: str) -> None:
     ## Note: Django-FastDev causes a DeprecationWarning to be logged when using the
     ## {% if %} template tag. This is somewhere deep within the Django-Allauth package,
     ## while handling a GET request to the /accounts/login/ URL. We can ignore this
-    ## for the purpose of our testing.
+    ## for our testing.
     with pytest.warns(
         DeprecationWarning,
         match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
@@ -136,7 +136,7 @@ def _create_new_job(
     ## Go through the process of logging into the website as 'bob' user:
     _sign_into_website(browser, "bob")
 
-    # He sees some basic instructions on this page that tell him the next step, that
+    # He sees some basic instructions on this page that tell him the next step that
     # he should click on the "Maintenance Jobs" link next.
     expected_msg = "Click on the 'Maintenance Jobs' link to create a new job."
     assert expected_msg in browser.page_source
@@ -245,7 +245,7 @@ def _create_new_job(
     ## Note: Django-FastDev causes a DeprecationWarning to be logged when using the
     ## {% if %} template tag. This is somewhere deep within the Django-Allauth package,
     ## most likely while processing the templates for /accounts/logout/. We can also
-    # ignore this for the purpose of our testing.
+    # ignore this for our testing.
     with pytest.warns(
         DeprecationWarning,
         match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
@@ -253,7 +253,7 @@ def _create_new_job(
     ):
         sign_out_button.click()
 
-    # A "Are you sure you want to sign out?" dialog pops up, asking him to confirm
+    # An "Are you sure you want to sign out?" dialog pops up, asking him to confirm
     # that he wants to sign out.
     confirm_sign_out_button = browser.find_element(By.CLASS_NAME, "btn-primary")
     confirm_sign_out_button.click()
@@ -384,7 +384,7 @@ def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-man
 
     ## There should be exactly one row here
     assert len(rows) == 2  # noqa: PLR2004
-    # First row is the header row
+    # The first row is the header row
     header_row = rows[0]
     header_cell_texts = [
         cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")
@@ -397,7 +397,7 @@ def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-man
         "Quote Request Details",
     ]
 
-    # Second row is the set of job details submitted by Bob earlier
+    # The second row is the set of job details submitted by Bob earlier
     row = rows[1]
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
     assert cell_texts == [

@@ -263,7 +263,7 @@ class TestAdminSpecificHomePageWarnings:
             peter_agent_user (User): Another user with admin status.
             bob_agent_user_client (Client): Bob's client, who is not an admin.
         """
-        # Make sure there are two admin user:
+        # Make sure there are two admin users:
         peter_agent_user.is_superuser = True
         peter_agent_user.save()
 
@@ -474,7 +474,7 @@ class TestAdminSpecificHomePageWarnings:
         # Make sure there are no admin users in the system
         assert count_admin_users() == 0
 
-        # Check, as anonymous user on the browser, that there are no warnings for no
+        # Check, as anonymous user on the browser that there are no warnings for no
         # agents.
         response = client.get("/")
         assert response.status_code == HTTP_SUCCESS_STATUS_CODE

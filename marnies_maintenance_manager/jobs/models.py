@@ -129,8 +129,8 @@ class Job(UUIDModel, TimeStampedModel):
                 msg = "The 'agent' field must be set before saving the Job."
                 raise ValueError(msg)
 
-            # If it's the first job for an Agent then the number should be 1, otherwise
-            # it should be the next number in the sequence.
+            # If it's the first job for an Agent, then the number should be 1,
+            # otherwise it should be the next number in the sequence.
             if (
                 last_job := Job.objects.filter(agent=self.agent)
                 .order_by("number")
