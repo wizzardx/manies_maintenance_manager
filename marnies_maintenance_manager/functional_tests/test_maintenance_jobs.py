@@ -227,9 +227,6 @@ def _create_new_job(
     row = rows[1]
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
 
-    ## Grab the cell text contents from the row
-    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-
     ## Make sure the cell text contents match the expected values.
     assert cell_texts == [
         "1",  # This is for the row number, automatically added by the system.
