@@ -358,3 +358,48 @@ def test_should_fail_if_status_not_set_to_pending_inspection_at_start(
     )
     found_msg = response.content.decode()
     assert expected_msg in found_msg
+
+
+def test_should_not_allow_txt_extension_file_for_quote(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Test that the view should not allow a .txt file extension for the 'quote' field.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    # New TXT file to upload
+    new_txt = SimpleUploadedFile(
+        "new.txt",
+        b"new_file_content",
+        content_type="text/plain",
+    )
+
+    # URL for updating the TXT document
+    url = reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
+
+    # POST request to upload new TXT
+    response = marnie_user_client.post(
+        url,
+        {
+            "date_of_inspection": "2001-02-05",
+            "quote": new_txt,
+        },
+        follow=True,
+    )
+
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
+
+    # Check the redirect chain that leads things up to here:
+    assert response.redirect_chain == []
+
+    # Check that the expected error is present.
+    field_name = "quote"
+    form_errors = response.context["form"].errors
+    assert field_name in form_errors
+    assert form_errors[field_name] == [
+        "File extension “txt” is not allowed. Allowed extensions are: pdf.",
+    ]

@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Any
 
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -82,7 +83,12 @@ class Job(UUIDModel, TimeStampedModel):
     # Marnie populates these fields in the UI later on, after doing the initial
     # requested on-site inspection. The Agent can then see the details of the quote
     date_of_inspection = models.DateField(null=True, blank=True)
-    quote = models.FileField(upload_to="quotes/", blank=True, null=True)
+    quote = models.FileField(
+        upload_to="quotes/",
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(["pdf"])],
+    )
 
     class Meta:
         """Meta options for the Job model."""
