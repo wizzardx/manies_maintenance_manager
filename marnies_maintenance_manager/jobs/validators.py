@@ -11,8 +11,11 @@ def validate_pdf_contents(file: FieldFile) -> None:
 
     Args:
         file (FieldFile): The file to validate.
+
+    Raises:
+        ValidationError: If the file is not a valid PDF.
     """
-    try:
+    try:  # pylint: disable=too-many-try-statements
         # Read the file content
         file.seek(0)
         # Create a PdfReader object
