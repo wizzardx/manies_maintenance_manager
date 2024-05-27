@@ -298,50 +298,6 @@ def test_updating_job_changes_status_to_inspection_completed(
     assert job_created_by_bob.status == Job.Status.INSPECTION_COMPLETED.value
 
 
-def test_should_fail_if_status_not_set_to_pending_inspection_at_start(
-    job_created_by_bob: Job,
-    marnie_user_client: Client,
-    bob_job_update_url: str,
-    test_pdf: SimpleUploadedFile,
-) -> None:
-    """Test that the view should fail if the status is not set to 'Pending Inspection'.
-
-    Args:
-        job_created_by_bob (Job): The job created by Bob.
-        marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bobs job update view.
-        test_pdf (SimpleUploadedFile): The test PDF file.
-    """
-    # Set the status to 'Inspection Completed' to simulate a job that has already
-    # had its inspection completed.
-    job_created_by_bob.status = Job.Status.INSPECTION_COMPLETED.value
-    job_created_by_bob.save()
-
-    # POST request to upload new details:
-    response = marnie_user_client.post(
-        bob_job_update_url,
-        {
-            "date_of_inspection": "2001-02-05",
-            "quote": test_pdf,
-        },
-        follow=True,
-    )
-
-    # Assert the response status code is 400
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    # Check the redirect chain that leads things up to here:
-    assert response.redirect_chain == []
-
-    # Check that the expected error is present.
-    expected_msg = (
-        "Instance status should be pending_inspection at this point, but "
-        "it is inspection_completed."
-    )
-    found_msg = response.content.decode()
-    assert expected_msg in found_msg
-
-
 def test_should_not_allow_txt_extension_file_for_quote(
     job_created_by_bob: Job,
     marnie_user_client: Client,
@@ -403,3 +359,21 @@ def test_validates_pdf_contents(
         field_name="quote",
         expected_error="This is not a valid PDF file.",
     )
+
+
+def test_marnie_cannot_access_view_after_initial_site_inspection(
+    bob_job_with_initial_marnie_inspection: Job,
+    marnie_user_client: Client,
+    bob_job_update_url: str,
+) -> None:
+    """Ensure Marnie can't access the update view after completing initial inspection.
+
+    Args:
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
+        marnie_user_client (Client): The Django test client for Marnie.
+        bob_job_update_url (str): The URL for the job update view for the job created
+            by Bob.
+    """
+    response = marnie_user_client.get(bob_job_update_url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN

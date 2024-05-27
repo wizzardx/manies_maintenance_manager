@@ -27,7 +27,6 @@ from django.views.generic.edit import CreateView
 from django.views.generic.edit import UpdateView
 from zen_queries import fetch
 
-from marnies_maintenance_manager.jobs.exceptions import LogicalError
 from marnies_maintenance_manager.jobs.forms import JobUpdateForm
 from marnies_maintenance_manager.users.models import User
 
@@ -713,51 +712,14 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
         Returns:
             bool: True if the user can access this view, False otherwise.
         """
-        # Only Marnie and Admin users can reach this view.
+        # Only Marnie and Admin users can reach this view. Marnie can only reach
+        # this view if he has not yet completed the inspection. Admin user can
+        # always reach this view.
         user = cast(User, self.request.user)
-        return user.is_marnie or user.is_superuser
-
-    def get_object(self, queryset: Any = None) -> Job:
-        """Get the Job object.
-
-        Args:
-            queryset (Any): The queryset. Defaults to None.
-
-        Returns:
-            Job: The Job object.
-
-        Raises:
-            LogicalError: If the status of the job is not "pending_inspection".
-        """
-        obj = cast(Job, super().get_object(queryset))
-        if obj.status != Job.Status.PENDING_INSPECTION.value:
-            msg = (
-                f"Instance status should be {Job.Status.PENDING_INSPECTION.value} "
-                f"at this point, but it is {obj.status}."
-            )
-            raise LogicalError(msg)
-        return obj
-
-    def dispatch(
-        self,
-        request: HttpRequest,
-        *args: Any,
-        **kwargs: Any,
-    ) -> HttpResponseBase:
-        """Handle exceptions in dispatch and provide appropriate responses.
-
-        Args:
-            request (HttpRequest): The HTTP request.
-            *args (Any): Additional positional arguments.
-            **kwargs (Any): Additional keyword arguments.
-
-        Returns:
-            HttpResponseBase: The HTTP response.
-        """
-        try:
-            return super().dispatch(request, *args, **kwargs)
-        except LogicalError as e:
-            return HttpResponseBadRequest(str(e))
+        obj = self.get_object()
+        return user.is_superuser or (
+            user.is_marnie and obj.status == Job.Status.PENDING_INSPECTION.value
+        )
 
     def form_valid(self, form: JobUpdateForm) -> HttpResponse:
         """Set the status of the job to "inspection_completed" before saving the form.
