@@ -64,7 +64,7 @@ safety check --ignore 51457,67599
 
 # Check for out of date packages:
 echo "Check for outdated packages..."
-scripts/check_outdated_packages.py --ignore Django,regex,django-allauth,coverage
+scripts/check_outdated_packages.py --ignore Django,regex,django-allauth,coverage,django-debug-toolbar,django-stubs
 
 # Done with tools from under the python venv, so deactivate that now.
 echo "Deactivate python virtualenv."
