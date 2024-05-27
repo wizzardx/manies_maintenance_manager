@@ -509,4 +509,3 @@ def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-man
     sign_out_button.click()
 
     # Satisfied, he goes back to sleep.
-    pytest.fail("Finish the test!")

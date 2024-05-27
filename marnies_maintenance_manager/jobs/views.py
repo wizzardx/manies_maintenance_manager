@@ -733,7 +733,22 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
         instance = form.save(commit=False)
         instance.status = Job.Status.INSPECTION_COMPLETED.value
         instance.save()
-        return super().form_valid(form)
+
+        # Call validations/etc on parent classes
+        response = super().form_valid(form)
+
+        # Get username associated with Agent who originally created the Maintenance
+        # Job:
+        agent_username = instance.agent.username
+
+        # Send a success flash message to the user:
+        messages.success(
+            self.request,
+            f"An email has been sent to {agent_username}.",
+        )
+
+        # Return response back to the caller:
+        return response
 
     def get_success_url(self):
         """Return the URL to redirect to after valid form submission.

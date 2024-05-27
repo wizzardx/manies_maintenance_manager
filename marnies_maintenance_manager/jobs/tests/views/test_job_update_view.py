@@ -1,10 +1,11 @@
 """Tests for the job update view."""
-
 # pylint: disable=redefined-outer-name,unused-argument
 
 import datetime
+from typing import cast
 
 import pytest
+from django.contrib.messages.storage.base import Message
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 from rest_framework import status
@@ -409,3 +410,57 @@ def test_clicking_save_redirects_to_job_listing_page(
     assert response.redirect_chain == [
         ("/jobs/?agent=bob", status.HTTP_302_FOUND),
     ]
+
+
+@pytest.fixture()
+def flashed_message_after_inspecting_a_site(
+    job_created_by_bob: Job,
+    bob_job_update_url: str,
+    marnie_user_client: Client,
+    test_pdf: SimpleUploadedFile,
+) -> Message:
+    """Flashed message after Marnie inspects a site.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        bob_job_update_url (str): The URL for Bobs job update view.
+        marnie_user_client (Client): The Django test client for Marnie.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+    """
+    response = marnie_user_client.post(
+        bob_job_update_url,
+        {
+            "date_of_inspection": "2001-02-05",
+            "quote": test_pdf,
+        },
+        follow=True,
+    )
+
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
+
+    # Check the redirect chain that leads things up to here:
+    assert response.redirect_chain == [("/jobs/?agent=bob", status.HTTP_302_FOUND)]
+
+    # Check the messages:
+    messages = list(response.context["messages"])
+    assert len(messages) == 1
+
+    # Return the retrieved message back to the caller
+    return cast(Message, messages[0])
+
+
+def test_a_flash_message_is_displayed_when_marnie_clicks_save(
+    flashed_message_after_inspecting_a_site: Message,
+) -> None:
+    """Test that a flash message is displayed when Marnie clicks 'Save'.
+
+    Args:
+        flashed_message_after_inspecting_a_site (Message): The flashed message after
+            Marnie inspects a site.
+    """
+    # Marnie should see a "Maintenance Update email has been sent to <agent username>"
+    # flash message when she clicks the "Save" button.
+    flashed_message = flashed_message_after_inspecting_a_site
+    assert flashed_message.message == "An email has been sent to bob."
+    assert flashed_message.level_tag == "success"
