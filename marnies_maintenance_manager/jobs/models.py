@@ -14,6 +14,7 @@ from model_utils.fields import StatusField
 from model_utils.models import TimeStampedModel
 from model_utils.models import UUIDModel
 
+from marnies_maintenance_manager.jobs.validators import validate_pdf_contents
 from marnies_maintenance_manager.users.models import User
 
 
@@ -87,7 +88,7 @@ class Job(UUIDModel, TimeStampedModel):
         upload_to="quotes/",
         blank=True,
         null=True,
-        validators=[FileExtensionValidator(["pdf"])],
+        validators=[FileExtensionValidator(["pdf"]), validate_pdf_contents],
     )
 
     class Meta:

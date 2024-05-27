@@ -1,6 +1,7 @@
 """Tests for the job update view."""
 
 import datetime
+from pathlib import Path
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -13,6 +14,8 @@ from marnies_maintenance_manager.jobs.views import JobUpdateView
 from marnies_maintenance_manager.users.models import User
 
 from .utils import check_basic_page_html_structure
+
+BASIC_TEST_PDF_FILE = Path(__file__).parent / "test.pdf"
 
 
 def test_anonymous_user_cannot_access_the_view(
@@ -131,9 +134,11 @@ def test_view_has_date_of_inspection_field(
         job_created_by_bob (Job): The job created by Bob.
         marnie_user_client (Client): The Django test client for Marnie.
     """
-    quote_pdf = SimpleUploadedFile(
-        "new.pdf",
-        b"new_file_content",
+    # Load test PDF from the same directory that this test file is in, with the
+    # filename "test.pdf":
+    test_pdf = SimpleUploadedFile(
+        "test.pdf",
+        BASIC_TEST_PDF_FILE.read_bytes(),
         content_type="application/pdf",
     )
 
@@ -141,7 +146,7 @@ def test_view_has_date_of_inspection_field(
         reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk}),
         {
             "date_of_inspection": "2001-02-05",
-            "quote": quote_pdf,
+            "quote": test_pdf,
         },
         follow=True,
     )
@@ -170,9 +175,12 @@ def test_view_has_quote_field(
         marnie_user_client (Client): The Django test client for Marnie.
     """
     # New PDF file to upload
-    new_pdf = SimpleUploadedFile(
+
+    # Load test PDF from the same directory that this test file is in, with the
+    # filename "test.pdf":
+    test_pdf = SimpleUploadedFile(
         "new.pdf",
-        b"new_file_content",
+        BASIC_TEST_PDF_FILE.read_bytes(),
         content_type="application/pdf",
     )
 
@@ -184,7 +192,7 @@ def test_view_has_quote_field(
         url,
         {
             "date_of_inspection": "2001-02-05",
-            "quote": new_pdf,
+            "quote": test_pdf,
         },
         follow=True,
     )
@@ -276,9 +284,12 @@ def test_updating_job_changes_status_to_inspection_completed(
         marnie_user_client (Client): The Django test client for Marnie.
     """
     # New PDF file to upload
-    new_pdf = SimpleUploadedFile(
+
+    # Load test PDF from the same directory that this test file is in, with the
+    # filename "test.pdf":
+    test_pdf = SimpleUploadedFile(
         "new.pdf",
-        b"new_file_content",
+        BASIC_TEST_PDF_FILE.read_bytes(),
         content_type="application/pdf",
     )
 
@@ -290,7 +301,7 @@ def test_updating_job_changes_status_to_inspection_completed(
         url,
         {
             "date_of_inspection": "2001-02-05",
-            "quote": new_pdf,
+            "quote": test_pdf,
         },
         follow=True,
     )
@@ -371,10 +382,10 @@ def test_should_not_allow_txt_extension_file_for_quote(
         marnie_user_client (Client): The Django test client for Marnie.
     """
     # New TXT file to upload
-    new_txt = SimpleUploadedFile(
-        "new.txt",
-        b"new_file_content",
-        content_type="text/plain",
+    test_pdf = SimpleUploadedFile(
+        "test.txt",
+        BASIC_TEST_PDF_FILE.read_bytes(),
+        content_type="application/pdf",
     )
 
     # URL for updating the TXT document
@@ -385,7 +396,7 @@ def test_should_not_allow_txt_extension_file_for_quote(
         url,
         {
             "date_of_inspection": "2001-02-05",
-            "quote": new_txt,
+            "quote": test_pdf,
         },
         follow=True,
     )
@@ -402,4 +413,49 @@ def test_should_not_allow_txt_extension_file_for_quote(
     assert field_name in form_errors
     assert form_errors[field_name] == [
         "File extension “txt” is not allowed. Allowed extensions are: pdf.",
+    ]
+
+
+def test_validates_pdf_contents(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Test that the view should validate the contents of the PDF file.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    # New PDF file to upload
+    new_pdf = SimpleUploadedFile(
+        "new.pdf",
+        b"invalid_file_content",
+        content_type="application/pdf",
+    )
+
+    # URL for updating the PDF document
+    url = reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
+
+    # POST request to upload new PDF
+    response = marnie_user_client.post(
+        url,
+        {
+            "date_of_inspection": "2001-02-05",
+            "quote": new_pdf,
+        },
+        follow=True,
+    )
+
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
+
+    # Check the redirect chain that leads things up to here:
+    assert response.redirect_chain == []
+
+    # Check that the expected error is present.
+    field_name = "quote"
+    form_errors = response.context["form"].errors
+    assert field_name in form_errors
+    assert form_errors[field_name] == [
+        "This is not a valid PDF file.",
     ]
