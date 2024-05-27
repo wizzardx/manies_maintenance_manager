@@ -7,7 +7,7 @@ psycopg[c]==3.1.19  # https://github.com/psycopg/psycopg
 # Testing
 # ------------------------------------------------------------------------------
 mypy==1.10.0  # https://github.com/python/mypy
-django-stubs[compatible-mypy]==5.0.0  # https://github.com/typeddjango/django-stubs
+django-stubs[compatible-mypy]==5.0.2  # https://github.com/typeddjango/django-stubs
 pytest==8.2.1  # https://github.com/pytest-dev/pytest
 pytest-sugar==1.0.0  # https://github.com/Frozenball/pytest-sugar
 selenium==4.21.0  # https://github.com/SeleniumHQ/selenium/tree/trunk/py
@@ -26,7 +26,7 @@ sphinx-autobuild==2024.4.16 # https://github.com/GaretJax/sphinx-autobuild
 # Code quality
 # ------------------------------------------------------------------------------
 ruff==0.4.5  # https://github.com/astral-sh/ruff
-coverage==7.5.1  # https://github.com/nedbat/coveragepy
+coverage==7.5.2  # https://github.com/nedbat/coveragepy
 djlint==1.34.1  # https://github.com/Riverside-Healthcare/djLint
 django-fastdev==1.9.0  # https://github.com/boxed/django-fastdev
 pre-commit==3.7.1  # https://github.com/pre-commit/pre-commit
@@ -37,7 +37,7 @@ darglint==1.8.1  # https://github.com/terrencepreilly/darglint
 # ------------------------------------------------------------------------------
 factory-boy==3.3.0  # https://github.com/FactoryBoy/factory_boy
 
-django-debug-toolbar==4.3.0  # https://github.com/jazzband/django-debug-toolbar
+django-debug-toolbar==4.4.2  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==3.2.3  # https://github.com/django-extensions/django-extensions
 django-coverage-plugin==3.1.0  # https://github.com/nedbat/django_coverage_plugin
 pytest-django==4.8.0  # https://github.com/pytest-dev/pytest-django
