@@ -328,7 +328,8 @@ def test_agent_creating_a_new_job_should_send_notification_emails(
     )
 
 
-def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-many-statements,too-many-locals
+# pylint: disable=too-many-statements,too-many-locals
+def test_marnie_can_view_agents_job(
     browser: WebDriver,
     live_server_url: str,
     marnie_user: User,
@@ -433,6 +434,41 @@ def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-man
     assert "GPS" in browser.page_source
     assert "Please fix the leaky faucet in the staff bathroom" in browser.page_source
 
+
+def test_marnie_can_update_agents_job(
+    browser: WebDriver,
+    live_server_url: str,
+    marnie_user: User,
+    bob_agent_user: User,
+):
+    """Ensure Marnie can update the details of a job submitted by Bob the Agent.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+        marnie_user (User): The user instance for Marnie.
+        bob_agent_user (User): The user instance for Bob, who is an agent.
+    """
+    ## First, quickly run through the steps of an Agent creating a new Job.
+    _create_new_job(browser, live_server_url)
+
+    # Marnie logs into the system.
+    _sign_into_website(browser, "marnie")
+
+    # He clicks on the Agents link
+    agents_link = browser.find_element(By.LINK_TEXT, "Agents")
+    agents_link.click()
+
+    # He clicks on the link for Bob.
+    bob_agent_link = browser.find_element(By.LINK_TEXT, "bob")
+    bob_agent_link.click()
+
+    # This takes him to the Maintenance Jobs page for Bob the Agent.
+
+    # He clicks on the link with the number 1 in the text:
+    number_link = browser.find_element(By.LINK_TEXT, "1")
+    number_link.click()
+
     # Just below the existing details, he sees an "Update" link.
     update_link = browser.find_element(By.LINK_TEXT, "Update")
 
@@ -506,6 +542,13 @@ def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-man
 
     # He clicks on the Sign Out button.
     sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")
-    sign_out_button.click()
 
     # Satisfied, he goes back to sleep.
+
+    ## Another place where Django-FastDev seems to cause a deprecation warning.
+    with pytest.warns(
+        DeprecationWarning,
+        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
+        "{% if %}",
+    ):
+        sign_out_button.click()
