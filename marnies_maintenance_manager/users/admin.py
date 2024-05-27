@@ -17,7 +17,7 @@ if settings.DJANGO_ADMIN_FORCE_ALLAUTH:
 
 
 @admin.register(User)
-class UserAdmin(auth_admin.UserAdmin):
+class UserAdmin(auth_admin.UserAdmin):  # type: ignore[type-arg]
     """Define the admin model for custom User handling."""
 
     form = UserAdminChangeForm
