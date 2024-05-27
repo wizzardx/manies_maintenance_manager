@@ -734,3 +734,30 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
         instance.status = Job.Status.INSPECTION_COMPLETED.value
         instance.save()
         return super().form_valid(form)
+
+    def get_success_url(self):
+        """Return the URL to redirect to after valid form submission.
+
+        Returns:
+            str: The URL to redirect to after valid form submission.
+        """
+        # We want to redirect to the job-listing page.
+
+        # If we're the Marnie user, then we also need to include an agent
+        # username to be able to reach that listing correctly.
+
+        # Who is the user behind the request?
+        user = cast(User, self.request.user)
+
+        # Special logic if the user is Marnie:
+        if user.is_marnie:
+            # If the user is Marnie, then we need to include the agent's
+            # username in the URL.
+            agent_username = self.get_object().agent.username
+            return reverse_lazy("jobs:job_list") + f"?agent={agent_username}"
+
+        # Check if we're another user, but we still reach this point.
+        # It shouldn't happen in the current iteration of the code, but it will
+        # happen later during dev. For now, raise a NotImplementedError.
+        msg = "This logic should not be reached."
+        raise NotImplementedError(msg)

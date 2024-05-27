@@ -169,7 +169,7 @@ def test_view_has_date_of_inspection_field(
 
     # Check the redirect chain that leads things up to here:
     assert response.redirect_chain == [
-        (f"/jobs/{job_created_by_bob.pk}/", status.HTTP_302_FOUND),
+        ("/jobs/?agent=bob", status.HTTP_302_FOUND),
     ]
 
     # Refresh the Maintenance Job from the database, and then check the updated
@@ -207,7 +207,7 @@ def test_view_has_quote_field(
 
     # Check the redirect chain that leads things up to here:
     assert response.redirect_chain == [
-        (f"/jobs/{job_created_by_bob.pk}/", status.HTTP_302_FOUND),
+        ("/jobs/?agent=bob", status.HTTP_302_FOUND),
     ]
 
     # Refresh the Maintenance Job from the database
@@ -288,7 +288,7 @@ def test_updating_job_changes_status_to_inspection_completed(
 
     # Check the redirect chain that leads things up to here:
     assert response.redirect_chain == [
-        (f"/jobs/{job_created_by_bob.pk}/", status.HTTP_302_FOUND),
+        ("/jobs/?agent=bob", status.HTTP_302_FOUND),
     ]
 
     # Refresh the Maintenance Job from the database
@@ -377,3 +377,35 @@ def test_marnie_cannot_access_view_after_initial_site_inspection(
     """
     response = marnie_user_client.get(bob_job_update_url)
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_clicking_save_redirects_to_job_listing_page(
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+    bob_job_update_url: str,
+    test_pdf: SimpleUploadedFile,
+) -> None:
+    """Test that clicking 'Save' redirects to the job listing page.
+
+    Args:
+        job_created_by_bob (Job): The job created by Bob.
+        marnie_user_client (Client): The Django test client for Marnie.
+        bob_job_update_url (str): The URL for Bobs job update view.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+    """
+    response = marnie_user_client.post(
+        bob_job_update_url,
+        {
+            "date_of_inspection": "2001-02-05",
+            "quote": test_pdf,
+        },
+        follow=True,
+    )
+
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
+
+    # Check the redirect chain that leads things up to here:
+    assert response.redirect_chain == [
+        ("/jobs/?agent=bob", status.HTTP_302_FOUND),
+    ]
