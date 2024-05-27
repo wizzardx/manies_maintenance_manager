@@ -1,10 +1,13 @@
 """Fixtures for the view tests."""
 
+# pylint: disable=redefined-outer-name
+
 import datetime
 from pathlib import Path
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client
 from django.urls import reverse
 from rest_framework import status
 
@@ -84,10 +87,10 @@ def test_pdf() -> SimpleUploadedFile:
 
 @pytest.fixture()
 def bob_job_with_initial_marnie_inspection(
-    job_created_by_bob,
-    marnie_user_client,
-    bob_job_update_url,
-    test_pdf,
+    job_created_by_bob: Job,
+    marnie_user_client: Client,
+    bob_job_update_url: str,
+    test_pdf: SimpleUploadedFile,
 ) -> Job:
     """Create a job with the initial inspection done by Marnie.
 
@@ -98,6 +101,8 @@ def bob_job_with_initial_marnie_inspection(
             by Bob.
         test_pdf (SimpleUploadedFile): The test PDF file.
 
+    Returns:
+        Job: The job created by Bob with the initial inspection done by Marnie.
     """
     job = job_created_by_bob
 

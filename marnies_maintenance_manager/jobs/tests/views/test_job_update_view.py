@@ -1,5 +1,6 @@
 """Tests for the job update view."""
-# pylint: disable=redefined-outer-name,unused-argument
+
+# pylint: disable=redefined-outer-name,unused-argument,magic-value-comparison
 
 import datetime
 from typing import cast
@@ -426,6 +427,9 @@ def flashed_message_after_inspecting_a_site(
         bob_job_update_url (str): The URL for Bobs job update view.
         marnie_user_client (Client): The Django test client for Marnie.
         test_pdf (SimpleUploadedFile): The test PDF file.
+
+    Returns:
+        Message: The flashed message after Marnie inspects a site.
     """
     response = marnie_user_client.post(
         bob_job_update_url,
