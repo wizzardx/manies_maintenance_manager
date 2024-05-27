@@ -688,9 +688,13 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         Returns:
             dict: The context data.
         """
-        # Only Marnie can see the Update link.
+        # Only Marnie can see the Update link, and only when the current Job status
+        # allows for it.
         user = cast(User, self.request.user)
-        update_link_present = user.is_marnie
+        obj = self.get_object()
+        update_link_present = (
+            user.is_marnie and obj.status == Job.Status.PENDING_INSPECTION.value
+        )
         context = super().get_context_data(**kwargs)
         context["update_link_present"] = update_link_present
         return context

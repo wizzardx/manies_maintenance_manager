@@ -3,47 +3,17 @@
 # pylint: disable=redefined-outer-name,unused-argument
 
 import datetime
-from pathlib import Path
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
-from django.urls import reverse
 from rest_framework import status
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.views import JobUpdateView
 
+from .conftest import BASIC_TEST_PDF_FILE
 from .utils import check_basic_page_html_structure
-
-BASIC_TEST_PDF_FILE = Path(__file__).parent / "test.pdf"
-
-
-@pytest.fixture()
-def bob_job_update_url(job_created_by_bob: Job) -> str:
-    """Return the URL for the job update view for the job created by Bob.
-
-    Args:
-        job_created_by_bob (Job): The job created by Bob.
-
-    Returns:
-        str: The URL for Bobs job update view.
-    """
-    return reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
-
-
-@pytest.fixture()
-def test_pdf() -> SimpleUploadedFile:
-    """Return a test PDF file as a SimpleUploadedFile.
-
-    Returns:
-        SimpleUploadedFile: The test PDF file.
-    """
-    return SimpleUploadedFile(
-        "test.pdf",
-        BASIC_TEST_PDF_FILE.read_bytes(),
-        content_type="application/pdf",
-    )
 
 
 def post_update_request_and_check_errors(
