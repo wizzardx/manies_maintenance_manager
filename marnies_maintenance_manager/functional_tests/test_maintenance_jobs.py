@@ -470,8 +470,9 @@ def test_marnie_can_view_agents_job(  # noqa: PLR0915  # pylint: disable=too-man
     inspection_date_field.send_keys("02012021")
 
     # He uploads a Quote invoice.
-    quote_invoice_field.send_keys("/path/to/quote/invoice.pdf")
-    pytest.fail("Find out how to do the above section (file uploads) in Selenium")
+    quote_invoice_field.send_keys(
+        "/app/marnies_maintenance_manager/functional_tests/test.pdf",
+    )
 
     # He clicks the "submit" button.
     submit_button.click()

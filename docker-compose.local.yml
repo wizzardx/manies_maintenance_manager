@@ -50,3 +50,5 @@ services:
     ports:
       - "4444:4444"  # Selenium port
       - "5900:5900"  # VNC port
+    volumes:
+      - .:/app:z
