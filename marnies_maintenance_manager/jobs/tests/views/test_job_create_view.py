@@ -7,6 +7,7 @@ from typing import cast
 import pytest
 from bs4 import BeautifulSoup
 from django.contrib.messages.storage.base import Message
+from django.core import mail
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
@@ -22,30 +23,16 @@ from marnies_maintenance_manager.users.models import User
 
 
 def test_creating_a_new_job_sets_an_agent_from_the_request(
-    bob_agent_user_client: Client,
     bob_agent_user: User,
-    marnie_user: User,
+    job_created_by_bob: Job,
 ) -> None:
     """Creating a job should automatically assign the agent from the request.
 
     Args:
-        bob_agent_user_client (Client): Client used by Bob, an agent user.
         bob_agent_user (User): Bob's user instance, an agent.
-        marnie_user (User): Marnie's user instance, used for validation in this test.
+        job_created_by_bob (Job): The job created by Bob.
     """
-    client = bob_agent_user_client
-    response = client.post(
-        reverse("jobs:job_create"),
-        {
-            "date": "2022-01-01",
-            "address_details": "1234 Main St, Springfield, IL",
-            "gps_link": "https://www.google.com/maps",
-            "quote_request_details": "Replace the kitchen sink",
-        },
-    )
-    assert response.status_code == status.HTTP_302_FOUND
-    job = Job.objects.first()
-    assert job is not None
+    job = job_created_by_bob
     assert job.agent == bob_agent_user
 
 
@@ -459,7 +446,7 @@ def test_maintenance_jobs_page_returns_correct_html(
 def test_create_maintenance_job_page_returns_correct_html(
     bob_agent_user_client: Client,
 ) -> None:
-    """Ensure the create maintenance job page returns the expected HTML content.
+    """Ensure the "create maintenance job" page returns the expected HTML content.
 
     Args:
         bob_agent_user_client (Client): A test client for user Bob who is an agent.
@@ -478,28 +465,70 @@ def test_create_maintenance_job_page_returns_correct_html(
 
 def test_creating_a_job_sets_status_to_pending_inspection(
     bob_agent_user_client: Client,
-    bob_agent_user: User,
     marnie_user: User,
+    job_created_by_bob: Job,
 ) -> None:
     """Creating a job should automatically set the status to `pending inspection`.
 
     Args:
         bob_agent_user_client (Client): Client used by Bob, an agent user.
-        bob_agent_user (User): Bob's user instance, an agent.
         marnie_user (User): Marnie's user instance, used for validation in this test.
+        job_created_by_bob (Job): The job created by Bob.
+    """
+    job = job_created_by_bob
+    assert job.status == Job.Status.PENDING_INSPECTION.value
+
+
+def test_agent_creating_job_causes_email_to_be_sent(
+    bob_agent_user_client: Client,
+    marnie_user: User,
+    bob_agent_user: User,
+) -> None:
+    """Ensure that an email is sent when an agent creates a job.
+
+    Args:
+        bob_agent_user_client (Client): A test client for Bob, an agent user.
+        marnie_user (User): Marnie's user instance, used for validation in this test.
+        bob_agent_user (User): Bob's user instance, used for validation in this test.
     """
     client = bob_agent_user_client
     response = client.post(
         reverse("jobs:job_create"),
         {
-            "date": "2022-01-01",
-            "address_details": "1234 Main St, Springfield, IL",
-            "gps_link": "https://www.google.com/maps",
-            "quote_request_details": "Replace the kitchen sink",
+            "date": "2021-01-01",
+            "address_details": "Department of Home Affairs Bellville",
+            "gps_link": "https://maps.app.goo.gl/mXfDGVfn1dhZDxJj7",
+            "quote_request_details": "Please fix the leaky faucet in the "
+            "staff bathroom",
         },
+        follow=True,
     )
-    assert response.status_code == status.HTTP_302_FOUND
-    job = Job.objects.first()
-    assert job is not None
 
-    assert job.status == Job.Status.PENDING_INSPECTION.value
+    # Check the response
+    assert response.status_code == status.HTTP_200_OK
+    assert response.redirect_chain == [("/jobs/", 302)]
+
+    # Check that an email was sent, with the expected details.
+    num_mails_sent = len(mail.outbox)
+    assert num_mails_sent == 1
+
+    email = mail.outbox[0]
+
+    # Check mail metadata:
+    assert email.subject == "New maintenance request by bob"
+    assert marnie_user.email in email.to
+    assert bob_agent_user.email in email.cc
+
+    # Check mail contents:
+    assert "bob has made a new maintenance request." in email.body
+    assert "Date: 2021-01-01" in email.body
+    assert "Address Details:\n\nDepartment of Home Affairs Bellville" in email.body
+    assert "GPS Link:\n\nhttps://maps.app.goo.gl/mXfDGVfn1dhZDxJj7" in email.body
+    assert (
+        "Quote Request Details:\n\nPlease fix the leaky faucet in the staff bathroom"
+        in email.body
+    )
+    assert (
+        "PS: This mail is sent from an unmonitored email address. "
+        "Please do not reply to this email." in email.body
+    )

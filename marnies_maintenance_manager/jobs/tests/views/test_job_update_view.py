@@ -8,6 +8,7 @@ from typing import cast
 import pytest
 from django.contrib.messages.storage.base import Message
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.template.response import TemplateResponse
 from django.test import Client
 from rest_framework import status
 
@@ -414,13 +415,13 @@ def test_clicking_save_redirects_to_job_listing_page(
 
 
 @pytest.fixture()
-def flashed_message_after_inspecting_a_site(
+def http_response_to_marnie_inspecting_site_of_job_by_bob(
     job_created_by_bob: Job,
     bob_job_update_url: str,
     marnie_user_client: Client,
     test_pdf: SimpleUploadedFile,
-) -> Message:
-    """Flashed message after Marnie inspects a site.
+) -> TemplateResponse:
+    """Get the HTTP response after Marnie inspects the site of the job created by Bob.
 
     Args:
         job_created_by_bob (Job): The job created by Bob.
@@ -429,28 +430,50 @@ def flashed_message_after_inspecting_a_site(
         test_pdf (SimpleUploadedFile): The test PDF file.
 
     Returns:
-        Message: The flashed message after Marnie inspects a site.
+        TemplateResponse: The HTTP response after Marnie inspects the site of the job
     """
-    response = marnie_user_client.post(
-        bob_job_update_url,
-        {
-            "date_of_inspection": "2001-02-05",
-            "quote": test_pdf,
-        },
-        follow=True,
+    response = cast(
+        TemplateResponse,
+        marnie_user_client.post(
+            bob_job_update_url,
+            {
+                "date_of_inspection": "2001-02-05",
+                "quote": test_pdf,
+            },
+            follow=True,
+        ),
     )
 
     # Assert the response status code is 200
     assert response.status_code == status.HTTP_200_OK
 
     # Check the redirect chain that leads things up to here:
-    assert response.redirect_chain == [("/jobs/?agent=bob", status.HTTP_302_FOUND)]
+    expected_chain = [("/jobs/?agent=bob", status.HTTP_302_FOUND)]
+    assert response.redirect_chain == expected_chain  # type: ignore[attr-defined]
 
+    # Return the response to the caller
+    return response
+
+
+@pytest.fixture()
+def flashed_message_after_inspecting_a_site(
+    http_response_to_marnie_inspecting_site_of_job_by_bob: TemplateResponse,
+) -> Message:
+    """Retrieve the flashed message after Marnie inspects a site.
+
+    Args:
+        http_response_to_marnie_inspecting_site_of_job_by_bob (TemplateResponse): The
+            HTTP response after Marnie inspects the site.
+
+    Returns:
+        Message: The flashed message after Marnie inspects a site.
+    """
     # Check the messages:
+    response = http_response_to_marnie_inspecting_site_of_job_by_bob
     messages = list(response.context["messages"])
     assert len(messages) == 1
 
-    # Return the retrieved message back to the caller
+    # Return the retrieved message to the caller
     return cast(Message, messages[0])
 
 

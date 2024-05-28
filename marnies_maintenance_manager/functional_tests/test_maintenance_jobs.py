@@ -12,7 +12,6 @@ from collections.abc import Iterator
 from typing import Any
 
 import pytest
-from django.core import mail
 from pytest_django.live_server_helper import LiveServer
 from selenium import webdriver
 from selenium.common.exceptions import ElementClickInterceptedException
@@ -219,7 +218,7 @@ def _create_new_job(
         "Number",
         "Date",
         "Address Details",
-        "GPS Link",
+        "GPS Link",  # This is the displayed text, on-screen it's a link
         "Quote Request Details",
     ]
 
@@ -284,50 +283,6 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     _create_new_job(browser, live_server_url)
 
 
-def test_agent_creating_a_new_job_should_send_notification_emails(
-    browser: WebDriver,
-    live_server_url: str,
-    bob_agent_user: User,
-    marnie_user: User,
-) -> None:
-    """Ensure that creating a new job sends Marnie a notification email.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
-        marnie_user (User): The user instance for Marnie.
-    """
-    # First, quickly run through the steps of creating a new job
-    _create_new_job(browser, live_server_url)
-
-    # Since we have the fixture, the email should have already been sent by this point
-    assert len(mail.outbox) == 1, "No email was sent"
-
-    # We also check the contents and other details of the mail, here.
-
-    email = mail.outbox[0]
-
-    # Check mail metadata:
-    assert email.subject == "New maintenance request by bob"
-    assert marnie_user.email in email.to
-    assert bob_agent_user.email in email.cc
-
-    # Check mail contents:
-    assert "bob has made a new maintenance request." in email.body
-    assert "Date: 2021-01-01" in email.body
-    assert "Address Details:\n\nDepartment of Home Affairs Bellville" in email.body
-    assert "GPS Link:\n\nhttps://maps.app.goo.gl/mXfDGVfn1dhZDxJj7" in email.body
-    assert (
-        "Quote Request Details:\n\nPlease fix the leaky faucet in the staff bathroom"
-        in email.body
-    )
-    assert (
-        "PS: This mail is sent from an unmonitored email address. "
-        "Please do not reply to this email." in email.body
-    )
-
-
 # pylint: disable=too-many-statements,too-many-locals
 def test_marnie_can_view_agents_job(
     browser: WebDriver,
@@ -381,9 +336,10 @@ def test_marnie_can_view_agents_job(
     table = browser.find_element(By.ID, "id_list_table")
     rows = table.find_elements(By.TAG_NAME, "tr")
 
-    ## There should be exactly one row here
+    ## There should be two rows:
     assert len(rows) == 2  # noqa: PLR2004
-    # The first row is the header row
+
+    ## The first row is the header row
     header_row = rows[0]
     header_cell_texts = [
         cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")
@@ -392,18 +348,20 @@ def test_marnie_can_view_agents_job(
         "Number",
         "Date",
         "Address Details",
-        "GPS Link",
+        "GPS Link",  # This is the displayed text, on-screen it's a link
         "Quote Request Details",
     ]
 
     # The second row is the set of job details submitted by Bob earlier
     row = rows[1]
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
+
+    ## Make sure the cell text contents match the expected values.
     assert cell_texts == [
-        "1",
+        "1",  # This is for the row number, automatically added by the system.
         "2021-01-01",
         "Department of Home Affairs Bellville",
-        "GPS",
+        "GPS",  # This is the displayed text, on-screen it's a link
         "Please fix the leaky faucet in the staff bathroom",
     ]
 
@@ -440,7 +398,7 @@ def test_marnie_can_update_agents_job(
     live_server_url: str,
     marnie_user: User,
     bob_agent_user: User,
-):
+) -> None:
     """Ensure Marnie can update the details of a job submitted by Bob the Agent.
 
     Args:
