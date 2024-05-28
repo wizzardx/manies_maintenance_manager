@@ -730,14 +730,52 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
         Returns:
             HttpResponse: The HTTP response.
         """
-        instance = form.save(commit=False)
+        instance = cast(Job, form.save(commit=False))
         instance.status = Job.Status.INSPECTION_COMPLETED.value
         instance.save()
 
         # Call validations/etc on parent classes
         response = super().form_valid(form)
 
-        # Get username associated with Agent who originally created the Maintenance
+        # In this part, we email the agent, notifying him of the completion of
+        # the inspection by Marnie.
+
+        email_subject = "Quote for your maintenance request"
+        email_body = (
+            f"Marnie performed the inspection on {instance.date_of_inspection} and "
+            "has quoted you. The quote is attached to this email.\n\n"
+            "Details of your original request:\n\n"
+            "-----\n\n"
+            f"Subject: New maintenance request by {instance.agent.username}\n\n"
+        )
+
+        # Call the email body-generation logic used previously, to help us populate
+        # the rest of this email body:
+        email_body += _generate_email_body(instance)
+
+        email_from = DEFAULT_FROM_EMAIL
+        email_to = instance.agent.email
+        email_cc = get_marnie_email()
+
+        # Create the email message:
+        email = EmailMessage(
+            subject=email_subject,
+            body=email_body,
+            from_email=email_from,
+            to=[email_to],
+            cc=[email_cc],
+        )
+
+        # Get the quote PDF file from the object instance:
+        uploaded_file = instance.quote
+
+        # Attach that to the email:
+        email.attach(uploaded_file.name, uploaded_file.read(), "application/pdf")
+
+        # Send the mail:
+        email.send()
+
+        # Get username associated with the Agent who originally created the Maintenance
         # Job:
         agent_username = instance.agent.username
 

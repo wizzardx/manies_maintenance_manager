@@ -7,13 +7,16 @@ from typing import cast
 
 import pytest
 from django.contrib.messages.storage.base import Message
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.response import TemplateResponse
 from django.test import Client
 from rest_framework import status
 
+from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.views import JobUpdateView
+from marnies_maintenance_manager.users.models import User
 
 from .conftest import BASIC_TEST_PDF_FILE
 from .utils import check_basic_page_html_structure
@@ -491,3 +494,71 @@ def test_a_flash_message_is_displayed_when_marnie_clicks_save(
     flashed_message = flashed_message_after_inspecting_a_site
     assert flashed_message.message == "An email has been sent to bob."
     assert flashed_message.level_tag == "success"
+
+
+def test_marnie_clicking_save_sends_an_email_to_agent(
+    http_response_to_marnie_inspecting_site_of_job_by_bob: TemplateResponse,
+    bob_agent_user: User,
+    marnie_user: User,
+) -> None:
+    """Test that Marnie clicking 'Save' sends an email to the agent.
+
+    Args:
+        http_response_to_marnie_inspecting_site_of_job_by_bob (TemplateResponse): The
+            HTTP response after Marnie inspects the site.
+        bob_agent_user (User): The agent user Bob.
+        marnie_user (User): The user Marnie.
+    """
+    # For the earlier part of our fixtures (job creation by agent), we built the model
+    # instance directly, rather than going through the view-based logic, so an email
+    # wouldn't have been sent there.
+
+    # But for the most recent part of the fixtures (Marnie inspecting the site and
+    # updating thew website), we did go through the view-based logic, so an email
+    # should have been sent there.
+    num_mails_sent = len(mail.outbox)
+    assert num_mails_sent == 1
+
+    # Grab the mail:
+    email = mail.outbox[0]
+
+    # Check various details of the mail here.
+
+    # Check mail metadata:
+    assert email.subject == "Quote for your maintenance request"
+    assert bob_agent_user.email in email.to
+    assert marnie_user.email in email.cc
+    assert constants.DEFAULT_FROM_EMAIL in email.from_email
+
+    assert (
+        "Marnie performed the inspection on 2001-02-05 and has quoted you. The quote "
+        "is attached to this email." in email.body
+    )
+
+    assert "Details of your original request:" in email.body
+
+    # A separator line:
+    assert "-----" in email.body
+
+    # The original mail subject line, as a line in the body:
+    assert "Subject: New maintenance request by bob" in email.body
+
+    # And all the original body lines, too, as per our previous test where the
+    # agent user had just created a new job:
+
+    assert "bob has made a new maintenance request." in email.body
+    assert "Date: 2022-01-01" in email.body
+    assert "Address Details:\n\n1234 Main St, Springfield, IL" in email.body
+    assert "GPS Link:\n\nhttps://www.google.com/maps" in email.body
+    assert "Quote Request Details:\n\nReplace the kitchen sink" in email.body
+    assert (
+        "PS: This mail is sent from an unmonitored email address. "
+        "Please do not reply to this email." in email.body
+    )
+
+    # Check the mail attachment
+    assert len(email.attachments) == 1
+    attachment = email.attachments[0]
+    assert attachment[0] == "quotes/test.pdf"
+    assert attachment[1] == BASIC_TEST_PDF_FILE.read_bytes()
+    assert attachment[2] == "application/pdf"
