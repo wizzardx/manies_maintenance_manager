@@ -220,7 +220,12 @@ def test_view_has_quote_field(
     job_created_by_bob.refresh_from_db()
 
     # And confirm that the PDF file has been updated
-    assert job_created_by_bob.quote.name.endswith("test.pdf")
+    quote_name = job_created_by_bob.quote.name
+    # Can be something like one of these:
+    # - quotes/test.pdf
+    # - quotes/test_qKAGkkh.pdf
+    assert quote_name.startswith("quotes/test"), quote_name
+    assert quote_name.endswith(".pdf")
 
 
 def test_date_of_inspection_field_is_required(
@@ -559,6 +564,12 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
     # Check the mail attachment
     assert len(email.attachments) == 1
     attachment = email.attachments[0]
-    assert attachment[0] == "quotes/test.pdf"
+
+    # Attachment name can be something like one of these:
+    # - quotes/test_r8TJrLv.pdf
+    # - quotes/test.pdf
+    attach_name = attachment[0]
+    assert attach_name.startswith("quotes/test"), attach_name
+    assert attach_name.endswith(".pdf")
     assert attachment[1] == BASIC_TEST_PDF_FILE.read_bytes()
     assert attachment[2] == "application/pdf"

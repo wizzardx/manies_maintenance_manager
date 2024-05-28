@@ -1,6 +1,7 @@
 """Tests for the job detail view."""
 
 # pylint: disable=no-self-use
+import datetime
 
 from bs4 import BeautifulSoup
 from django.test import Client
@@ -103,20 +104,21 @@ def test_job_detail_view_has_correct_basic_structure(
 
 
 def test_job_detail_view_shows_expected_job_details(
-    job_created_by_bob: Job,
+    bob_job_with_initial_marnie_inspection: Job,
     marnie_user_client: Client,
 ) -> None:
     """Ensure that the job detail view shows the expected job details.
 
     Args:
-        job_created_by_bob (Job): The job created by Bob.
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
         marnie_user_client (Client): The Django test client for Marnie.
     """
+    job = bob_job_with_initial_marnie_inspection
     response = marnie_user_client.get(
-        reverse("jobs:job_detail", kwargs={"pk": job_created_by_bob.pk}),
+        reverse("jobs:job_detail", kwargs={"pk": job.pk}),
     )
     page = response.content.decode("utf-8")
-    job = job_created_by_bob
 
     # We search for a more complete html fragment for job number, because job number
     # is just going to be the numeric "1" at this point in the test, so we want
@@ -126,6 +128,12 @@ def test_job_detail_view_shows_expected_job_details(
     assert job.address_details in page
     assert job.gps_link in page
     assert job.quote_request_details in page
+
+    inspect_date = job.date_of_inspection
+    assert isinstance(inspect_date, datetime.date)
+    assert inspect_date.isoformat() in page
+
+    assert job.quote.url in page
 
 
 def test_page_has_update_link_going_to_update_view(

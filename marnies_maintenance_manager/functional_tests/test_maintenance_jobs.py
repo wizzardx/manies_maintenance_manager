@@ -220,6 +220,8 @@ def _create_new_job(
         "Address Details",
         "GPS Link",  # This is the displayed text, on-screen it's a link
         "Quote Request Details",
+        "Date of Inspection",
+        "Quote",
     ]
 
     ## The second row is the new job
@@ -233,6 +235,8 @@ def _create_new_job(
         "Department of Home Affairs Bellville",
         "GPS",  # This is the displayed text, on-screen it's a link
         "Please fix the leaky faucet in the staff bathroom",
+        "",  # This is for the Date of Inspection, which is empty for now
+        "",  # This is for the Quote, which is empty for now
     ]
 
     # He clicks on the Sign Out button
@@ -350,6 +354,8 @@ def test_marnie_can_view_agents_job(
         "Address Details",
         "GPS Link",  # This is the displayed text, on-screen it's a link
         "Quote Request Details",
+        "Date of Inspection",
+        "Quote",
     ]
 
     # The second row is the set of job details submitted by Bob earlier
@@ -363,6 +369,8 @@ def test_marnie_can_view_agents_job(
         "Department of Home Affairs Bellville",
         "GPS",  # This is the displayed text, on-screen it's a link
         "Please fix the leaky faucet in the staff bathroom",
+        "",  # This is for the Date of Inspection, which is empty for now
+        "",  # This is for the Quote, which is empty for now
     ]
 
     # Since he's not an Agent, he does not see the "Create Maintenance Job" link.
@@ -496,7 +504,24 @@ def test_marnie_can_update_agents_job(
         "Department of Home Affairs Bellville",
         "GPS",
         "Please fix the leaky faucet in the staff bathroom",
+        "2021-02-01",
+        "Quote",
     ]
+
+    # He clicks on the #1 number again:
+    number_link = browser.find_element(By.LINK_TEXT, "1")
+    number_link.click()
+
+    # Over here he can now see the inspection date:
+    assert "2021-02-01" in browser.page_source
+
+    # And also, there is a link to the Quote invoice, with the text "Quote":
+    quote_link = browser.find_element(By.LINK_TEXT, "Quote")
+
+    # If he looks at the link more closely, he can see it's a PDF file:
+    attr = quote_link.get_attribute("href")
+    assert isinstance(attr, str)
+    assert "pdf" in attr
 
     # He clicks on the Sign Out button.
     sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")

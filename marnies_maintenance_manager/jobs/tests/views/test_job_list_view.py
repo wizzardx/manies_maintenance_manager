@@ -275,7 +275,6 @@ class TestMarnieAccessingJobListView:
         header_row = table.find("tr")
         assert header_row
         header_cells = header_row.find_all("th")
-        assert len(header_cells) == 5  # noqa: PLR2004
         header_cells_text_list = [cell.text for cell in header_cells]
         assert header_cells_text_list == [
             "Number",
@@ -283,6 +282,8 @@ class TestMarnieAccessingJobListView:
             "Address Details",
             "GPS Link",
             "Quote Request Details",
+            "Date of Inspection",
+            "Quote",
         ]
 
         # Grab the first row, it contains our Job details:
@@ -298,6 +299,8 @@ class TestMarnieAccessingJobListView:
             "1234 Main St, Springfield, IL",
             "GPS",
             "Replace the kitchen sink",
+            "",  # Date of Inspection
+            "",  # Quote
         ]
         assert first_row_text_list == expected_row_text_list
 

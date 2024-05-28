@@ -439,6 +439,8 @@ def test_maintenance_jobs_page_returns_correct_html(
         "Address Details",
         "GPS Link",
         "Quote Request Details",
+        "Date of Inspection",
+        "Quote",
     ]
 
 
