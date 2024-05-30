@@ -519,9 +519,12 @@ def test_marnie_can_update_agents_job(
     quote_link = browser.find_element(By.LINK_TEXT, "Download Quote")
 
     # If he looks at the link more closely, he can see it's a PDF file:
-    attr = quote_link.get_attribute("href")
-    assert isinstance(attr, str)
-    assert "pdf" in attr
+    download_url = quote_link.get_attribute("href")
+    assert isinstance(download_url, str)
+
+    ## Example href value:
+    ## http://django:37369/jobs/d7f07107-e711-44b9-be0a-1fab149229a0/download-quote/
+    assert download_url.endswith("/download-quote/")
 
     # He clicks on the Sign Out button.
     sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")

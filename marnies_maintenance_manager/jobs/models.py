@@ -115,6 +115,14 @@ class Job(UUIDModel, TimeStampedModel):
         """
         return reverse("jobs:job_detail", kwargs={"pk": self.pk})
 
+    def get_quote_download_url(self) -> str:
+        """Get URL for downloading the quote file.
+
+        Returns:
+            str: URL for downloading the quote file.
+        """
+        return reverse("jobs:download_quote", kwargs={"pk": self.pk})
+
     def save(self, *args: Any, **kwargs: Any) -> None:
         """Save the job to the database.
 

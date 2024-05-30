@@ -35,7 +35,7 @@
           <td>{{ job.quote_request_details }}</td>
           <td>{{ job.date_of_inspection|date:"Y-m-d" }}</td>
           <td>
-            {% if job.quote %}<a href="{{ job.quote.url }}">Download Quote</a>{% endif %}
+            {% if job.quote %}<a href="{{ job.get_quote_download_url }}">Download Quote</a>{% endif %}
           </td>
         </tr>
       {% endfor %}
