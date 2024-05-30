@@ -22,6 +22,15 @@ class TestAgentsView:
         response = marnie_user_client.get(reverse("jobs:agent_list"))
         assert response.status_code == status.HTTP_200_OK
 
+    def test_superuser_can_reach_agents_view(self, superuser_client: Client) -> None:
+        """Ensure superusers can access the agents view.
+
+        Args:
+            superuser_client (Client): A test client for a superuser.
+        """
+        response = superuser_client.get(reverse("jobs:agent_list"))
+        assert response.status_code == status.HTTP_200_OK
+
     def test_none_marnie_user_cannot_reach_agents_view(
         self,
         bob_agent_user_client: Client,
