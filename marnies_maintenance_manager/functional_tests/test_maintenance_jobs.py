@@ -505,7 +505,7 @@ def test_marnie_can_update_agents_job(
         "GPS",
         "Please fix the leaky faucet in the staff bathroom",
         "2021-02-01",
-        "Quote",
+        "Download Quote",
     ]
 
     # He clicks on the #1 number again:
@@ -515,8 +515,8 @@ def test_marnie_can_update_agents_job(
     # Over here he can now see the inspection date:
     assert "2021-02-01" in browser.page_source
 
-    # And also, there is a link to the Quote invoice, with the text "Quote":
-    quote_link = browser.find_element(By.LINK_TEXT, "Quote")
+    # And also, there is a link to the Quote invoice, with the text "Download Quote":
+    quote_link = browser.find_element(By.LINK_TEXT, "Download Quote")
 
     # If he looks at the link more closely, he can see it's a PDF file:
     attr = quote_link.get_attribute("href")
