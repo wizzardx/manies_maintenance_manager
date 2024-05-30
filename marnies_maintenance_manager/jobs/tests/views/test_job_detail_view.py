@@ -82,6 +82,22 @@ class TestAbilityToReachJobDetailView:
         )
         assert response.status_code == status.HTTP_200_OK
 
+    @staticmethod
+    def test_admin_user_can_access_job_detail_view(
+        admin_client: Client,
+        job_created_by_bob: Job,
+    ) -> None:
+        """Ensure the admin user can access the job detail view.
+
+        Args:
+            admin_client (Client): The Django test client for the admin user.
+            job_created_by_bob (Job): The job created by Bob.
+        """
+        response = admin_client.get(
+            reverse("jobs:job_detail", kwargs={"pk": job_created_by_bob.pk}),
+        )
+        assert response.status_code == status.HTTP_200_OK
+
 
 def test_job_detail_view_has_correct_basic_structure(
     job_created_by_bob: Job,
