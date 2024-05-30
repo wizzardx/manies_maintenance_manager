@@ -82,7 +82,7 @@ def get_sysadmin_email(*, _introduce_logic_error: bool = False) -> str:
         return first_or_error(sysadmins).email
 
     # This case should be logically impossible
-    msg = "Reached logically impossible branch in get_sysadmin_email."
+    msg = "Reached logically impossible branch in get_sysadmin_email"
     logger.critical(msg)
     raise LogicalError(msg)
 

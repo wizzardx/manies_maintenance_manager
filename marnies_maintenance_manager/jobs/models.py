@@ -141,7 +141,7 @@ class Job(UUIDModel, TimeStampedModel):
             if self.agent is None:  # pragma: no cover
                 # This sanity-checking code is not covered by tests because it's hard
                 # to set up the conditions for it to be triggered.
-                msg = "The 'agent' field must be set before saving the Job."
+                msg = "The 'agent' field must be set before saving the Job"
                 raise ValueError(msg)
 
             # If it's the first job for an Agent, then the number should be 1,
@@ -154,7 +154,7 @@ class Job(UUIDModel, TimeStampedModel):
                 if last_job.number is None:  # pragma: no cover
                     # This sanity-checking code is not covered by tests because it's
                     # hard to set up the conditions for it to be triggered.
-                    msg = "The 'number' field for the last job for this Agent is None."
+                    msg = "The 'number' field for the last job for this Agent is None"
                     raise ValueError(msg)
                 self.number = last_job.number + 1
             else:

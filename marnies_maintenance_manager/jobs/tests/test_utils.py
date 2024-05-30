@@ -123,7 +123,7 @@ class TestGetSystemAdministratorEmail:
         """
         # Not possible, but going to test for a negative number of sysadmins here,
         # to check the logical error handling.
-        msg = "Reached logically impossible branch in get_sysadmin_email."
+        msg = "Reached logically impossible branch in get_sysadmin_email"
 
         with pytest.raises(LogicalError, match=re.escape(msg)):
             get_sysadmin_email(_introduce_logic_error=True)

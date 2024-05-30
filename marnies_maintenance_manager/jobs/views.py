@@ -384,11 +384,11 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         # that should already be setup before the logic gets here, but just in case:
 
         if not self.request.user.is_authenticated:  # pragma: no cover
-            msg = "User is not authenticated."
+            msg = "User is not authenticated"
             raise ValueError(msg)
 
         if not self.request.user.is_agent:  # pragma: no cover
-            msg = "User is not an agent."
+            msg = "User is not an agent"
             raise ValueError(msg)
 
         # Make sure that the "agent" field is set to the current user, before we
@@ -401,7 +401,7 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         # Send an email notification
         # Over here, `job` is the JOb object that has just been created and saved.
         if not (job := self.object):  # pragma: no cover
-            msg = "Job object is missing."
+            msg = "Job object is missing"
             raise ValueError(msg)
 
         email_subject = f"New maintenance request by {job.agent.username}"
@@ -821,7 +821,7 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
         # Check if we're another user, but we still reach this point.
         # It shouldn't happen in the current iteration of the code, but it will
         # happen later during dev. For now, raise a NotImplementedError.
-        msg = "This logic should not be reached."  # pragma: no cover
+        msg = "This logic should not be reached"  # pragma: no cover
         raise NotImplementedError(msg)  # pragma: no cover
 
 

@@ -368,7 +368,7 @@ def test_validates_pdf_contents(
             "quote": new_pdf,
         },
         field_name="quote",
-        expected_error="This is not a valid PDF file.",
+        expected_error="This is not a valid PDF file",
     )
 
 

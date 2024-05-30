@@ -21,7 +21,7 @@ def validate_pdf_contents(file: FieldFile) -> None:
         # Create a PdfReader object
         PdfReader(file)
     except PdfReadError as err:
-        msg = "This is not a valid PDF file."
+        msg = "This is not a valid PDF file"
         raise ValidationError(msg) from err
     finally:
         file.seek(0)  # Reset the file pointer to the beginning
