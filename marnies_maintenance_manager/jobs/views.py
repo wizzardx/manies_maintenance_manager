@@ -647,6 +647,7 @@ def home_page(request: HttpRequest) -> HttpResponse:
     return render(request, "pages/home.html", context)
 
 
+@login_required
 def agent_list(request: HttpRequest) -> HttpResponse:
     """Render the list of Agent users.
 

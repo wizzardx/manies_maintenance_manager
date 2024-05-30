@@ -2,7 +2,11 @@
 
 # pylint: disable=no-self-use
 
+from typing import cast
+
+import pytest
 from bs4 import BeautifulSoup
+from django.http import HttpResponseRedirect
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
@@ -42,6 +46,18 @@ class TestAgentsView:
         """
         response = bob_agent_user_client.get(reverse("jobs:agent_list"))
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @pytest.mark.django_db()
+    def test_anonymous_user_cannot_reach_agents_view(self, client: Client) -> None:
+        """Ensure anonymous users cannot access the agents view.
+
+        Args:
+            client (Client): A test client for an anonymous user.
+        """
+        response = client.get(reverse("jobs:agent_list"))
+        assert response.status_code == status.HTTP_302_FOUND
+        response2 = cast(HttpResponseRedirect, response)
+        assert response2.url == "/accounts/login/?next=/jobs/agents/"
 
     def test_agents_view_contains_agent_list(
         self,
