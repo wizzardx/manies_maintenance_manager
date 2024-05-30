@@ -2,8 +2,10 @@
 
 # pylint: disable=no-self-use
 import datetime
+from typing import cast
 
 from bs4 import BeautifulSoup
+from django.http import HttpResponseRedirect
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
@@ -217,3 +219,152 @@ def test_update_link_is_not_visible_to_marnie_after_he_has_done_initial_inspecti
 
     # Confirm that we couldn't find it:
     assert link is None, "The link to update the job should not be visible to Marnie."
+
+
+class TestQuoteDownloadLinkVisibility:
+    """Tests to ensure that the quote download link is visible to the correct users."""
+
+    @staticmethod
+    def test_marnie_can_see_link(
+        bob_job_with_initial_marnie_inspection: Job,
+        marnie_user_client: Client,
+    ) -> None:
+        """Ensure that Marnie can see the quote download link.
+
+        Args:
+            bob_job_with_initial_marnie_inspection (Job): The job created by Bob with
+                the initial inspection done by Marnie.
+            marnie_user_client (Client): The Django test client for Marnie.
+        """
+        response = marnie_user_client.get(
+            reverse(
+                "jobs:job_detail",
+                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+            ),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        page = response.content.decode("utf-8")
+
+        # Use Python BeautifulSoup to parse the HTML and find the link
+        # to download the quote.
+        soup = BeautifulSoup(page, "html.parser")
+        link = soup.find("a", string="Download Quote")
+        assert link is not None
+
+        # Confirm that the link goes to the correct URL.
+        expected_url = reverse(
+            "jobs:download_quote",
+             kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+        )
+        assert link["href"] == expected_url
+
+    @staticmethod
+    def test_admin_can_see_link(
+        bob_job_with_initial_marnie_inspection: Job,
+        admin_client: Client,
+    ) -> None:
+        """Ensure that the admin user can see the quote download link.
+
+        Args:
+            bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+            admin_client (Client): The Django test client for the admin user.
+        """
+        response = admin_client.get(
+            reverse(
+                "jobs:job_detail",
+                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+            ),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        page = response.content.decode("utf-8")
+
+        # Use Python BeautifulSoup to parse the HTML and find the link
+        # to download the quote.
+        soup = BeautifulSoup(page, "html.parser")
+        link = soup.find("a", string="Download Quote")
+        assert link is not None
+
+        # Confirm that the link goes to the correct URL.
+        expected_url = reverse(
+            "jobs:download_quote",
+            kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+        )
+        assert link["href"] == expected_url
+
+    @staticmethod
+    def test_agent_who_created_job_can_see_link(
+        bob_job_with_initial_marnie_inspection: Job,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Ensure that the agent who created the job can see the quote download link.
+
+        Args:
+            bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+            bob_agent_user_client (Client): The Django test client for Bob.
+        """
+        response = bob_agent_user_client.get(
+            reverse(
+                "jobs:job_detail",
+                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+            ),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        page = response.content.decode("utf-8")
+
+        # Use Python BeautifulSoup to parse the HTML and find the link
+        # to download the quote.
+        soup = BeautifulSoup(page, "html.parser")
+        link = soup.find("a", string="Download Quote")
+        assert link is not None
+
+        # Confirm that the link goes to the correct URL.
+        expected_url = reverse(
+            "jobs:download_quote",
+            kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+        )
+        assert link["href"] == expected_url
+
+    @staticmethod
+    def test_agent_who_did_not_create_job_cannot_reach_page_to_see_link(
+        bob_job_with_initial_marnie_inspection: Job,
+        peter_agent_user_client: Client,
+    ) -> None:
+        """Ensure agents who didn't create the job can't see the quote link.
+
+        Args:
+            bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+            peter_agent_user_client (Client): The Django test client for Peter.
+        """
+        response = peter_agent_user_client.get(
+            reverse(
+                "jobs:job_detail",
+                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+            ),
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_anonymous_user_cannot_reach_page_to_see_link(
+        bob_job_with_initial_marnie_inspection: Job,
+        client: Client,
+    ) -> None:
+        """Ensure that an anonymous user cannot access the job detail view.
+
+        Args:
+            bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+            client (Client): The Django test client.
+        """
+        response = client.get(
+            reverse(
+                "jobs:job_detail",
+                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+            ),
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+
+        # Check that the user is redirected to the login page.
+        response2 = cast(HttpResponseRedirect, response)
+        assert (
+            response2.url == "/accounts/login/?next=/jobs/"
+            f"{bob_job_with_initial_marnie_inspection.pk}/"
+        )

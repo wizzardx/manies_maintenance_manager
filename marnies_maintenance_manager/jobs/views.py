@@ -682,7 +682,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         """
         user = cast(User, self.request.user)
         obj = self.get_object()
-        return user.is_marnie or user == obj.agent
+        return user.is_marnie or user == obj.agent or user.is_superuser
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Add additional context data to the template.
@@ -698,8 +698,8 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         user = cast(User, self.request.user)
         obj = self.get_object()
         update_link_present = (
-            user.is_marnie and obj.status == Job.Status.PENDING_INSPECTION.value
-        )
+            user.is_marnie or user.is_superuser
+        ) and obj.status == Job.Status.PENDING_INSPECTION.value
         context = super().get_context_data(**kwargs)
         context["update_link_present"] = update_link_present
         return context
