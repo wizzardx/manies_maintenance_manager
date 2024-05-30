@@ -18,8 +18,8 @@ from .utils import check_basic_page_html_structure
 class TestAbilityToReachJobDetailView:
     """Tests to ensure that users job detail view is correctly restricted."""
 
+    @staticmethod
     def test_anonymous_user_cannot_access_job_detail_views(
-        self,
         client: Client,
         job_created_by_bob: Job,
     ) -> None:
@@ -34,8 +34,8 @@ class TestAbilityToReachJobDetailView:
         )
         assert response.status_code == status.HTTP_302_FOUND
 
+    @staticmethod
     def test_agent_users_can_access_detail_view_for_job_they_created(
-        self,
         bob_agent_user_client: Client,
         job_created_by_bob: Job,
     ) -> None:
@@ -50,8 +50,8 @@ class TestAbilityToReachJobDetailView:
         )
         assert response.status_code == status.HTTP_200_OK
 
+    @staticmethod
     def test_agent_users_cannot_access_detail_view_for_jobs_they_did_not_create(
-        self,
         bob_agent_user_client: Client,
         job_created_by_peter: Job,
     ) -> None:
@@ -66,8 +66,8 @@ class TestAbilityToReachJobDetailView:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    @staticmethod
     def test_marnie_user_can_access_job_detail_view(
-        self,
         marnie_user_client: Client,
         job_created_by_bob: Job,
     ) -> None:
