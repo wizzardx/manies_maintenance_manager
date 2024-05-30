@@ -2,13 +2,13 @@
 """Define URL patterns for the Django project."""
 
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include
-from django.urls import path
+from django.urls import path, re_path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
 from marnies_maintenance_manager.jobs.views import home_page
+from marnies_maintenance_manager.jobs.views import serve_protected_media
 
 urlpatterns = [
     path("", home_page, name="home"),
@@ -26,8 +26,8 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
     path("jobs/", include("marnies_maintenance_manager.jobs.urls", namespace="jobs")),
-    # Media files
-    *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
+    # Media files:
+    re_path(r"^media/(?P<path>.*)$", serve_protected_media),
 ]
 
 
