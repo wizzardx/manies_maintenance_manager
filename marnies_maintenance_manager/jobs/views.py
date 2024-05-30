@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 from typing import Any
 from typing import cast
+from uuid import UUID
 
 from django import forms
 from django.conf import settings
@@ -822,6 +823,46 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
         # happen later during dev. For now, raise a NotImplementedError.
         msg = "This logic should not be reached."  # pragma: no cover
         raise NotImplementedError(msg)  # pragma: no cover
+
+
+@login_required
+def download_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
+    """Download the quote for a specific Maintenance Job.
+
+    Args:
+        request (HttpRequest): The HTTP request.
+        pk (UUID): The primary key of the Job instance.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
+    # Return an http response where the user will get the pdf file as a download
+
+    # Try to get the Job instance.
+    try:
+        job = Job.objects.get(pk=pk)
+    except Job.DoesNotExist:
+        return HttpResponse("Job not found", status=404)
+
+    # Check if the Job instance has a quote.
+    if not job.quote:
+        return HttpResponse("Quote not set for job", status=404)
+
+    # Only Marnie, Admin, and the agent who created this Job may access this view.
+    user = cast(User, request.user)
+    if not (
+        user.is_marnie or user.is_superuser or (user.is_agent and user == job.agent)
+    ):
+        return HttpResponse("Access denied", status=403)
+
+    quote_path = Path(job.quote.name)
+
+    file_content = job.quote.read()
+    content_type = "application/pdf"
+    file_name = quote_path.name
+    response = HttpResponse(file_content, content_type=content_type)
+    response["Content-Disposition"] = f'attachment; filename="{file_name}"'
+    return response
 
 
 @login_required
