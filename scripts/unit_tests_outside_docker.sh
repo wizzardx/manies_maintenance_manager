@@ -48,7 +48,9 @@ export USE_DOCKER=no
 pytest \
     marnies_maintenance_manager/jobs \
     marnies_maintenance_manager/users \
-    --ff --maxfail=1 --showlocals --durations=10
+    --ff --maxfail=1 --showlocals \
+    -n auto \
+    --reuse-db --nomigrations
 
 # If we got this far, then there were no test erors. Now we can clear some data from
 # the pytest cache so that we don't -repeatedly get warnings like this:

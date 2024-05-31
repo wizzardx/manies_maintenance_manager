@@ -32,6 +32,14 @@ TEMPLATES[0]["OPTIONS"]["debug"] = True  # type: ignore[index]
 # MEDIA
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
-MEDIA_URL = "http://media.testserver"
+# Disabled in this project, we're using our own secured views to serve media files.
+
+# ------------------------------------------------------------------------------
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+# https://github.com/boxed/django-fastdev#usage
+INSTALLED_APPS += ["django_fastdev"]  # noqa: F405
+
+# https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
+ALLOWED_HOSTS = ["django"]
