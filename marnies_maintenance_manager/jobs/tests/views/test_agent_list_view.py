@@ -1,6 +1,6 @@
 """Unit tests for the Agent List view."""
 
-# pylint: disable=no-self-use
+# pylint: disable=no-self-use,magic-value-comparison
 
 from typing import cast
 
@@ -75,14 +75,23 @@ class TestAgentsView:
         response = marnie_user_client.get(reverse("jobs:agent_list"))
         assert response.status_code == status.HTTP_200_OK
 
-        # Bob is an Agent, so his username should be in the list.
+        # Get the page text:
         page_text = response.content.decode()
-        assert bob_agent_user.username in page_text
+
+        # Use beautifulsoup to help us get a list of the agents listed in the page.
+        # We want to get a list of usernames like this: ["bob", "alice", "charlie"]:
+        soup = BeautifulSoup(page_text, "html.parser")
+        agent_list = soup.find("ul", id="agent_list")
+        assert agent_list is not None
+        list_items = agent_list.find_all("li")
+        agent_usernames = [li.a.string for li in list_items]
+
+        # Bob is an Agent, so his username should be in the list.
+        assert bob_agent_user.username in agent_usernames
 
         # Admin is not an Agent, so despite being a user, his username should not be in
         # the list.
-        assert User.objects.filter(username=admin_user.username).exists()
-        assert admin_user.username not in page_text
+        assert admin_user.username not in agent_usernames
 
     def test_agent_names_are_links_to_their_created_maintenance_jobs(
         self,
