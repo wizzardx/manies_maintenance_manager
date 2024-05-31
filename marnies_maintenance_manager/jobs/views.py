@@ -661,8 +661,8 @@ def agent_list(request: HttpRequest) -> HttpResponse:
     Returns:
         HttpResponse: The HTTP response.
     """
-    # Only Marnie user may access this view. Return a 403 Forbidden response if some
-    # other user is trying to access this view.
+    # Only Marnie user and the Admin may access this view. Return a 403 Forbidden
+    # response if some other user is trying to access this view.
     user = cast(User, request.user)
     if not (user.is_superuser or user.is_marnie):
         return HttpResponse(status=403)
@@ -694,8 +694,8 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         Returns:
             dict: The context data.
         """
-        # Only Marnie can see the Update link, and only when the current Job status
-        # allows for it.
+        # Only Marnie and Admin can see the Update link, and only when the current Job
+        # status allows for it.
         user = cast(User, self.request.user)
         obj = self.get_object()
         update_link_present = (

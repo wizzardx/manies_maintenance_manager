@@ -529,8 +529,6 @@ def test_marnie_can_update_agents_job(
     # He clicks on the Sign Out button.
     sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")
 
-    # Satisfied, he goes back to sleep.
-
     ## Another place where Django-FastDev seems to cause a deprecation warning.
     with pytest.warns(
         DeprecationWarning,
@@ -538,3 +536,5 @@ def test_marnie_can_update_agents_job(
         "{% if %}",
     ):
         sign_out_button.click()
+
+    # Satisfied, he goes back to sleep.
