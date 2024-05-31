@@ -6,4 +6,7 @@ set -e
 scripts/clear_functional_tests_pytest_lastfailed_marker.py
 
 docker compose -f docker-compose.local.yml run --rm \
-    django pytest marnies_maintenance_manager/jobs --ff --maxfail=1 --showlocals
+    django pytest \
+    marnies_maintenance_manager/jobs \
+    marnies_maintenance_manager/users \
+    --ff --maxfail=1 --showlocals --durations=10

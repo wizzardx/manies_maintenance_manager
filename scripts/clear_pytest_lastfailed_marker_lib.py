@@ -29,12 +29,12 @@ def clear_file(
     """
     # At least one of the conditions must be True:
     if not clear_when_functional_test and not clear_when_not_functional_test:
-        msg = "At least one of the conditions must be True."
+        msg = "At least one of the conditions must be True"
         raise ValueError(msg)
 
     # Both cannot be set to True:
     if clear_when_functional_test and clear_when_not_functional_test:
-        msg = "Both conditions cannot be set to True."
+        msg = "Both conditions cannot be set to True"
         raise ValueError(msg)
 
     # Quit if the pytest lastfailed file does not exist:
