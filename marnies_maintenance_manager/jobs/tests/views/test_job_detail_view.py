@@ -154,6 +154,31 @@ def test_job_detail_view_shows_expected_job_details(
     assert job.get_quote_download_url() in page
 
 
+def _get_update_link_or_none(job: Job, user_client: Client) -> BeautifulSoup | None:
+    """Get the link to the job update view, or None if it couldn't be found.
+
+    Args:
+        job (Job): The job to get the update link for.
+        user_client (Client): The Django test client for the user.
+
+    Returns:
+        BeautifulSoup | None: The link to the job update view, or None if it couldn't
+    """
+    response = user_client.get(
+        reverse("jobs:job_detail", kwargs={"pk": job.pk}),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    page = response.content.decode("utf-8")
+
+    # Use Python BeautifulSoup to parse the HTML and find the link
+    # to the job update view.
+    soup = BeautifulSoup(page, "html.parser")
+
+    # Get the link with the text "Update", using BeautifulSoup (or None, if it
+    # couldn't be found), and return that.
+    return soup.find("a", string="Update")
+
+
 class TestUpdateLinkVisibility:
     """Tests to ensure that the update link is visible to the correct users."""
 
@@ -168,18 +193,7 @@ class TestUpdateLinkVisibility:
             job_created_by_bob (Job): The job created by Bob.
             marnie_user_client (Client): The Django test client for Marnie.
         """
-        response = marnie_user_client.get(
-            reverse("jobs:job_detail", kwargs={"pk": job_created_by_bob.pk}),
-        )
-        assert response.status_code == status.HTTP_200_OK
-        page = response.content.decode("utf-8")
-
-        # Use Python BeautifulSoup to parse the HTML and find the link
-        # to the job update view.
-        soup = BeautifulSoup(page, "html.parser")
-
-        # Get the link with the text "Update", using BeautifulSoup.
-        link = soup.find("a", string="Update")
+        link = _get_update_link_or_none(job_created_by_bob, marnie_user_client)
         assert link is not None
 
         # Confirm that the link goes to the correct URL.
@@ -197,18 +211,7 @@ class TestUpdateLinkVisibility:
             job_created_by_bob (Job): The job created by Bob.
             admin_client (Client): The Django test client for the admin user.
         """
-        response = admin_client.get(
-            reverse("jobs:job_detail", kwargs={"pk": job_created_by_bob.pk}),
-        )
-        assert response.status_code == status.HTTP_200_OK
-        page = response.content.decode("utf-8")
-
-        # Use Python BeautifulSoup to parse the HTML and find the link
-        # to the job update view.
-        soup = BeautifulSoup(page, "html.parser")
-
-        # Check with BeautifulSoup that the link is present.
-        link = soup.find("a", string="Update")
+        link = _get_update_link_or_none(job_created_by_bob, admin_client)
         assert link is not None
 
     @staticmethod
@@ -268,6 +271,36 @@ class TestUpdateLinkVisibility:
         ), "The link to update the job should not be visible to Marnie."
 
 
+def _ensure_can_see_link(user_client: Client, job: Job) -> None:
+    """Ensure that the quote download link is visible to the user.
+
+    Args:
+        user_client (Client): The Django test client for the user.
+        job (Job): The job to check for the quote download link.
+    """
+    response = user_client.get(
+        reverse(
+            "jobs:job_detail",
+            kwargs={"pk": job.pk},
+        ),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    page = response.content.decode("utf-8")
+
+    # Use Python BeautifulSoup to parse the HTML and find the link
+    # to download the quote.
+    soup = BeautifulSoup(page, "html.parser")
+    link = soup.find("a", string="Download Quote")
+    assert link is not None
+
+    # Confirm that the link goes to the correct URL.
+    expected_url = reverse(
+        "jobs:download_quote",
+        kwargs={"pk": job.pk},
+    )
+    assert link["href"] == expected_url
+
+
 class TestQuoteDownloadLinkVisibility:
     """Tests to ensure that the quote download link is visible to the correct users."""
 
@@ -283,27 +316,7 @@ class TestQuoteDownloadLinkVisibility:
                 the initial inspection done by Marnie.
             marnie_user_client (Client): The Django test client for Marnie.
         """
-        response = marnie_user_client.get(
-            reverse(
-                "jobs:job_detail",
-                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-            ),
-        )
-        assert response.status_code == status.HTTP_200_OK
-        page = response.content.decode("utf-8")
-
-        # Use Python BeautifulSoup to parse the HTML and find the link
-        # to download the quote.
-        soup = BeautifulSoup(page, "html.parser")
-        link = soup.find("a", string="Download Quote")
-        assert link is not None
-
-        # Confirm that the link goes to the correct URL.
-        expected_url = reverse(
-            "jobs:download_quote",
-            kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-        )
-        assert link["href"] == expected_url
+        _ensure_can_see_link(marnie_user_client, bob_job_with_initial_marnie_inspection)
 
     @staticmethod
     def test_admin_can_see_link(
@@ -316,27 +329,7 @@ class TestQuoteDownloadLinkVisibility:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
             admin_client (Client): The Django test client for the admin user.
         """
-        response = admin_client.get(
-            reverse(
-                "jobs:job_detail",
-                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-            ),
-        )
-        assert response.status_code == status.HTTP_200_OK
-        page = response.content.decode("utf-8")
-
-        # Use Python BeautifulSoup to parse the HTML and find the link
-        # to download the quote.
-        soup = BeautifulSoup(page, "html.parser")
-        link = soup.find("a", string="Download Quote")
-        assert link is not None
-
-        # Confirm that the link goes to the correct URL.
-        expected_url = reverse(
-            "jobs:download_quote",
-            kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-        )
-        assert link["href"] == expected_url
+        _ensure_can_see_link(admin_client, bob_job_with_initial_marnie_inspection)
 
     @staticmethod
     def test_agent_who_created_job_can_see_link(
@@ -349,27 +342,10 @@ class TestQuoteDownloadLinkVisibility:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
             bob_agent_user_client (Client): The Django test client for Bob.
         """
-        response = bob_agent_user_client.get(
-            reverse(
-                "jobs:job_detail",
-                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-            ),
+        _ensure_can_see_link(
+            bob_agent_user_client,
+            bob_job_with_initial_marnie_inspection,
         )
-        assert response.status_code == status.HTTP_200_OK
-        page = response.content.decode("utf-8")
-
-        # Use Python BeautifulSoup to parse the HTML and find the link
-        # to download the quote.
-        soup = BeautifulSoup(page, "html.parser")
-        link = soup.find("a", string="Download Quote")
-        assert link is not None
-
-        # Confirm that the link goes to the correct URL.
-        expected_url = reverse(
-            "jobs:download_quote",
-            kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-        )
-        assert link["href"] == expected_url
 
     @staticmethod
     def test_agent_who_did_not_create_job_cannot_reach_page_to_see_link(
