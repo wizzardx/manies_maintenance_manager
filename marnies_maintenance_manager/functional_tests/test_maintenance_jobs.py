@@ -119,6 +119,32 @@ def _sign_into_website(browser: WebDriver, username: str) -> None:
     assert f"User: {username}" in browser.title
 
 
+def _sign_out_of_website_and_clean_up(browser: WebDriver) -> None:
+    # He clicks on the Sign Out button
+    sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")
+
+    ## Note: Django-FastDev causes a DeprecationWarning to be logged when using the
+    ## {% if %} template tag. This is somewhere deep within the Django-Allauth package,
+    ## most likely while processing the templates for /accounts/logout/. We can also
+    # ignore this for our testing.
+    with pytest.warns(
+        DeprecationWarning,
+        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
+        "{% if %}",
+    ):
+        sign_out_button.click()
+
+    # An "Are you sure you want to sign out?" dialog pops up, asking him to confirm
+    # that he wants to sign out.
+    confirm_sign_out_button = browser.find_element(By.CLASS_NAME, "btn-primary")
+    confirm_sign_out_button.click()
+
+    # Also tidy up here by cleaning up all the browser cookies.
+    browser.delete_all_cookies()
+
+    # Satisfied, he goes back to sleep
+
+
 def _create_new_job(
     browser: WebDriver,
     live_server_url: str,
@@ -239,29 +265,8 @@ def _create_new_job(
         "",  # This is for the Quote, which is empty for now
     ]
 
-    # He clicks on the Sign Out button
-    sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")
-
-    ## Note: Django-FastDev causes a DeprecationWarning to be logged when using the
-    ## {% if %} template tag. This is somewhere deep within the Django-Allauth package,
-    ## most likely while processing the templates for /accounts/logout/. We can also
-    # ignore this for our testing.
-    with pytest.warns(
-        DeprecationWarning,
-        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
-        "{% if %}",
-    ):
-        sign_out_button.click()
-
-    # An "Are you sure you want to sign out?" dialog pops up, asking him to confirm
-    # that he wants to sign out.
-    confirm_sign_out_button = browser.find_element(By.CLASS_NAME, "btn-primary")
-    confirm_sign_out_button.click()
-
-    # ALso tidy up here by cleaning up all the browser cookies.
-    browser.delete_all_cookies()
-
     # Satisfied, he goes back to sleep
+    _sign_out_of_website_and_clean_up(browser)
 
 
 @pytest.mark.django_db()
@@ -401,23 +406,7 @@ def test_marnie_can_view_agents_job(
     assert "Please fix the leaky faucet in the staff bathroom" in browser.page_source
 
 
-def test_marnie_can_update_agents_job(
-    browser: WebDriver,
-    live_server_url: str,
-    marnie_user: User,
-    bob_agent_user: User,
-) -> None:
-    """Ensure Marnie can update the details of a job submitted by Bob the Agent.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-        marnie_user (User): The user instance for Marnie.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
-    """
-    ## First, quickly run through the steps of an Agent creating a new Job.
-    _create_new_job(browser, live_server_url)
-
+def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
     # Marnie logs into the system.
     _sign_into_website(browser, "marnie")
 
@@ -494,8 +483,8 @@ def test_marnie_can_update_agents_job(
     ## There should be exactly one row here
     assert len(rows) == 2  # noqa: PLR2004
 
-    # Get the row, and confirm that the details include everything submitted up until
-    # now.
+    ## Get the row, and confirm that the details include everything submitted up until
+    ## now.
     row = rows[1]
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
     assert cell_texts == [
@@ -526,15 +515,5 @@ def test_marnie_can_update_agents_job(
     ## http://django:37369/jobs/d7f07107-e711-44b9-be0a-1fab149229a0/download-quote/
     assert download_url.endswith("/download-quote/")
 
-    # He clicks on the Sign Out button.
-    sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")
-
-    ## Another place where Django-FastDev seems to cause a deprecation warning.
-    with pytest.warns(
-        DeprecationWarning,
-        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
-        "{% if %}",
-    ):
-        sign_out_button.click()
-
-    # Satisfied, he goes back to sleep.
+    ## Sign out and tidy up cookies:
+    _sign_out_of_website_and_clean_up(browser)
