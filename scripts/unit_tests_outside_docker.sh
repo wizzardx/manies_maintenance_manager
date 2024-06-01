@@ -1,29 +1,40 @@
 #!/bin/bash
 set -euo pipefail
 
+# Function to log messages
+log() {
+    echo "[INFO] $1"
+}
+
 # Setup Python version to use for the unit tests
+log "Setting up Python version..."
 if [ ! -f .python-version ]; then
     pyenv local 3.12.3
 fi
 
 # Determine the path to the Python executable
+log "Determining Python executable path..."
 PYTHON_EXEC=$(pyenv which python)
 
 # Make a Python virtual environment if it does not already exist
+log "Creating virtual environment if it doesn't exist..."
 if [ ! -d .venv ]; then
     $PYTHON_EXEC -m venv .venv
 fi
 
 # Activate the virtualenv
+log "Activating virtual environment..."
 # shellcheck disable=SC1091
 source .venv/bin/activate
 
 # Clear out the pycached "lastfailed" marker if it refers to something besides the
 # unit test tests:
+log "Clearing out pycached 'lastfailed' marker..."
 scripts/clear_functional_tests_pytest_lastfailed_marker.py
 
 # Get md5sum of requirements/local.txt, and use that to determine if we need to
 # run pip install.
+log "Checking for changes in requirements files..."
 LOCAL_TXT_MD5=$(md5sum requirements/local.txt | awk '{print $1}')
 LOCAL_ALREADY_INSTALLED_MARKER_FILE=".venv/.local_already_installed_${LOCAL_TXT_MD5}"
 
@@ -35,27 +46,45 @@ BASE_ALREADY_INSTALLED_MARKER_FILE=".venv/.base_already_installed_${BASE_TXT_MD5
 # exist), or the user made changes to the "local.txt" or "base.txt" file (the marker
 # file md5sum markers are now out of date).
 if [[ ! -f $LOCAL_ALREADY_INSTALLED_MARKER_FILE || ! -f $BASE_ALREADY_INSTALLED_MARKER_FILE ]]; then
+    log "Installing dependencies..."
     python -m pip install -r requirements/local.txt
     touch "$LOCAL_ALREADY_INSTALLED_MARKER_FILE"
     touch "$BASE_ALREADY_INSTALLED_MARKER_FILE"
 fi
 
 # Setup needed environment variables
+log "Setting up environment variables..."
 export DATABASE_URL=sqlite://:memory:  # Faster than PostgreSQL
 export USE_DOCKER=no
 
+# The basic pytest command before we do any further alterations
+log "Preparing pytest command..."
+CMD=(
+    pytest
+        marnies_maintenance_manager/jobs
+        marnies_maintenance_manager/users
+        --ff --maxfail=1 --showlocals
+)
+
+# If there are no recently-failed tests, then we use the extra parallelizations to
+# help run things super fast. (When there are recently-failed tests, then we
+# don't use these options, because they make it a bit harder follow my TDD workflow).
+if [ ! -f .pytest_cache/v/cache/lastfailed ]; then
+    log "Adding parallel execution and DB reuse options..."
+    CMD+=("-n auto")
+    CMD+=("--reuse-db --nomigrations")
+fi
+
 # Run the unit tests:
-pytest \
-    marnies_maintenance_manager/jobs \
-    marnies_maintenance_manager/users \
-    --ff --maxfail=1 --showlocals \
-    -n auto \
-    --reuse-db --nomigrations
+log "Running unit tests..."
+${CMD[@]}
 
 # If we got this far, then there were no test erors. Now we can clear some data from
 # the pytest cache so that we don't -repeatedly get warnings like this:
 # "run-last-failure: 16 known failures not in selected tests"
 if [ -f .pytest_cache/v/cache/lastfailed ]; then
-    echo "Removing a pytest cache file to stop getting now-obsolete messages"
+    log "Removing obsolete pytest cache file..."
     rm -vf .pytest_cache/v/cache/lastfailed
 fi
+
+log "Script execution completed successfully."
