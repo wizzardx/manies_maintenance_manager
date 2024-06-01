@@ -77,6 +77,7 @@ fi
 
 # Run the unit tests:
 log "Running unit tests..."
+# shellcheck disable=SC2068
 ${CMD[@]}
 
 # If we got this far, then there were no test erors. Now we can clear some data from
