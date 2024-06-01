@@ -284,6 +284,7 @@ class TestMarnieAccessingJobListView:
             "Quote Request Details",
             "Date of Inspection",
             "Quote",
+            "Accept or Reject A/R",
         ]
 
         # Grab the first row, it contains our Job details:
@@ -301,6 +302,7 @@ class TestMarnieAccessingJobListView:
             "Replace the kitchen sink",
             "",  # Date of Inspection
             "",  # Quote
+            "",  # Accept or Reject A/R
         ]
         assert first_row_text_list == expected_row_text_list
 

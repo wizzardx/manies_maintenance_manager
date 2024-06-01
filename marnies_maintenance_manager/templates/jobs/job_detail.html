@@ -33,6 +33,12 @@
       <strong>Quote:</strong> <a href="{{ job.get_quote_download_url }}">Download Quote</a>
     </p>
   {% endif %}
+  <!-- Show the "Accepted" or "Rejected" (quote) state if it's been set -->
+  {% if job.accepted_or_rejected %}
+    <p>
+      <strong>Accepted or Rejected (A/R):</strong> {{ job.accepted_or_rejected }}
+    </p>
+  {% endif %}
   <!-- Display the "Update" link if our backend wants it -->
   {% if update_link_present %}
     <a href="{% url 'jobs:job_update' pk=job.pk %}">Update</a>

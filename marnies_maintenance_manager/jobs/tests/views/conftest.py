@@ -126,3 +126,21 @@ def bob_job_with_initial_marnie_inspection(
 
     # Return the Job where Marnie has now inspected the site.
     return job
+
+
+@pytest.fixture()
+def job_refused_by_bob(bob_job_with_initial_marnie_inspection: Job) -> Job:
+    """Return a job where Bob has refused the quote.
+
+    Args:
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
+
+    Returns:
+        Job: The job where Bob has refused the quote.
+    """
+    job = bob_job_with_initial_marnie_inspection
+    job.status = Job.Status.QUOTE_REFUSED_BY_AGENT.value
+    job.accepted_or_rejected = Job.AcceptedOrRejected.REJECTED.value
+    job.save()
+    return job

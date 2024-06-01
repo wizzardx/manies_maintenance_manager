@@ -535,6 +535,7 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
     assert marnie_user.email in email.cc
     assert constants.DEFAULT_FROM_EMAIL in email.from_email
 
+    # Check mail contents:
     assert (
         "Marnie performed the inspection on 2001-02-05 and has quoted you. The quote "
         "is attached to this email." in email.body

@@ -248,6 +248,7 @@ def _create_new_job(
         "Quote Request Details",
         "Date of Inspection",
         "Quote",
+        "Accept or Reject A/R",
     ]
 
     ## The second row is the new job
@@ -263,6 +264,7 @@ def _create_new_job(
         "Please fix the leaky faucet in the staff bathroom",
         "",  # This is for the Date of Inspection, which is empty for now
         "",  # This is for the Quote, which is empty for now
+        "",  # This is for Accept or Reject A/R, which is empty for now
     ]
 
     # Satisfied, he goes back to sleep
@@ -361,6 +363,7 @@ def test_marnie_can_view_agents_job(
         "Quote Request Details",
         "Date of Inspection",
         "Quote",
+        "Accept or Reject A/R",
     ]
 
     # The second row is the set of job details submitted by Bob earlier
@@ -376,6 +379,7 @@ def test_marnie_can_view_agents_job(
         "Please fix the leaky faucet in the staff bathroom",
         "",  # This is for the Date of Inspection, which is empty for now
         "",  # This is for the Quote, which is empty for now
+        "",  # This is for Accept or Reject A/R, which is empty for now
     ]
 
     # Since he's not an Agent, he does not see the "Create Maintenance Job" link.
@@ -495,6 +499,7 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
         "Please fix the leaky faucet in the staff bathroom",
         "2021-02-01",
         "Download Quote",
+        "",
     ]
 
     # He clicks on the #1 number again:
@@ -592,6 +597,7 @@ def test_bob_can_refuse_marnies_quote(
         "Please fix the leaky faucet in the staff bathroom",
         "2021-02-01",
         "Download Quote",
+        "",
     ]
 
     # He clicks on the "1" link to go to the details for the Job.
@@ -610,27 +616,22 @@ def test_bob_can_refuse_marnies_quote(
     # He clicks on the "Refuse Quote" button.
     refuse_button.click()
 
-    # A warning dialog comes up, asking him to confirm the refusal.
-    # He sees two buttons, "Cancel" and "OK"
-    _cancel_refusal_button = browser.find_element(By.CLASS_NAME, "btn-secondary")
-    confirm_refusal_button = browser.find_element(By.CLASS_NAME, "btn-primary")
-
-    # He Clicks OK, confirming the refusal.
-    confirm_refusal_button.click()
-
     # A message flash comes up, saying that Marnie was emailed
-    expected_msg = "An email has been sent to marnie."
+    expected_msg = "Quote refused. An email has been sent to Marnie."
     assert expected_msg in browser.page_source
 
     # He now sees a "Job Status: Refused" entry on the page.
-    assert "Job Status: Refused" in browser.page_source
+    assert (
+        "<strong>Accepted or Rejected (A/R):</strong> rejected" in browser.page_source
+    )
 
     # He does not see the "Refuse Job" button any longer.
     with pytest.raises(NoSuchElementException):
         browser.find_element(By.LINK_TEXT, "Refuse Quote")
 
     # He does still see an "Accept Job" button.
-    assert accept_button.is_displayed()
+    accept_button = browser.find_element(By.XPATH, "//button[text()='Accept Quote']")
+    assert accept_button is not None
 
     # He clicks on the "Maintenance Jobs" link to take him back to the main listing
     maintenance_jobs_link = browser.find_element(By.LINK_TEXT, "Maintenance Jobs")
@@ -649,10 +650,9 @@ def test_bob_can_refuse_marnies_quote(
         "GPS",
         "Please fix the leaky faucet in the staff bathroom",
         "2021-02-01",
-        "Rejected",
+        "Download Quote",
+        "rejected",
     ]
 
     # Satisfied, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)
-
-    pytest.fail("Complete this test!")

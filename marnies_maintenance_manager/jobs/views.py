@@ -25,12 +25,16 @@ from django.http import HttpRequest
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseBase
+from django.http import HttpResponseRedirect
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
 from django.views.generic.edit import UpdateView
+from rest_framework import status
 from zen_queries import fetch
 
 from marnies_maintenance_manager.jobs.forms import JobUpdateForm
@@ -66,6 +70,9 @@ USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES = {
         "primary email address."
     ),
 }
+
+GET_METHOD_NAME = "GET"
+POST_METHOD_NAME = "POST"
 
 
 # pylint: disable=too-many-ancestors
@@ -665,7 +672,7 @@ def agent_list(request: HttpRequest) -> HttpResponse:
     # response if some other user is trying to access this view.
     user = cast(User, request.user)
     if not (user.is_superuser or user.is_marnie):
-        return HttpResponse(status=403)
+        return HttpResponse(status=status.HTTP_403_FORBIDDEN)
     context = {"agent_list": User.objects.filter(is_agent=True)}
     return render(request, "jobs/agent_list.html", context=context)
 
@@ -702,15 +709,15 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
             user.is_marnie or user.is_superuser
         ) and obj.status == Job.Status.PENDING_INSPECTION.value
 
-        # The "Refuse Quote" button may only be seen when the Job is the correct status,
+        # The "Refuse Quote" button may only be seen when the Job is a correct status,
         # and the user is Admin or an Agent. If the user is an Agent, then we also check
         # # if it's the same agent who created the Job, even though technically that's
         # not needed (since the user doesn't have permission to see other agents' jobs
         # anyway).
-        refuse_quote_button_present = (
-            obj.status == Job.Status.INSPECTION_COMPLETED.value
-            and ((user.is_agent and user == obj.agent) or user.is_superuser)
-        )
+        refuse_quote_button_present = obj.status in {
+            Job.Status.INSPECTION_COMPLETED.value,
+            Job.Status.QUOTE_REFUSED_BY_AGENT.value,
+        } and ((user.is_agent and user == obj.agent) or user.is_superuser)
 
         # The "Accept Quote" button has the same conditions for when it should be
         # displayed.
@@ -856,22 +863,29 @@ def download_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
     """
     # Return an http response where the user will get the pdf file as a download
 
+    # Fail for none-GET request:
+    if request.method != GET_METHOD_NAME:
+        return HttpResponse(
+            "Method not allowed",
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
     # Try to get the Job instance.
     try:
         job = Job.objects.get(pk=pk)
     except Job.DoesNotExist:
-        return HttpResponse("Job not found", status=404)
+        return HttpResponse("Job not found", status=status.HTTP_404_NOT_FOUND)
 
     # Check if the Job instance has a quote.
     if not job.quote:
-        return HttpResponse("Quote not set for job", status=404)
+        return HttpResponse("Quote not set for job", status=status.HTTP_404_NOT_FOUND)
 
     # Only Marnie, Admin, and the agent who created this Job may access this view.
     user = cast(User, request.user)
     if not (
         user.is_marnie or user.is_superuser or (user.is_agent and user == job.agent)
     ):
-        return HttpResponse("Access denied", status=403)
+        return HttpResponse("Access denied", status=status.HTTP_403_FORBIDDEN)
 
     quote_path = Path(job.quote.name)
 
@@ -927,6 +941,7 @@ def serve_protected_media(
     return FileResponse(file_handle, as_attachment=True, filename=file_name)
 
 
+@login_required
 def refuse_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
     """Refuse the quote for a specific Maintenance Job.
 
@@ -934,11 +949,78 @@ def refuse_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
         request (HttpRequest): The HTTP request.
         pk (UUID): The primary key of the Job instance.
 
-    Raises:
-        NotImplementedError: If the view is not implemented yet.
+    Returns:
+        HttpResponse: The HTTP response.
     """
-    msg = "This view is not implemented yet."
-    raise NotImplementedError(msg)
+    # Fail for none-POST methods
+    if request.method != POST_METHOD_NAME:
+        return HttpResponse(
+            "Method not allowed",
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    # Return a permission error if the user is not an agent.
+    user = cast(User, request.user)
+
+    job = get_object_or_404(Job, pk=pk)
+
+    # Only the agent who created the quote may refuse it.
+    # Besides them, admin users can always refuse quotes.
+    if not (user.is_superuser or (user.is_agent and user == job.agent)):
+        return HttpResponse(status=status.HTTP_403_FORBIDDEN)
+
+    # Return an error if the job is not in the correct state.
+    if job.status not in {
+        Job.Status.INSPECTION_COMPLETED.value,
+        Job.Status.QUOTE_REFUSED_BY_AGENT.value,
+    }:
+        data = {"error": "Job is not in the correct state for refusing a quote."}
+        return JsonResponse(data=data, status=status.HTTP_412_PRECONDITION_FAILED)
+
+    # Change job state to 'refused by agent'
+    job.status = Job.Status.QUOTE_REFUSED_BY_AGENT.value
+    job.accepted_or_rejected = Job.AcceptedOrRejected.REJECTED.value
+    job.save()
+
+    # Send an email to Marnie telling him that his quote was refused by the agent
+    email_subject = f"Quote refused by {job.agent.username}"
+    email_body = (
+        f"Agent {job.agent.username} has refused the quote for your maintenance "
+        "request.\n\n"
+        "Details of the original request:\n\n"
+        "-----\n\n"
+        "Subject: Quote for your maintenance request\n\n"
+        "-----\n\n"
+        f"Subject: New maintenance request by {job.agent.username}\n\n"
+        f"Marnie performed the inspection on {job.date_of_inspection} and has "
+        "quoted you.\n\n"
+    )
+
+    # Call the email body-generation logic used previously, to help us populate
+    # the rest of this email body:
+    email_body += _generate_email_body(job)
+
+    email_from = DEFAULT_FROM_EMAIL
+    email_to = get_marnie_email()
+    email_cc = job.agent.email
+
+    # Create the email message:
+    email = EmailMessage(
+        subject=email_subject,
+        body=email_body,
+        from_email=email_from,
+        to=[email_to],
+        cc=[email_cc],
+    )
+
+    # Send the mail:
+    email.send()
+
+    # Send a success flash message to the user:
+    messages.success(request, "Quote refused. An email has been sent to Marnie.")
+
+    # Redirect to the detail view for this job.
+    return HttpResponseRedirect(job.get_absolute_url())
 
 
 def accept_quote(request: HttpRequest, pk: UUID) -> HttpResponse:

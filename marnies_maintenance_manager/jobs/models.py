@@ -73,11 +73,13 @@ class Job(UUIDModel, TimeStampedModel):
 
         PENDING_INSPECTION = "pending_inspection"
         INSPECTION_COMPLETED = "inspection_completed"
+        QUOTE_REFUSED_BY_AGENT = "quote_refused_by_agent"
 
     # STATUS is populated from the values seen in the Status Enum above.
     STATUS = Choices(  # type: ignore[no-untyped-call]
         (Status.PENDING_INSPECTION.value, _("Pending Inspection")),
         (Status.INSPECTION_COMPLETED.value, _("Inspection Completed")),
+        (Status.QUOTE_REFUSED_BY_AGENT.value, _("Quote Refused By Agent")),
     )
     status = StatusField()  # type: ignore[no-untyped-call]
 
@@ -89,6 +91,26 @@ class Job(UUIDModel, TimeStampedModel):
         blank=True,
         null=True,
         validators=[FileExtensionValidator(["pdf"]), validate_pdf_contents],
+    )
+
+    # This field records whether Marnies quote was accepted or rejected by the
+    # agent.
+    class AcceptedOrRejected(Enum):
+        """Enum for the acceptance status of the quote."""
+
+        ACCEPTED = "accepted"
+        REJECTED = "rejected"
+
+    ACCEPTED_OR_REJECTED_CHOICES = [
+        (AcceptedOrRejected.ACCEPTED.value, _("Accepted")),
+        (AcceptedOrRejected.REJECTED.value, _("Rejected")),
+    ]
+
+    # This field is populated from the values seen in the AcceptedOrRejected Enum above.
+    accepted_or_rejected = models.CharField(
+        max_length=8,
+        choices=ACCEPTED_OR_REJECTED_CHOICES,
+        blank=True,
     )
 
     class Meta:

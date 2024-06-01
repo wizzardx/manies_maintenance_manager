@@ -222,3 +222,20 @@ class TestAbilityToDownloadQuoteFiles:
         # Check the redirection details:
         response2 = cast(HttpResponseRedirect, response)
         assert response2.url == "/accounts/login/?next=/media/quotes/test.pdf"
+
+
+def test_fails_for_none_get_request(
+    bob_agent_user_client: Client,
+    bob_job_with_initial_marnie_inspection: Job,
+) -> None:
+    """Ensure that the download quote view fails for a GET request.
+
+    Args:
+        bob_agent_user_client (Client): The Django test client for Bob.
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+    """
+    response = bob_agent_user_client.post(
+        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/download-quote/",
+    )
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    assert response.content == b"Method not allowed"

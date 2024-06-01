@@ -539,6 +539,24 @@ class TestRefuseQuoteButtonVisibility:
             f"{bob_job_with_initial_marnie_inspection.pk}/"
         )
 
+    def test_visible_when_quote_refused_by_agent(
+        self,
+        job_refused_by_bob: Job,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Ensure the refuse quote button is visible when the agent refuses the quote.
+
+        Args:
+            job_refused_by_bob (Job): The job created by Bob with the quote refused by
+                the agent.
+            bob_agent_user_client (Client): The Django test client for Bob.
+        """
+        button = _get_refuse_quote_button_or_none(
+            job_refused_by_bob,
+            bob_agent_user_client,
+        )
+        assert button is not None
+
 
 class TestAcceptQuoteButtonVisibility:
     """Tests to ensure that the accept quote button is visible to the correct users."""
