@@ -517,3 +517,142 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
 
     ## Sign out and tidy up cookies:
     _sign_out_of_website_and_clean_up(browser)
+
+
+def test_marnie_can_update_agents_job(
+    browser: WebDriver,
+    live_server_url: str,
+    marnie_user: User,
+    bob_agent_user: User,
+) -> None:
+    """Ensure Marnie can update the details of a job submitted by Bob the Agent.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+        marnie_user (User): The user instance for Marnie.
+        bob_agent_user (User): The user instance for Bob, who is an agent.
+    """
+    ## First, quickly run through the steps of an Agent creating a new Job.
+    _create_new_job(browser, live_server_url)
+
+    # Most of our logic is now in this shared function:
+    _update_job_with_inspection_date_and_quote(browser)
+
+
+def test_bob_can_refuse_marnies_quote(
+    browser: WebDriver,
+    live_server_url: str,
+    marnie_user: User,
+    bob_agent_user: User,
+) -> None:
+    """Ensure Bob can refuse the quote submitted by Marnie.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+        marnie_user (User): The user instance for Marnie.
+        bob_agent_user (User): The user instance for Bob, who is an agent.
+    """
+    ## First, quickly run through the steps of an Agent creating a new Job.
+    _create_new_job(browser, live_server_url)
+
+    ## Next, Marnie does an inspection, and updates the inspection date and quote.
+    _update_job_with_inspection_date_and_quote(browser)
+
+    # Bob receives the email notification that Marnie has done the initial inpection,
+    # so he signs in to the website
+    _sign_into_website(browser, "bob")
+
+    # He clicks on the "Maintenance Jobs" link:
+    maintenance_jobs_link = browser.find_element(By.LINK_TEXT, "Maintenance Jobs")
+    maintenance_jobs_link.click()
+
+    # He can see from the Title and the Heading that he is in the "Maintenance Jobs"
+    # page.
+    assert "Maintenance Jobs" in browser.title
+    assert "Maintenance Jobs" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees his original job details over there.
+    table = browser.find_element(By.ID, "id_list_table")
+    rows = table.find_elements(By.TAG_NAME, "tr")
+
+    ## There should be exactly one row here
+    assert len(rows) == 2  # noqa: PLR2004
+
+    ## Get the row, and confirm that the details include everything submitted up until
+    ## now, as well as the details that Marnie added.
+    row = rows[1]
+    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
+    assert cell_texts == [
+        "1",
+        "2021-01-01",
+        "Department of Home Affairs Bellville",
+        "GPS",
+        "Please fix the leaky faucet in the staff bathroom",
+        "2021-02-01",
+        "Download Quote",
+    ]
+
+    # He clicks on the "1" link to go to the details for the Job.
+    number_link = browser.find_element(By.LINK_TEXT, "1")
+    number_link.click()
+
+    # He can see from the Title and the Heading that he is in the "Maintenance Job
+    # Details" page.
+    assert "Maintenance Job Details" in browser.title
+    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees a "Refuse Quote" button and an "Accept Quote" button.
+    refuse_button = browser.find_element(By.LINK_TEXT, "Refuse Quote")
+    accept_button = browser.find_element(By.LINK_TEXT, "Accept Quote")
+
+    # He clicks on the "Refuse Quote" button.
+    refuse_button.click()
+
+    # A warning dialog comes up, asking him to confirm the refusal.
+    # He sees two buttons, "Cancel" and "OK"
+    _cancel_refusal_button = browser.find_element(By.CLASS_NAME, "btn-secondary")
+    confirm_refusal_button = browser.find_element(By.CLASS_NAME, "btn-primary")
+
+    # He Clicks OK, confirming the refusal.
+    confirm_refusal_button.click()
+
+    # A message flash comes up, saying that Marnie was emailed
+    expected_msg = "An email has been sent to marnie."
+    assert expected_msg in browser.page_source
+
+    # He now sees a "Job Status: Refused" entry on the page.
+    assert "Job Status: Refused" in browser.page_source
+
+    # He does not see the "Refuse Job" button any longer.
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.LINK_TEXT, "Refuse Quote")
+
+    # He does still see an "Accept Job" button.
+    assert accept_button.is_displayed()
+
+    # He clicks on the "Maintenance Jobs" link to take him back to the main listing
+    maintenance_jobs_link = browser.find_element(By.LINK_TEXT, "Maintenance Jobs")
+    maintenance_jobs_link.click()
+
+    # In the "Accept or Reject A/R" cell of his Job in the listing, he can see the
+    # text "Rejected"
+    table = browser.find_element(By.ID, "id_list_table")
+    rows = table.find_elements(By.TAG_NAME, "tr")
+    row = rows[1]
+    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
+    assert cell_texts == [
+        "1",
+        "2021-01-01",
+        "Department of Home Affairs Bellville",
+        "GPS",
+        "Please fix the leaky faucet in the staff bathroom",
+        "2021-02-01",
+        "Rejected",
+    ]
+
+    # Satisfied, he logs out of the website, and goes back to sleep
+    _sign_out_of_website_and_clean_up(browser)
+
+    pytest.fail("Complete this test!")
