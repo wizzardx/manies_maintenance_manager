@@ -712,9 +712,14 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
             and ((user.is_agent and user == obj.agent) or user.is_superuser)
         )
 
+        # The "Accept Quote" button has the same conditions for when it should be
+        # displayed.
+        accept_quote_button_present = refuse_quote_button_present
+
         context = super().get_context_data(**kwargs)
         context["update_link_present"] = update_link_present
         context["refuse_quote_button_present"] = refuse_quote_button_present
+        context["accept_quote_button_present"] = accept_quote_button_present
         return context
 
 
@@ -924,6 +929,20 @@ def serve_protected_media(
 
 def refuse_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
     """Refuse the quote for a specific Maintenance Job.
+
+    Args:
+        request (HttpRequest): The HTTP request.
+        pk (UUID): The primary key of the Job instance.
+
+    Raises:
+        NotImplementedError: If the view is not implemented yet.
+    """
+    msg = "This view is not implemented yet."
+    raise NotImplementedError(msg)
+
+
+def accept_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
+    """Accept the quote for a specific Maintenance Job.
 
     Args:
         request (HttpRequest): The HTTP request.

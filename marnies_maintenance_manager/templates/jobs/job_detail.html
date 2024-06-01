@@ -44,4 +44,11 @@
       <button type="submit">Refuse Quote</button>
     </form>
   {% endif %}
+  <!-- Display the "Accept Quote" button if our backend wants it -->
+  {% if accept_quote_button_present %}
+    <form action="{% url 'jobs:accept_quote' pk=job.pk %}" method="post">
+      {% csrf_token %}
+      <button type="submit">Accept Quote</button>
+    </form>
+  {% endif %}
 {% endblock content %}
