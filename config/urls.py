@@ -7,8 +7,10 @@ from django.urls import include
 from django.urls import path, re_path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
-from marnies_maintenance_manager.jobs.views import home_page
-from marnies_maintenance_manager.jobs.views import serve_protected_media
+from marnies_maintenance_manager.jobs.views.home_page_view import home_page
+from marnies_maintenance_manager.jobs.views.serve_protected_media_view import (
+    serve_protected_media,
+)
 
 urlpatterns = [
     path("", home_page, name="home"),

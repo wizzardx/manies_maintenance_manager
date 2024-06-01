@@ -17,14 +17,14 @@ Access the job list with `/jobs/` and the creation page with `/jobs/create/`.
 
 from django.urls import path
 
-from .views import JobCreateView
-from .views import JobDetailView
-from .views import JobListView
-from .views import JobUpdateView
-from .views import accept_quote
-from .views import agent_list
-from .views import download_quote
-from .views import refuse_quote
+from .views.accept_quote_view import accept_quote
+from .views.agent_list_view import agent_list
+from .views.download_quote_view import download_quote
+from .views.job_create_view import JobCreateView
+from .views.job_detail_view import JobDetailView
+from .views.job_list_view import JobListView
+from .views.job_update_view import JobUpdateView
+from .views.refuse_quote_view import refuse_quote
 
 app_name = "jobs"
 urlpatterns = [

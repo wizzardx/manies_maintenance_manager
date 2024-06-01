@@ -3,6 +3,7 @@
 # pylint: disable=unused-argument,no-self-use,magic-value-comparison
 
 import functools
+from typing import cast
 
 import pytest
 from bs4 import BeautifulSoup
@@ -18,9 +19,24 @@ from marnies_maintenance_manager.jobs.tests.views.utils import (
 from marnies_maintenance_manager.jobs.utils import count_admin_users
 from marnies_maintenance_manager.jobs.utils import count_agent_users
 from marnies_maintenance_manager.jobs.utils import count_marnie_users
-from marnies_maintenance_manager.jobs.views import USER_COUNT_PROBLEM_MESSAGES
-from marnies_maintenance_manager.jobs.views import USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES
+from marnies_maintenance_manager.jobs.views.home_page_view import (
+    USER_COUNT_PROBLEM_MESSAGES,
+)
 from marnies_maintenance_manager.users.models import User
+
+USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES = {
+    "NO_EMAIL_ADDRESS": "WARNING: User {username} has no email address.",
+    "NO_VERIFIED_EMAIL_ADDRESS": (
+        "WARNING: User {username} has not verified their email address."
+    ),
+    "NO_PRIMARY_EMAIL_ADDRESS": (
+        "WARNING: User {username} has no primary email address."
+    ),
+    "EMAIL_MISMATCH": (
+        "WARNING: User {username}'s email address does not match the verified "
+        "primary email address."
+    ),
+}
 
 
 class TestBasicHomePageText:
@@ -768,11 +784,13 @@ def _create_user_and_check_no_primary_email_warning(
     )
 
     response = client.get("/")
+    response2 = cast(HttpResponse, response)
+
     expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
         "NO_PRIMARY_EMAIL_ADDRESS"
     ]
     expected_msg = expected_msg_template.format(username=username)
-    return expected_msg, response
+    return expected_msg, response2
 
 
 @pytest.mark.django_db()

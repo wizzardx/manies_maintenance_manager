@@ -17,8 +17,8 @@ from marnies_maintenance_manager.jobs.tests.views.utils import (
     check_basic_page_html_structure,
 )
 from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
-from marnies_maintenance_manager.jobs.views import JobCreateView
-from marnies_maintenance_manager.jobs.views import JobListView
+from marnies_maintenance_manager.jobs.views.job_create_view import JobCreateView
+from marnies_maintenance_manager.jobs.views.job_list_view import JobListView
 from marnies_maintenance_manager.users.models import User
 
 

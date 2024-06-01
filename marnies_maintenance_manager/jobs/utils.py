@@ -3,18 +3,16 @@
 import logging
 from typing import TypeVar
 
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Model
 from django.db.models import QuerySet
+
+from marnies_maintenance_manager.users.models import User
 
 from .exceptions import LogicalError
 from .exceptions import MarnieUserNotFoundError
 from .exceptions import MultipleMarnieUsersError
 from .exceptions import NoSystemAdministratorUserError
-
-User = get_user_model()
-
 
 logger = logging.getLogger(__name__)
 
@@ -134,3 +132,18 @@ def count_agent_users() -> int:
         int: The number of Agent users.
     """
     return User.objects.filter(is_agent=True).count()
+
+
+def user_has_verified_email_address(user: User) -> bool:
+    """Check if the user has a verified email address.
+
+    Args:
+        user (User): The user.
+
+    Returns:
+        bool: True if the user has a verified email address, False otherwise.
+    """
+    return any(
+        emailaddress.verified
+        for emailaddress in user.emailaddress_set.all()  # type: ignore[attr-defined]
+    )
