@@ -23,8 +23,8 @@ POST_METHOD_NAME = "POST"
 
 
 @login_required
-def refuse_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
-    """Refuse the quote for a specific Maintenance Job.
+def reject_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
+    """Reject the quote for a specific Maintenance Job.
 
     Args:
         request (HttpRequest): The HTTP request.
@@ -45,28 +45,28 @@ def refuse_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
 
     job = get_object_or_404(Job, pk=pk)
 
-    # Only the agent who created the quote may refuse it.
-    # Besides them, admin users can always refuse quotes.
+    # Only the agent who created the quote may reject it.
+    # Besides them, admin users can always reject quotes.
     if not (user.is_superuser or (user.is_agent and user == job.agent)):
         return HttpResponse(status=status.HTTP_403_FORBIDDEN)
 
     # Return an error if the job is not in the correct state.
     if job.status not in {
         Job.Status.INSPECTION_COMPLETED.value,
-        Job.Status.QUOTE_REFUSED_BY_AGENT.value,
+        Job.Status.QUOTE_REJECTED_BY_AGENT.value,
     }:
-        data = {"error": "Job is not in the correct state for refusing a quote."}
+        data = {"error": "Job is not in the correct state for rejecting a quote."}
         return JsonResponse(data=data, status=status.HTTP_412_PRECONDITION_FAILED)
 
-    # Change job state to 'refused by agent'
-    job.status = Job.Status.QUOTE_REFUSED_BY_AGENT.value
+    # Change job state to 'rejected by agent'
+    job.status = Job.Status.QUOTE_REJECTED_BY_AGENT.value
     job.accepted_or_rejected = Job.AcceptedOrRejected.REJECTED.value
     job.save()
 
-    # Send an email to Marnie telling him that his quote was refused by the agent
-    email_subject = f"Quote refused by {job.agent.username}"
+    # Send an email to Marnie telling him that his quote was rejected by the agent
+    email_subject = f"Quote rejected by {job.agent.username}"
     email_body = (
-        f"Agent {job.agent.username} has refused the quote for your maintenance "
+        f"Agent {job.agent.username} has rejected the quote for your maintenance "
         "request.\n\n"
         "Details of the original request:\n\n"
         "-----\n\n"
@@ -98,7 +98,7 @@ def refuse_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
     email.send()
 
     # Send a success flash message to the user:
-    messages.success(request, "Quote refused. An email has been sent to Marnie.")
+    messages.success(request, "Quote rejected. An email has been sent to Marnie.")
 
     # Redirect to the detail view for this job.
     return HttpResponseRedirect(job.get_absolute_url())

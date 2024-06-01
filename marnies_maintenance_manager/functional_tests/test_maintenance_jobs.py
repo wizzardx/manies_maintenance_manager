@@ -518,13 +518,13 @@ def test_marnie_can_update_agents_job(
     _update_job_with_inspection_date_and_quote(browser)
 
 
-def test_bob_can_refuse_marnies_quote(
+def test_bob_can_reject_marnies_quote(
     browser: WebDriver,
     live_server_url: str,
     marnie_user: User,
     bob_agent_user: User,
 ) -> None:
-    """Ensure Bob can refuse the quote submitted by Marnie.
+    """Ensure Bob can reject the quote submitted by Marnie.
 
     Args:
         browser (WebDriver): The Selenium WebDriver.
@@ -559,25 +559,25 @@ def test_bob_can_refuse_marnies_quote(
     assert "Maintenance Job Details" in browser.title
     assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
 
-    # He sees a "Refuse Quote" button and an "Accept Quote" button.
-    refuse_button = browser.find_element(By.XPATH, "//button[text()='Refuse Quote']")
+    # He sees a "Reject Quote" button and an "Accept Quote" button.
+    reject_button = browser.find_element(By.XPATH, "//button[text()='Reject Quote']")
     _accept_button = browser.find_element(By.XPATH, "//button[text()='Accept Quote']")
 
-    # He clicks on the "Refuse Quote" button.
-    refuse_button.click()
+    # He clicks on the "Reject Quote" button.
+    reject_button.click()
 
     # A message flash comes up, saying that Marnie was emailed
-    expected_msg = "Quote refused. An email has been sent to Marnie."
+    expected_msg = "Quote rejected. An email has been sent to Marnie."
     assert expected_msg in browser.page_source
 
-    # He now sees a "Job Status: Refused" entry on the page.
+    # He now sees a "Job Status: Rejected" entry on the page.
     assert (
         "<strong>Accepted or Rejected (A/R):</strong> rejected" in browser.page_source
     )
 
-    # He does not see the "Refuse Job" button any longer.
+    # He does not see the "Rejected Job" button any longer.
     with pytest.raises(NoSuchElementException):
-        browser.find_element(By.LINK_TEXT, "Refuse Quote")
+        browser.find_element(By.LINK_TEXT, "Reject Quote")
 
     # He does still see an "Accept Job" button.
     accept_button = browser.find_element(By.XPATH, "//button[text()='Accept Quote']")

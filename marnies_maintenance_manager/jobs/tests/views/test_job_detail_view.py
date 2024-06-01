@@ -393,18 +393,18 @@ class TestQuoteDownloadLinkVisibility:
         )
 
 
-def _get_refuse_quote_button_or_none(
+def _get_reject_quote_button_or_none(
     job: Job,
     user_client: Client,
 ) -> BeautifulSoup | None:
-    """Get the refuse quote button, or None if it couldn't be found.
+    """Get the reject quote button, or None if it couldn't be found.
 
     Args:
-        job (Job): The job to get the refuse quote button for.
+        job (Job): The job to get the reject quote button for.
         user_client (Client): The Django test client for the user.
 
     Returns:
-        BeautifulSoup | None: The refuse quote button, or None if it couldn't be found.
+        BeautifulSoup | None: The reject quote button, or None if it couldn't be found.
     """
     response = user_client.get(
         reverse("jobs:job_detail", kwargs={"pk": job.pk}),
@@ -413,27 +413,27 @@ def _get_refuse_quote_button_or_none(
     page = response.content.decode("utf-8")
 
     # Use Python BeautifulSoup to parse the HTML and find the button
-    # to refuse the quote.
+    # to reject the quote.
     soup = BeautifulSoup(page, "html.parser")
-    return soup.find("button", string="Refuse Quote")
+    return soup.find("button", string="Reject Quote")
 
 
-class TestRefuseQuoteButtonVisibility:
-    """Tests to ensure that the refuse quote button is visible to the correct users."""
+class TestRejectQuoteButtonVisibility:
+    """Tests to ensure that the reject quote button is visible to the correct users."""
 
     @staticmethod
-    def test_agent_can_see_refuse_quote_button_when_marnie_has_done_initial_inspection(
+    def test_agent_can_see_reject_quote_button_when_marnie_has_done_initial_inspection(
         bob_job_with_initial_marnie_inspection: Job,
         bob_agent_user_client: Client,
     ) -> None:
-        """Ensure agent sees refuse quote button when Marnie has done the inspection.
+        """Ensure agent sees reject quote button when Marnie has done the inspection.
 
         Args:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob with
                 the initial inspection done by Marnie.
             bob_agent_user_client (Client): The Django test client for Bob.
         """
-        button = _get_refuse_quote_button_or_none(
+        button = _get_reject_quote_button_or_none(
             bob_job_with_initial_marnie_inspection,
             bob_agent_user_client,
         )
@@ -444,31 +444,31 @@ class TestRefuseQuoteButtonVisibility:
         job_created_by_bob: Job,
         bob_agent_user_client: Client,
     ) -> None:
-        """Ensure the refuse quote button is hidden if Marnie hasn't done inspection.
+        """Ensure the reject quote button is hidden if Marnie hasn't done inspection.
 
         Args:
             job_created_by_bob (Job): The job created by Bob.
             bob_agent_user_client (Client): The Django test client for Bob.
         """
-        button = _get_refuse_quote_button_or_none(
+        button = _get_reject_quote_button_or_none(
             job_created_by_bob,
             bob_agent_user_client,
         )
         assert button is None
 
-    def test_marnie_cannot_see_refuse_quote_button_after_doing_initial_inspection(
+    def test_marnie_cannot_see_reject_quote_button_after_doing_initial_inspection(
         self,
         bob_job_with_initial_marnie_inspection: Job,
         marnie_user_client: Client,
     ) -> None:
-        """Ensure Marnie can't see the refuse quote button after the initial inspection.
+        """Ensure Marnie can't see the reject quote button after the initial inspection.
 
         Args:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob with
                 the initial inspection done by Marnie.
             marnie_user_client (Client): The Django test client for Marnie.
         """
-        button = _get_refuse_quote_button_or_none(
+        button = _get_reject_quote_button_or_none(
             bob_job_with_initial_marnie_inspection,
             marnie_user_client,
         )
@@ -494,19 +494,19 @@ class TestRefuseQuoteButtonVisibility:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_admin_can_see_refuse_quote_button(
+    def test_admin_can_see_reject_quote_button(
         self,
         bob_job_with_initial_marnie_inspection: Job,
         admin_client: Client,
     ) -> None:
-        """Ensure that the admin user can see the refuse quote button.
+        """Ensure that the admin user can see the reject quote button.
 
         Args:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob with
                 the initial inspection done by Marnie.
             admin_client (Client): The Django test client for the admin user.
         """
-        button = _get_refuse_quote_button_or_none(
+        button = _get_reject_quote_button_or_none(
             bob_job_with_initial_marnie_inspection,
             admin_client,
         )
@@ -539,20 +539,20 @@ class TestRefuseQuoteButtonVisibility:
             f"{bob_job_with_initial_marnie_inspection.pk}/"
         )
 
-    def test_visible_when_quote_refused_by_agent(
+    def test_visible_when_quote_rejected_by_agent(
         self,
-        job_refused_by_bob: Job,
+        job_rejected_by_bob: Job,
         bob_agent_user_client: Client,
     ) -> None:
-        """Ensure the refuse quote button is visible when the agent refuses the quote.
+        """Ensure the reject quote button is visible when the agent rejects the quote.
 
         Args:
-            job_refused_by_bob (Job): The job created by Bob with the quote refused by
+            job_rejected_by_bob (Job): The job created by Bob with the quote rejected by
                 the agent.
             bob_agent_user_client (Client): The Django test client for Bob.
         """
-        button = _get_refuse_quote_button_or_none(
-            job_refused_by_bob,
+        button = _get_reject_quote_button_or_none(
+            job_rejected_by_bob,
             bob_agent_user_client,
         )
         assert button is not None

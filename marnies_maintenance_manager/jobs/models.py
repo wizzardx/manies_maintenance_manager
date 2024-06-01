@@ -73,13 +73,13 @@ class Job(UUIDModel, TimeStampedModel):
 
         PENDING_INSPECTION = "pending_inspection"
         INSPECTION_COMPLETED = "inspection_completed"
-        QUOTE_REFUSED_BY_AGENT = "quote_refused_by_agent"
+        QUOTE_REJECTED_BY_AGENT = "quote_rejected_by_agent"
 
     # STATUS is populated from the values seen in the Status Enum above.
     STATUS = Choices(  # type: ignore[no-untyped-call]
         (Status.PENDING_INSPECTION.value, _("Pending Inspection")),
         (Status.INSPECTION_COMPLETED.value, _("Inspection Completed")),
-        (Status.QUOTE_REFUSED_BY_AGENT.value, _("Quote Refused By Agent")),
+        (Status.QUOTE_REJECTED_BY_AGENT.value, _("Quote Rejected By Agent")),
     )
     status = StatusField()  # type: ignore[no-untyped-call]
 
@@ -111,6 +111,7 @@ class Job(UUIDModel, TimeStampedModel):
         max_length=8,
         choices=ACCEPTED_OR_REJECTED_CHOICES,
         blank=True,
+        default="",
     )
 
     class Meta:

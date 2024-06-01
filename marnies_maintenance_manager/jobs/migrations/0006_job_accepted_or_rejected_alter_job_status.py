@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 choices=[
                     ("pending_inspection", "Pending Inspection"),
                     ("inspection_completed", "Inspection Completed"),
-                    ("quote_refused_by_agent", "Quote Refused By Agent"),
+                    ("quote_rejected_by_agent", "Quote Rejected By Agent"),
                 ],
                 default="pending_inspection",
                 max_length=100,
