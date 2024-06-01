@@ -69,7 +69,7 @@ darglint "${files[@]}" || ERRORS=yes
 echo "Check for security issues..."
 # The ignored numbers here are known, and don't apply, and also I'm (currently) already
 # using the latest available versions of the affected PyPI packages.
-safety check --ignore 51457 || ERRORS=yes
+safety check --ignore 51457,70612 || ERRORS=yes
 
 # Check for out of date packages:
 echo "Check for outdated packages..."
