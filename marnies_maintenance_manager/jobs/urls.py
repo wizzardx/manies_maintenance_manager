@@ -23,6 +23,7 @@ from .views import JobListView
 from .views import JobUpdateView
 from .views import agent_list
 from .views import download_quote
+from .views import refuse_quote
 
 app_name = "jobs"
 urlpatterns = [
@@ -31,5 +32,6 @@ urlpatterns = [
     path("<uuid:pk>/", JobDetailView.as_view(), name="job_detail"),
     path("<uuid:pk>/update/", JobUpdateView.as_view(), name="job_update"),
     path("<uuid:pk>/download-quote/", download_quote, name="download_quote"),
+    path("<uuid:pk>/refuse-quote/", refuse_quote, name="refuse_quote"),
     path("agents/", agent_list, name="agent_list"),
 ]

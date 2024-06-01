@@ -391,3 +391,161 @@ class TestQuoteDownloadLinkVisibility:
             response2.url == "/accounts/login/?next=/jobs/"
             f"{bob_job_with_initial_marnie_inspection.pk}/"
         )
+
+
+class TestRefuseQuoteButtonVisibility:
+    """Tests to ensure that the refuse quote button is visible to the correct users."""
+
+    @staticmethod
+    def test_agent_can_see_refuse_quote_button_when_marnie_has_done_initial_inspection(
+        bob_job_with_initial_marnie_inspection: Job,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Ensure agent sees refuse quote button when Marnie has done the inspection.
+
+        Args:
+            bob_job_with_initial_marnie_inspection (Job): The job created by Bob with
+                the initial inspection done by Marnie.
+            bob_agent_user_client (Client): The Django test client for Bob.
+        """
+        response = bob_agent_user_client.get(
+            reverse(
+                "jobs:job_detail",
+                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+            ),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        page = response.content.decode("utf-8")
+
+        # Use Python BeautifulSoup to parse the HTML and find the button
+        # to refuse the quote.
+        soup = BeautifulSoup(page, "html.parser")
+        button = soup.find("button", string="Refuse Quote")
+        assert button is not None
+
+    def test_button_not_visible_when_marnie_has_not_done_initial_inspection(
+        self,
+        job_created_by_bob: Job,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Ensure the refuse quote button is hidden if Marnie hasn't done inspection.
+
+        Args:
+            job_created_by_bob (Job): The job created by Bob.
+            bob_agent_user_client (Client): The Django test client for Bob.
+        """
+        response = bob_agent_user_client.get(
+            reverse(
+                "jobs:job_detail",
+                kwargs={"pk": job_created_by_bob.pk},
+            ),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        page = response.content.decode("utf-8")
+
+        # Use Python BeautifulSoup to parse the HTML and find the button
+        # to refuse the quote.
+        soup = BeautifulSoup(page, "html.parser")
+        button = soup.find("button", string="Refuse Quote")
+        assert button is None
+
+    def test_marnie_cannot_see_refuse_quote_button_after_doing_initial_inspection(
+        self,
+        bob_job_with_initial_marnie_inspection: Job,
+        marnie_user_client: Client,
+    ) -> None:
+        """Ensure Marnie can't see the refuse quote button after the initial inspection.
+
+        Args:
+            bob_job_with_initial_marnie_inspection (Job): The job created by Bob with
+                the initial inspection done by Marnie.
+            marnie_user_client (Client): The Django test client for Marnie.
+        """
+        response = marnie_user_client.get(
+            reverse(
+                "jobs:job_detail",
+                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+            ),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        page = response.content.decode("utf-8")
+
+        # Use Python BeautifulSoup to parse the HTML and find the button
+        # to refuse the quote.
+        soup = BeautifulSoup(page, "html.parser")
+        button = soup.find("button", string="Refuse Quote")
+        assert button is None
+
+    def test_another_agent_cannot_reach_page_to_see_quote_button(
+        self,
+        bob_job_with_initial_marnie_inspection: Job,
+        peter_agent_user_client: Client,
+    ) -> None:
+        """Ensure agents who didn't create the job can't access the detail page.
+
+        Args:
+            bob_job_with_initial_marnie_inspection (Job): The job created by Bob with
+                the initial inspection done by Marnie.
+            peter_agent_user_client (Client): The Django test client for Peter.
+        """
+        response = peter_agent_user_client.get(
+            reverse(
+                "jobs:job_detail",
+                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+            ),
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_admin_can_see_refuse_quote_button(
+        self,
+        bob_job_with_initial_marnie_inspection: Job,
+        admin_client: Client,
+    ) -> None:
+        """Ensure that the admin user can see the refuse quote button.
+
+        Args:
+            bob_job_with_initial_marnie_inspection (Job): The job created by Bob with
+                the initial inspection done by Marnie.
+            admin_client (Client): The Django test client for the admin user.
+        """
+        response = admin_client.get(
+            reverse(
+                "jobs:job_detail",
+                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+            ),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        page = response.content.decode("utf-8")
+
+        # Use Python BeautifulSoup to parse the HTML and find the button
+        # to refuse the quote.
+        soup = BeautifulSoup(page, "html.parser")
+        button = soup.find("button", string="Refuse Quote")
+        assert button is not None
+
+    def test_anonymous_user_is_redirected_to_login_page(
+        self,
+        bob_job_with_initial_marnie_inspection: Job,
+        client: Client,
+    ) -> None:
+        """Ensure that an anonymous user cannot access the job detail view.
+
+        Args:
+            bob_job_with_initial_marnie_inspection (Job): The job created by Bob with
+                the initial inspection done by Marnie.
+            client (Client): The Django test client.
+        """
+        response = client.get(
+            reverse(
+                "jobs:job_detail",
+                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+            ),
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+
+        # Check that the user is redirected to the login page.
+        response2 = cast(HttpResponseRedirect, response)
+        assert (
+            response2.url == "/accounts/login/?next=/jobs/"
+            f"{bob_job_with_initial_marnie_inspection.pk}/"
+        )

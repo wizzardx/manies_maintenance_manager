@@ -37,4 +37,11 @@
   {% if update_link_present %}
     <a href="{% url 'jobs:job_update' pk=job.pk %}">Update</a>
   {% endif %}
+  <!-- Display the "Refuse Quote" button if our backend wants it -->
+  {% if refuse_quote_button_present %}
+    <form action="{% url 'jobs:refuse_quote' pk=job.pk %}" method="post">
+      {% csrf_token %}
+      <button type="submit">Refuse Quote</button>
+    </form>
+  {% endif %}
 {% endblock content %}

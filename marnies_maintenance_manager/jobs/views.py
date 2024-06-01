@@ -701,8 +701,20 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         update_link_present = (
             user.is_marnie or user.is_superuser
         ) and obj.status == Job.Status.PENDING_INSPECTION.value
+
+        # The "Refuse Quote" button may only be seen when the Job is the correct status,
+        # and the user is Admin or an Agent. If the user is an Agent, then we also check
+        # # if it's the same agent who created the Job, even though technically that's
+        # not needed (since the user doesn't have permission to see other agents' jobs
+        # anyway).
+        refuse_quote_button_present = (
+            obj.status == Job.Status.INSPECTION_COMPLETED.value
+            and ((user.is_agent and user == obj.agent) or user.is_superuser)
+        )
+
         context = super().get_context_data(**kwargs)
         context["update_link_present"] = update_link_present
+        context["refuse_quote_button_present"] = refuse_quote_button_present
         return context
 
 
@@ -908,3 +920,17 @@ def serve_protected_media(
 
     # Create and return the FileResponse object
     return FileResponse(file_handle, as_attachment=True, filename=file_name)
+
+
+def refuse_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
+    """Refuse the quote for a specific Maintenance Job.
+
+    Args:
+        request (HttpRequest): The HTTP request.
+        pk (UUID): The primary key of the Job instance.
+
+    Raises:
+        NotImplementedError: If the view is not implemented yet.
+    """
+    msg = "This view is not implemented yet."
+    raise NotImplementedError(msg)

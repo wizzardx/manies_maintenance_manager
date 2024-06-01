@@ -604,8 +604,8 @@ def test_bob_can_refuse_marnies_quote(
     assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
 
     # He sees a "Refuse Quote" button and an "Accept Quote" button.
-    refuse_button = browser.find_element(By.LINK_TEXT, "Refuse Quote")
-    accept_button = browser.find_element(By.LINK_TEXT, "Accept Quote")
+    refuse_button = browser.find_element(By.XPATH, "//button[text()='Refuse Quote']")
+    accept_button = browser.find_element(By.XPATH, "//button[text()='Accept Quote']")
 
     # He clicks on the "Refuse Quote" button.
     refuse_button.click()
