@@ -387,7 +387,7 @@ class TestJobModelPerAgentAutoIncrementingNumberField:
         assert job1.number == 1
         assert job2.number == 2  # noqa: PLR2004
 
-        # Confirm that it's an error to try to reuse the same agent job  number.
+        # Confirm that it's an error to try to reuse the same agent job number.
         job1.number = 2
         with pytest.raises(IntegrityError):
             job1.save()

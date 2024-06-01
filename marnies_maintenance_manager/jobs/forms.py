@@ -1,4 +1,4 @@
-"""Forms for the jobs app."""
+"""Forms for the "jobs" app."""
 
 from django import forms
 

@@ -2,7 +2,7 @@
 
 This module checks the HTML content returned by various views in the Marnie's
 Maintenance Manager application. It covers tests for the home page, maintenance jobs
-page, and the create maintenance job page. Each test ensures that the respective page
+page, and the "create maintenance job" page. Each test ensures that the respective page
 renders the expected HTML structure, elements, and uses the appropriate template.
 
 The Django test client is used for making requests, and BeautifulSoup for parsing the

@@ -75,7 +75,7 @@ class TestAgentsAccessingJobListViewCanOnlySeeJobsThatTheyCreated:
                                             user.
             job_created_by_bob (Job): A job instance created for Bob.
         """
-        # Get page containing list of jobs
+        # Get page containing a list of jobs
         response = bob_agent_user_client.get(reverse("jobs:job_list"))
         # Check that the job created by Bob is in the list
         assert job_created_by_bob in response.context["job_list"]
@@ -95,7 +95,7 @@ class TestAgentsAccessingJobListViewCanOnlySeeJobsThatTheyCreated:
             job_created_by_peter (Job): A job instance created for Peter, not visible
                                         to Bob.
         """
-        # Get page containing list of jobs
+        # Get page containing a list of jobs
         response = bob_agent_user_client.get(reverse("jobs:job_list"))
         # Check that the job created by Peter is not in the list
         assert job_created_by_peter not in response.context["job_list"]
@@ -333,8 +333,8 @@ class TestSuperUserAccessingJobListView:
 
         Args:
             superuser_client (Client): A test client with superuser permissions.
-            job_created_by_bob (Job): A job created by Bob, should be visible.
-            job_created_by_peter (Job): A job created by Peter, should be visible.
+            job_created_by_bob (Job): A job created by Bob
+            job_created_by_peter (Job): A job created by Peter
         """
         response = superuser_client.get(reverse("jobs:job_list"))
         assert response.status_code == status.HTTP_200_OK
@@ -351,9 +351,8 @@ class TestSuperUserAccessingJobListView:
 
         Args:
             superuser_client (Client): A superuser client used to view jobs.
-            job_created_by_bob (Job): A job created by Bob, should be visible.
-            job_created_by_peter (Job): A job created by Peter, should not be visible
-                                        in filter.
+            job_created_by_bob (Job): A job created by Bob
+            job_created_by_peter (Job): A job created by Peter
         """
         response = superuser_client.get(
             reverse("jobs:job_list") + f"?agent={job_created_by_bob.agent.username}",

@@ -1,4 +1,4 @@
-"""Register models for the jobs application in the Django admin."""
+"""Register models for the "jobs" application in the Django admin."""
 
 from django.contrib import admin
 

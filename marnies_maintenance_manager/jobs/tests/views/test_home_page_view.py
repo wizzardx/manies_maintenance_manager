@@ -625,13 +625,13 @@ class TestAdminSpecificHomePageWarnings:
         superuser_client: Client,
         bob_agent_user: User,
     ) -> None:
-        """Test no warning for verified email addresses when user is an admin.
+        """Test no warning for verified email addresses when the user is an admin.
 
         Args:
             superuser_user (User): A superuser instance with verified email address.
             superuser_client (Client): A test client configured for a superuser.
-            bob_agent_user (User): User instance for Bob, who is an agent with verified
-                                   email address.
+            bob_agent_user (User): User instance for Bob, who is an agent with a
+                verified email address.
         """
         response = superuser_client.get("/")
 

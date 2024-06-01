@@ -538,7 +538,7 @@ def test_bob_can_refuse_marnies_quote(
     ## Next, Marnie does an inspection, and updates the inspection date and quote.
     _update_job_with_inspection_date_and_quote(browser)
 
-    # Bob receives the email notification that Marnie has done the initial inpection,
+    # Bob receives the email notification that Marnie has done the initial inspection,
     # so he signs in to the website
     _sign_into_website(browser, "bob")
 

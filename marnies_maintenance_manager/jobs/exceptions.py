@@ -1,4 +1,4 @@
-"""This module contains custom exceptions for the jobs app."""
+"""This module contains custom exceptions for the "jobs" app."""
 
 
 class MarnieUserNotFoundError(Exception):

@@ -1,4 +1,4 @@
-"""Custom validators for the jobs app."""
+"""Custom validators for the "jobs" app."""
 
 from django.core.exceptions import ValidationError
 from django.db.models.fields.files import FieldFile

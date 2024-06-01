@@ -1,4 +1,4 @@
-"""Utility functions for the jobs app."""
+"""Utility functions for the "jobs" app."""
 
 import logging
 from typing import TypeVar
