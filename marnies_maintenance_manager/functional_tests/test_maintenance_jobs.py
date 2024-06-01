@@ -561,7 +561,7 @@ def test_bob_can_refuse_marnies_quote(
 
     # He sees a "Refuse Quote" button and an "Accept Quote" button.
     refuse_button = browser.find_element(By.XPATH, "//button[text()='Refuse Quote']")
-    accept_button = browser.find_element(By.XPATH, "//button[text()='Accept Quote']")
+    _accept_button = browser.find_element(By.XPATH, "//button[text()='Accept Quote']")
 
     # He clicks on the "Refuse Quote" button.
     refuse_button.click()

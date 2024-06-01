@@ -2,7 +2,6 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
 import django.utils.timezone
 import marnies_maintenance_manager.jobs.models
 import model_utils.fields
@@ -58,7 +57,7 @@ class Migration(migrations.Migration):
                         on_delete=django.db.models.deletion.CASCADE,
                         to=settings.AUTH_USER_MODEL,
                         validators=[
-                            marnies_maintenance_manager.jobs.models._validate_user_is_agent
+                            marnies_maintenance_manager.jobs.models.validate_user_is_agent
                         ],
                     ),
                 ),

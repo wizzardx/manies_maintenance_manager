@@ -18,7 +18,7 @@ from marnies_maintenance_manager.jobs.validators import validate_pdf_contents
 from marnies_maintenance_manager.users.models import User
 
 
-def _validate_user_is_agent(user_id: uuid.UUID) -> None:
+def validate_user_is_agent(user_id: uuid.UUID) -> None:
     """Ensure the user is an agent.
 
     Args:
@@ -53,7 +53,7 @@ class Job(UUIDModel, TimeStampedModel):
         User,
         on_delete=models.CASCADE,
         editable=False,
-        validators=[_validate_user_is_agent],
+        validators=[validate_user_is_agent],
     )
     number = models.PositiveIntegerField(editable=False)
     date = models.DateField()
