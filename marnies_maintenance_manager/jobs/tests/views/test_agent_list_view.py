@@ -4,6 +4,7 @@
 
 from typing import cast
 
+import bs4
 import pytest
 from bs4 import BeautifulSoup
 from django.http import HttpResponseRedirect
@@ -72,18 +73,7 @@ class TestAgentsView:
             bob_agent_user (User): Bob's user instance, an agent.
             admin_user (User): Admin user instance, not an agent.
         """
-        response = marnie_user_client.get(reverse("jobs:agent_list"))
-        assert response.status_code == status.HTTP_200_OK
-
-        # Get the page text:
-        page_text = response.content.decode()
-
-        # Use beautifulsoup to help us get a list of the agents listed in the page.
-        # We want to get a list of usernames like this: ["bob", "alice", "charlie"]:
-        soup = BeautifulSoup(page_text, "html.parser")
-        agent_list = soup.find("ul", id="agent_list")
-        assert agent_list is not None
-        list_items = agent_list.find_all("li")
+        list_items = _get_agent_list_items(marnie_user_client)
         agent_usernames = [li.a.string for li in list_items]
 
         # Bob is an Agent, so his username should be in the list.
@@ -104,18 +94,7 @@ class TestAgentsView:
             marnie_user_client (Client): A test client for Marnie.
             bob_agent_user (User): Bob's user instance, an agent.
         """
-        response = marnie_user_client.get(reverse("jobs:agent_list"))
-        assert response.status_code == status.HTTP_200_OK
-
-        page_text = response.content.decode()
-
-        # Use beautifulsoup to find the <ul> element with ID "agent_list":
-        soup = BeautifulSoup(page_text, "html.parser")
-        agent_list = soup.find("ul", id="agent_list")
-        assert agent_list is not None
-
-        # Grab the LI elements from there:
-        list_items = agent_list.find_all("li")
+        list_items = _get_agent_list_items(marnie_user_client)
 
         # There should be exactly one of them:
         assert len(list_items) == 1
@@ -132,3 +111,18 @@ class TestAgentsView:
             list_items[0].a["href"]
             == reverse("jobs:job_list") + f"?agent={bob_agent_user.username}"
         )
+
+
+def _get_agent_list_items(marnie_user_client: Client) -> bs4.element.ResultSet:
+    response = marnie_user_client.get(reverse("jobs:agent_list"))
+    assert response.status_code == status.HTTP_200_OK
+
+    page_text = response.content.decode()
+
+    # Use beautifulsoup to find the <ul> element with ID "agent_list":
+    soup = BeautifulSoup(page_text, "html.parser")
+    agent_list = soup.find("ul", id="agent_list")
+    assert agent_list is not None
+
+    # Grab the LI elements from there:
+    return agent_list.find_all("li")

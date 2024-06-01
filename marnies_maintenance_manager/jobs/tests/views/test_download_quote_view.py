@@ -93,21 +93,10 @@ class TestAbilityToDownloadQuoteFiles:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
             admin_client (Client): The Django test client for the admin user.
         """
-        response = admin_client.get(
-            reverse(
-                "jobs:download_quote",
-                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-            ),
+        _check_user_can_download_quote_files(
+            bob_job_with_initial_marnie_inspection,
+            admin_client,
         )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.content == bob_job_with_initial_marnie_inspection.quote.read()
-
-        # Check the various other attachment-related content headers, too:
-        assert response["Content-Type"] == "application/pdf"
-        assert response["Content-Length"] == str(len(response.content))
-
-        filename = Path(bob_job_with_initial_marnie_inspection.quote.name).name
-        assert response["Content-Disposition"] == f'attachment; filename="{filename}"'
 
     @staticmethod
     def test_agent_who_created_job_can_download_quote_files(
@@ -120,21 +109,10 @@ class TestAbilityToDownloadQuoteFiles:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
             bob_agent_user_client (Client): The Django test client for Bob.
         """
-        response = bob_agent_user_client.get(
-            reverse(
-                "jobs:download_quote",
-                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-            ),
+        _check_user_can_download_quote_files(
+            bob_job_with_initial_marnie_inspection,
+            bob_agent_user_client,
         )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.content == bob_job_with_initial_marnie_inspection.quote.read()
-
-        # Check the various other attachment-related content headers, too:
-        assert response["Content-Type"] == "application/pdf"
-        assert response["Content-Length"] == str(len(response.content))
-
-        filename = Path(bob_job_with_initial_marnie_inspection.quote.name).name
-        assert response["Content-Disposition"] == f'attachment; filename="{filename}"'
 
     @staticmethod
     def test_agents_who_did_not_create_job_cannot_download_quote_files(
@@ -222,6 +200,24 @@ class TestAbilityToDownloadQuoteFiles:
         # Check the redirection details:
         response2 = cast(HttpResponseRedirect, response)
         assert response2.url == "/accounts/login/?next=/media/quotes/test.pdf"
+
+
+def _check_user_can_download_quote_files(job: Job, client: Client) -> None:
+    response = client.get(
+        reverse(
+            "jobs:download_quote",
+            kwargs={"pk": job.pk},
+        ),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.content == job.quote.read()
+
+    # Check the various other attachment-related content headers, too:
+    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Length"] == str(len(response.content))
+
+    filename = Path(job.quote.name).name
+    assert response["Content-Disposition"] == f'attachment; filename="{filename}"'
 
 
 def test_fails_for_none_get_request(

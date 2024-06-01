@@ -145,6 +145,47 @@ def _sign_out_of_website_and_clean_up(browser: WebDriver) -> None:
     # Satisfied, he goes back to sleep
 
 
+def _check_jobs_page_table(browser: WebDriver) -> None:
+    # He notices that the new Maintenance Job is listed on the web page in a table
+    table = browser.find_element(By.ID, "id_list_table")
+    rows = table.find_elements(By.TAG_NAME, "tr")
+
+    ## There should be two rows:
+    assert len(rows) == 2  # noqa: PLR2004
+
+    ## The first row is the header row
+    header_row = rows[0]
+    header_cell_texts = [
+        cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")
+    ]
+    assert header_cell_texts == [
+        "Number",
+        "Date",
+        "Address Details",
+        "GPS Link",  # This is the displayed text, on-screen it's a link
+        "Quote Request Details",
+        "Date of Inspection",
+        "Quote",
+        "Accept or Reject A/R",
+    ]
+
+    ## The second row is the new job
+    row = rows[1]
+    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
+
+    ## Make sure the cell text contents match the expected values.
+    assert cell_texts == [
+        "1",  # This is for the row number, automatically added by the system.
+        "2021-01-01",
+        "Department of Home Affairs Bellville",
+        "GPS",  # This is the displayed text, on-screen it's a link
+        "Please fix the leaky faucet in the staff bathroom",
+        "",  # This is for the Date of Inspection, which is empty for now
+        "",  # This is for the Quote, which is empty for now
+        "",  # This is for Accept or Reject A/R, which is empty for now
+    ]
+
+
 def _create_new_job(
     browser: WebDriver,
     live_server_url: str,
@@ -228,44 +269,8 @@ def _create_new_job(
     assert "Maintenance Jobs" in browser.title
     assert "Maintenance Jobs" in browser.find_element(By.TAG_NAME, "h1").text
 
-    # He notices that the new Maintenance Job is listed on the web page in a table
-    table = browser.find_element(By.ID, "id_list_table")
-    rows = table.find_elements(By.TAG_NAME, "tr")
-
-    ## There should be two rows:
-    assert len(rows) == 2  # noqa: PLR2004
-
-    ## The first row is the header row
-    header_row = rows[0]
-    header_cell_texts = [
-        cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")
-    ]
-    assert header_cell_texts == [
-        "Number",
-        "Date",
-        "Address Details",
-        "GPS Link",  # This is the displayed text, on-screen it's a link
-        "Quote Request Details",
-        "Date of Inspection",
-        "Quote",
-        "Accept or Reject A/R",
-    ]
-
-    ## The second row is the new job
-    row = rows[1]
-    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-
-    ## Make sure the cell text contents match the expected values.
-    assert cell_texts == [
-        "1",  # This is for the row number, automatically added by the system.
-        "2021-01-01",
-        "Department of Home Affairs Bellville",
-        "GPS",  # This is the displayed text, on-screen it's a link
-        "Please fix the leaky faucet in the staff bathroom",
-        "",  # This is for the Date of Inspection, which is empty for now
-        "",  # This is for the Quote, which is empty for now
-        "",  # This is for Accept or Reject A/R, which is empty for now
-    ]
+    ## Thoroughly check that the table has the correct headings and row contents.
+    _check_jobs_page_table(browser)
 
     # Satisfied, he goes back to sleep
     _sign_out_of_website_and_clean_up(browser)
@@ -343,44 +348,8 @@ def test_marnie_can_view_agents_job(
     assert "Maintenance Jobs for bob" in browser.title
     assert "Maintenance Jobs for bob" in browser.find_element(By.TAG_NAME, "h1").text
 
-    # On this page he can see the list of Maintenance Jobs that Bob has submitted.
-    table = browser.find_element(By.ID, "id_list_table")
-    rows = table.find_elements(By.TAG_NAME, "tr")
-
-    ## There should be two rows:
-    assert len(rows) == 2  # noqa: PLR2004
-
-    ## The first row is the header row
-    header_row = rows[0]
-    header_cell_texts = [
-        cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")
-    ]
-    assert header_cell_texts == [
-        "Number",
-        "Date",
-        "Address Details",
-        "GPS Link",  # This is the displayed text, on-screen it's a link
-        "Quote Request Details",
-        "Date of Inspection",
-        "Quote",
-        "Accept or Reject A/R",
-    ]
-
-    # The second row is the set of job details submitted by Bob earlier
-    row = rows[1]
-    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-
-    ## Make sure the cell text contents match the expected values.
-    assert cell_texts == [
-        "1",  # This is for the row number, automatically added by the system.
-        "2021-01-01",
-        "Department of Home Affairs Bellville",
-        "GPS",  # This is the displayed text, on-screen it's a link
-        "Please fix the leaky faucet in the staff bathroom",
-        "",  # This is for the Date of Inspection, which is empty for now
-        "",  # This is for the Quote, which is empty for now
-        "",  # This is for Accept or Reject A/R, which is empty for now
-    ]
+    ## Thoroughly check that the table has the correct headings and row contents.
+    _check_jobs_page_table(browser)
 
     # Since he's not an Agent, he does not see the "Create Maintenance Job" link.
     with pytest.raises(NoSuchElementException):
@@ -408,6 +377,33 @@ def test_marnie_can_view_agents_job(
     assert "Department of Home Affairs Bellville" in browser.page_source
     assert "GPS" in browser.page_source
     assert "Please fix the leaky faucet in the staff bathroom" in browser.page_source
+
+
+def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
+    table = browser.find_element(By.ID, "id_list_table")
+    rows = table.find_elements(By.TAG_NAME, "tr")
+
+    ## There should be exactly one row here
+    assert len(rows) == 2  # noqa: PLR2004
+
+    ## Get the row, and confirm that the details include everything submitted up until
+    ## now.
+    row = rows[1]
+    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
+    assert cell_texts == [
+        "1",
+        "2021-01-01",
+        "Department of Home Affairs Bellville",
+        "GPS",
+        "Please fix the leaky faucet in the staff bathroom",
+        "2021-02-01",
+        "Download Quote",
+        "",
+    ]
+
+    # He clicks on the #1 number again:
+    number_link = browser.find_element(By.LINK_TEXT, "1")
+    number_link.click()
 
 
 def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
@@ -481,30 +477,7 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
     assert expected_msg in browser.page_source
 
     # He sees that the new details are now listed in the table.
-    table = browser.find_element(By.ID, "id_list_table")
-    rows = table.find_elements(By.TAG_NAME, "tr")
-
-    ## There should be exactly one row here
-    assert len(rows) == 2  # noqa: PLR2004
-
-    ## Get the row, and confirm that the details include everything submitted up until
-    ## now.
-    row = rows[1]
-    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-    assert cell_texts == [
-        "1",
-        "2021-01-01",
-        "Department of Home Affairs Bellville",
-        "GPS",
-        "Please fix the leaky faucet in the staff bathroom",
-        "2021-02-01",
-        "Download Quote",
-        "",
-    ]
-
-    # He clicks on the #1 number again:
-    number_link = browser.find_element(By.LINK_TEXT, "1")
-    number_link.click()
+    _check_job_row_and_click_on_number(browser)
 
     # Over here he can now see the inspection date:
     assert "2021-02-01" in browser.page_source
@@ -579,30 +552,7 @@ def test_bob_can_refuse_marnies_quote(
     assert "Maintenance Jobs" in browser.find_element(By.TAG_NAME, "h1").text
 
     # He sees his original job details over there.
-    table = browser.find_element(By.ID, "id_list_table")
-    rows = table.find_elements(By.TAG_NAME, "tr")
-
-    ## There should be exactly one row here
-    assert len(rows) == 2  # noqa: PLR2004
-
-    ## Get the row, and confirm that the details include everything submitted up until
-    ## now, as well as the details that Marnie added.
-    row = rows[1]
-    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-    assert cell_texts == [
-        "1",
-        "2021-01-01",
-        "Department of Home Affairs Bellville",
-        "GPS",
-        "Please fix the leaky faucet in the staff bathroom",
-        "2021-02-01",
-        "Download Quote",
-        "",
-    ]
-
-    # He clicks on the "1" link to go to the details for the Job.
-    number_link = browser.find_element(By.LINK_TEXT, "1")
-    number_link.click()
+    _check_job_row_and_click_on_number(browser)
 
     # He can see from the Title and the Heading that he is in the "Maintenance Job
     # Details" page.

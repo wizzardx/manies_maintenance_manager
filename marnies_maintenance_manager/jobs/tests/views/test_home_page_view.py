@@ -6,6 +6,7 @@ import functools
 
 import pytest
 from bs4 import BeautifulSoup
+from django.http import HttpResponse
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
@@ -654,19 +655,9 @@ class TestAdminSpecificHomePageWarnings:
             admin_client (Client): A test client with admin privileges.
         """
         # Create a user with no primary email address
-        username = "no_primary_email_user"
-        user = User.objects.create(username=username, email="no_primary@example.com")
-        user.emailaddress_set.create(  # type: ignore[attr-defined]
-            email="no_primary@example.com",
-            primary=False,
-            verified=True,
+        (expected_msg, response) = _create_user_and_check_no_primary_email_warning(
+            admin_client,
         )
-
-        response = admin_client.get("/")
-        expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
-            "NO_PRIMARY_EMAIL_ADDRESS"
-        ]
-        expected_msg = expected_msg_template.format(username=username)
         assert expected_msg in response.content.decode()
 
     def test_no_warning_for_users_with_primary_email_address(
@@ -707,19 +698,7 @@ class TestAdminSpecificHomePageWarnings:
             client (Client): A general test client, not configured as an admin.
         """
         # Create a user with no primary email address
-        username = "no_primary_email_user"
-        user = User.objects.create(username=username, email="no_primary@example.com")
-        user.emailaddress_set.create(  # type: ignore[attr-defined]
-            email="no_primary@example.com",
-            primary=False,
-            verified=True,
-        )
-
-        response = client.get("/")
-        expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
-            "NO_PRIMARY_EMAIL_ADDRESS"
-        ]
-        expected_msg = expected_msg_template.format(username=username)
+        expected_msg, response = _create_user_and_check_no_primary_email_warning(client)
         assert expected_msg not in response.content.decode()
 
     # Tests for when there are users whose "user" models' email address does
@@ -775,6 +754,25 @@ class TestAdminSpecificHomePageWarnings:
         ]
         expected_msg = expected_msg_template.format(username=username)
         assert expected_msg in response.content.decode()
+
+
+def _create_user_and_check_no_primary_email_warning(
+    client: Client,
+) -> tuple[str, HttpResponse]:
+    username = "no_primary_email_user"
+    user = User.objects.create(username=username, email="no_primary@example.com")
+    user.emailaddress_set.create(  # type: ignore[attr-defined]
+        email="no_primary@example.com",
+        primary=False,
+        verified=True,
+    )
+
+    response = client.get("/")
+    expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
+        "NO_PRIMARY_EMAIL_ADDRESS"
+    ]
+    expected_msg = expected_msg_template.format(username=username)
+    return expected_msg, response
 
 
 @pytest.mark.django_db()

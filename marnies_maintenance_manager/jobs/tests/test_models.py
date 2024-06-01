@@ -262,6 +262,40 @@ def test_job_model_ordered_by_db_insertion_time(bob_agent_user: User) -> None:
     assert jobs[2].date == datetime.date(2022, 1, 3)
 
 
+def _create_three_test_jobs(
+    bob_agent_user: User,
+    peter_agent_user: User,
+) -> tuple[Job, Job, Job]:
+    job1 = Job.objects.create(
+        agent=bob_agent_user,
+        date="2022-01-01",
+        address_details="1234 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the kitchen sink",
+    )
+    job1.full_clean()
+
+    job2 = Job.objects.create(
+        agent=bob_agent_user,
+        date="2022-01-02",
+        address_details="1235 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the bathroom sink",
+    )
+    job2.full_clean()
+
+    job3 = Job.objects.create(
+        agent=peter_agent_user,
+        date="2022-01-01",
+        address_details="1236 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the toilet",
+    )
+    job3.full_clean()
+
+    return job1, job2, job3
+
+
 class TestJobModelPerAgentAutoIncrementingNumberField:
     """Define tests for the Job model's auto-incrementing 'number' field per agent."""
 
@@ -277,32 +311,7 @@ class TestJobModelPerAgentAutoIncrementingNumberField:
             bob_agent_user (User): The agent user Bob used to create a Job instance.
             peter_agent_user (User): The agent user Peter used to create a Job instance.
         """
-        job1 = Job.objects.create(
-            agent=bob_agent_user,
-            date="2022-01-01",
-            address_details="1234 Main St, Springfield, IL",
-            gps_link="https://www.google.com/maps",
-            quote_request_details="Replace the kitchen sink",
-        )
-        job1.full_clean()
-
-        job2 = Job.objects.create(
-            agent=bob_agent_user,
-            date="2022-01-02",
-            address_details="1235 Main St, Springfield, IL",
-            gps_link="https://www.google.com/maps",
-            quote_request_details="Replace the bathroom sink",
-        )
-        job2.full_clean()
-
-        job3 = Job.objects.create(
-            agent=peter_agent_user,
-            date="2022-01-01",
-            address_details="1236 Main St, Springfield, IL",
-            gps_link="https://www.google.com/maps",
-            quote_request_details="Replace the toilet",
-        )
-        job3.full_clean()
+        (job1, job2, job3) = _create_three_test_jobs(bob_agent_user, peter_agent_user)
 
         assert job1.number == 1
         assert job2.number == 2  # noqa: PLR2004
@@ -334,32 +343,7 @@ class TestJobModelPerAgentAutoIncrementingNumberField:
             bob_agent_user (User): The agent user Bob used to create a Job instance.
             peter_agent_user (User): The agent user Peter used to create a Job instance.
         """
-        job1 = Job.objects.create(
-            agent=bob_agent_user,
-            date="2022-01-01",
-            address_details="1234 Main St, Springfield, IL",
-            gps_link="https://www.google.com/maps",
-            quote_request_details="Replace the kitchen sink",
-        )
-        job1.full_clean()
-
-        job2 = Job.objects.create(
-            agent=bob_agent_user,
-            date="2022-01-02",
-            address_details="1235 Main St, Springfield, IL",
-            gps_link="https://www.google.com/maps",
-            quote_request_details="Replace the bathroom sink",
-        )
-        job2.full_clean()
-
-        job3 = Job.objects.create(
-            agent=peter_agent_user,
-            date="2022-01-01",
-            address_details="1236 Main St, Springfield, IL",
-            gps_link="https://www.google.com/maps",
-            quote_request_details="Replace the toilet",
-        )
-        job3.full_clean()
+        (job1, job2, job3) = _create_three_test_jobs(bob_agent_user, peter_agent_user)
 
         job4 = Job.objects.create(
             agent=peter_agent_user,

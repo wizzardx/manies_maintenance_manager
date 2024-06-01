@@ -176,16 +176,34 @@ def test_sets_job_to_refused_by_agent(
         bob_agent_user_client (Client): The Django test client for Bob.
         bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
     """
-    response = bob_agent_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/refuse-quote/",
+    job = _refuse_quote_and_get_job(
+        bob_agent_user_client,
+        bob_job_with_initial_marnie_inspection,
+    )
+    assert job.accepted_or_rejected == Job.AcceptedOrRejected.REJECTED.value
+
+
+def _refuse_quote_and_get_job(client: Client, job: Job) -> Job:
+    response = client.post(
+        f"/jobs/{job.id}/refuse-quote/",
     )
     assert response.status_code == status.HTTP_302_FOUND
     response2 = cast(HttpResponseRedirect, response)
-    assert response2.url == f"/jobs/{bob_job_with_initial_marnie_inspection.id}/"
+    assert response2.url == f"/jobs/{job.id}/"
 
-    job = Job.objects.get(id=bob_job_with_initial_marnie_inspection.id)
+    job = Job.objects.get(id=job.id)
     assert job.status == Job.Status.QUOTE_REFUSED_BY_AGENT.value
-    assert job.accepted_or_rejected == Job.AcceptedOrRejected.REJECTED.value
+    return job
+
+
+def _refuse_quote(client: Client, job: Job) -> None:
+    """Wrap the _refuse_quote_and_get_job() function, discarding the return value.
+
+    Args:
+        client (Client): The Django test client.
+        job (Job): The job to refuse the quote for.
+    """
+    _refuse_quote_and_get_job(client, job)
 
 
 def test_email_sent_to_marnie_user(
@@ -206,15 +224,7 @@ def test_email_sent_to_marnie_user(
     mail.outbox.clear()
 
     # Refuse the quote:
-    response = bob_agent_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/refuse-quote/",
-    )
-    assert response.status_code == status.HTTP_302_FOUND
-    response2 = cast(HttpResponseRedirect, response)
-    assert response2.url == f"/jobs/{bob_job_with_initial_marnie_inspection.id}/"
-
-    job = Job.objects.get(id=bob_job_with_initial_marnie_inspection.id)
-    assert job.status == Job.Status.QUOTE_REFUSED_BY_AGENT.value
+    _refuse_quote(bob_agent_user_client, bob_job_with_initial_marnie_inspection)
 
     # Check that an email was sent, with the expected details.
     assert len(mail.outbox) == 1
@@ -299,12 +309,4 @@ def test_admin_user_can_refuse_quote(
         admin_client (Client): The Django test client for the admin user.
         bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
     """
-    response = admin_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/refuse-quote/",
-    )
-    assert response.status_code == status.HTTP_302_FOUND
-    response2 = cast(HttpResponseRedirect, response)
-    assert response2.url == f"/jobs/{bob_job_with_initial_marnie_inspection.id}/"
-
-    job = Job.objects.get(id=bob_job_with_initial_marnie_inspection.id)
-    assert job.status == Job.Status.QUOTE_REFUSED_BY_AGENT.value
+    _refuse_quote(admin_client, bob_job_with_initial_marnie_inspection)
