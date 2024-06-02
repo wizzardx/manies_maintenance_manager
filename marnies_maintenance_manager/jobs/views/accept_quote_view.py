@@ -4,6 +4,7 @@ from uuid import UUID
 
 from django.http import HttpRequest
 from django.http import HttpResponse
+from rest_framework import status
 
 
 def accept_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
@@ -13,8 +14,11 @@ def accept_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
         request (HttpRequest): The HTTP request.
         pk (UUID): The primary key of the Job instance.
 
-    Raises:
-        NotImplementedError: If the view is not implemented yet.
+    Returns:
+        HttpResponse: The HTTP response.
     """
-    msg = "This view is not implemented yet."
-    raise NotImplementedError(msg)
+    msg = (
+        f"This view is not implemented yet. Called with HTTP method "
+        f"{request.method} and pk: {pk}"
+    )
+    return HttpResponse(msg, status=status.HTTP_501_NOT_IMPLEMENTED)
