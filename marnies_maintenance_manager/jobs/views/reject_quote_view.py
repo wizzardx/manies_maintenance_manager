@@ -63,7 +63,7 @@ def reject_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
     job.accepted_or_rejected = Job.AcceptedOrRejected.REJECTED.value
     job.save()
 
-    # Send an email to Marnie telling him that his quote was rejected by the agent
+    # Send email to Marnie telling him that his quote was rejected by the agent
     email_subject = f"Quote rejected by {job.agent.username}"
     email_body = (
         f"Agent {job.agent.username} has rejected the quote for your maintenance "
