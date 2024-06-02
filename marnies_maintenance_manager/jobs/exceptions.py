@@ -47,3 +47,15 @@ class LogicalError(Exception):
             message (str): A custom message describing the exception.
         """
         super().__init__(message)
+
+
+class EnvironmentVariableNotSetError(Exception):
+    """Exception raised when an expected environment variable is not set."""
+
+    def __init__(self, message: str = "Environment variable not set.") -> None:
+        """Initialize the exception with a message.
+
+        Args:
+            message (str): A custom message describing the exception.
+        """
+        super().__init__(message)

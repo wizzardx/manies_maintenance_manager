@@ -5,8 +5,10 @@
 import re
 
 import pytest
+from _pytest.monkeypatch import MonkeyPatch  # pylint: disable=import-private-name
 from django.core.exceptions import ObjectDoesNotExist
 
+from marnies_maintenance_manager.jobs.exceptions import EnvironmentVariableNotSetError
 from marnies_maintenance_manager.jobs.exceptions import LogicalError
 from marnies_maintenance_manager.jobs.exceptions import MarnieUserNotFoundError
 from marnies_maintenance_manager.jobs.exceptions import MultipleMarnieUsersError
@@ -14,6 +16,7 @@ from marnies_maintenance_manager.jobs.exceptions import NoSystemAdministratorUse
 from marnies_maintenance_manager.jobs.utils import first_or_error
 from marnies_maintenance_manager.jobs.utils import get_marnie_email
 from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
+from marnies_maintenance_manager.jobs.utils import get_test_user_password
 from marnies_maintenance_manager.users.models import User
 
 
@@ -153,3 +156,29 @@ class TestFirstOrError:
         """Test that an exception is raised when the queryset is empty."""
         with pytest.raises(ObjectDoesNotExist, match="No object found."):
             first_or_error(User.objects.none())
+
+
+class TestGetTestUserPassword:
+    """Tests for the get_user_password utility function."""
+
+    def test_gets_user_password(self, monkeypatch: MonkeyPatch) -> None:
+        """Test that the user password is returned.
+
+        Args:
+            monkeypatch (MonkeyPatch): A pytest fixture to patch environment variables.
+        """
+        varname = "NEW_TEST_PASSWORD"
+        password = "the secret"  # noqa: S105
+        monkeypatch.setenv(varname, password)
+        returned_password = get_test_user_password(key=varname)
+        assert returned_password == password
+
+    @staticmethod
+    def test_fails_if_env_var_not_set() -> None:
+        """Test that an exception is raised when the environment variable is not set."""
+        varname = "NEW_TEST_PASSWORD"
+        with pytest.raises(
+            EnvironmentVariableNotSetError,
+            match="NEW_TEST_PASSWORD environment variable not set",
+        ):
+            get_test_user_password(key=varname)

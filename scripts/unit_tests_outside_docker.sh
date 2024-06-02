@@ -56,6 +56,9 @@ log "Setting up environment variables..."
 export DATABASE_URL=sqlite://:memory:  # Faster than PostgreSQL
 export USE_DOCKER=no
 
+TEST_USER_PASSWORD=$(scripts/print_test_user_password.sh)
+export TEST_USER_PASSWORD
+
 # The basic pytest command before we do any further alterations
 log "Preparing pytest command..."
 CMD=(

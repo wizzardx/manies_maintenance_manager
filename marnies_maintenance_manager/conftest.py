@@ -12,6 +12,7 @@ import pytest
 import pytest_django.fixtures
 from django.test import Client
 
+from marnies_maintenance_manager.jobs.utils import get_test_user_password
 from marnies_maintenance_manager.users.models import User
 from marnies_maintenance_manager.users.tests.factories import UserFactory
 
@@ -181,7 +182,7 @@ def marnie_user_client(marnie_user: User) -> Client:
         Client: A Django test client logged in as non-agent user Marnie.
     """
     client = Client()
-    logged_in = client.login(username="marnie", password="password")  # noqa: S106
+    logged_in = client.login(username="marnie", password=get_test_user_password())
     assert logged_in
     return client
 
@@ -210,7 +211,7 @@ def unknown_user_client(unknown_user: User) -> Client:
         Client: A Django test client logged in as an unknown user.
     """
     client = Client()
-    logged_in = client.login(username="unknown", password="password")  # noqa: S106
+    logged_in = client.login(username="unknown", password=get_test_user_password())
     assert logged_in
     return client
 
@@ -226,6 +227,6 @@ def bob_agent_user_client(bob_agent_user: User) -> Client:
         Client: A Django test client logged in as agent user Bob.
     """
     client = Client()
-    logged_in = client.login(username="bob", password="password")  # noqa: S106
+    logged_in = client.login(username="bob", password=get_test_user_password())
     assert logged_in
     return client

@@ -1,6 +1,7 @@
 """Utility functions for the "jobs" app."""
 
 import logging
+import os
 from typing import TypeVar
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -9,6 +10,7 @@ from django.db.models import QuerySet
 
 from marnies_maintenance_manager.users.models import User
 
+from .exceptions import EnvironmentVariableNotSetError
 from .exceptions import LogicalError
 from .exceptions import MarnieUserNotFoundError
 from .exceptions import MultipleMarnieUsersError
@@ -147,3 +149,23 @@ def user_has_verified_email_address(user: User) -> bool:
         emailaddress.verified
         for emailaddress in user.emailaddress_set.all()  # type: ignore[attr-defined]
     )
+
+
+def get_test_user_password(key: str = "TEST_USER_PASSWORD") -> str:
+    """Return the password for test users.
+
+    Args:
+        key (str): The environment variable key to retrieve the password from.
+
+    Returns:
+        str: The password for test users.
+
+    Raises:
+        EnvironmentVariableNotSetError: If the environment variable is not set.
+    """
+    # Retrieve the password from the TEST_USER_PASSWORD environment variable
+    try:
+        return os.environ[key]
+    except KeyError as err:
+        msg = f"{key} environment variable not set"
+        raise EnvironmentVariableNotSetError(msg) from err

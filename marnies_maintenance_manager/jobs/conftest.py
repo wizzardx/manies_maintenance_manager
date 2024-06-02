@@ -6,6 +6,7 @@ import pytest
 from django.test.client import Client
 
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.utils import get_test_user_password
 from marnies_maintenance_manager.users.models import User
 
 
@@ -25,7 +26,7 @@ def bob_agent_user_without_verified_email_client(
         Client: A Django test client logged in as agent user Bob without a verified
             email.
     """
-    logged_in = client.login(username="bob", password="password")  # noqa: S106
+    logged_in = client.login(username="bob", password=get_test_user_password())
     assert logged_in
     return client
 
@@ -41,7 +42,7 @@ def peter_agent_user_client(client: Client, peter_agent_user: User) -> Client:
     Returns:
         Client: A Django test client logged in as agent user Peter.
     """
-    logged_in = client.login(username="peter", password="password")  # noqa: S106
+    logged_in = client.login(username="peter", password=get_test_user_password())
     assert logged_in
     return client
 
@@ -57,7 +58,7 @@ def superuser_client(client: Client, superuser_user: User) -> Client:
     Returns:
         Client: A Django test client logged in as a superuser.
     """
-    logged_in = client.login(username="admin", password="password")  # noqa: S106
+    logged_in = client.login(username="admin", password=get_test_user_password())
     assert logged_in
     return client
 

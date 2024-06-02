@@ -20,6 +20,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from marnies_maintenance_manager.jobs.utils import get_test_user_password
 from marnies_maintenance_manager.users.models import User
 
 MAX_WAIT = 5  # Maximum time to wait during retries, before failing the test
@@ -108,7 +109,7 @@ def _sign_into_website(browser: WebDriver, username: str) -> None:
 
     # He types "secret" into the Password field
     password_field = browser.find_element(By.ID, "id_password")
-    password_field.send_keys("password")
+    password_field.send_keys(get_test_user_password())
 
     # He clicks the "Sign In" button
     sign_in_button = browser.find_element(By.CLASS_NAME, "btn-primary")

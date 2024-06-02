@@ -7,6 +7,7 @@ import uuid
 import pytest
 from django.core.exceptions import ValidationError
 
+from marnies_maintenance_manager.jobs.utils import get_test_user_password
 from marnies_maintenance_manager.users.models import User
 
 
@@ -48,7 +49,7 @@ def _make_user(
     """
     user_ = django_user_model.objects.create_user(
         username=username,
-        password="password",  # noqa: S106
+        password=get_test_user_password(),
         is_agent=is_agent,
         is_superuser=is_superuser,
         is_marnie=is_marnie,

@@ -19,6 +19,7 @@ from marnies_maintenance_manager.jobs.tests.views.utils import (
 from marnies_maintenance_manager.jobs.utils import count_admin_users
 from marnies_maintenance_manager.jobs.utils import count_agent_users
 from marnies_maintenance_manager.jobs.utils import count_marnie_users
+from marnies_maintenance_manager.jobs.utils import get_test_user_password
 from marnies_maintenance_manager.jobs.views.home_page_view import (
     USER_COUNT_PROBLEM_MESSAGES,
 )
@@ -805,7 +806,7 @@ def test_maintenance_jobs_link_in_navbar_is_present_for_logged_in_agent_users(
         bob_agent_user (User): User instance representing Bob, an agent user.
     """
     # Log in as the agent user
-    logged_in = client.login(username="bob", password="password")  # noqa: S106
+    logged_in = client.login(username="bob", password=get_test_user_password())
     assert logged_in
 
     # Check that the "Maintenance Jobs" link is present in the navbar
@@ -836,7 +837,7 @@ def test_maintenance_jobs_link_in_navbar_is_not_present_for_marnie_user(
         marnie_user (User): User instance representing Marnie, who is not an agent.
     """
     # Log in as Marnie
-    logged_in = client.login(username="marnie", password="password")  # noqa: S106
+    logged_in = client.login(username="marnie", password=get_test_user_password())
     assert logged_in
 
     assert not _maintenance_jobs_link_in_navbar_is_present(client)
@@ -853,7 +854,7 @@ def test_agents_link_is_visible_for_marnie_user(
         marnie_user (User): User instance representing Marnie, who is not an agent.
     """
     # Log in as Marnie
-    logged_in = client.login(username="marnie", password="password")  # noqa: S106
+    logged_in = client.login(username="marnie", password=get_test_user_password())
     assert logged_in
 
     # Get the response text for visiting the home page:
@@ -879,7 +880,7 @@ def test_agents_link_is_not_visible_for_none_marnie_users(
         bob_agent_user (User): User instance representing Bob, an agent user.
     """
     # Log in as Bob
-    logged_in = client.login(username="bob", password="password")  # noqa: S106
+    logged_in = client.login(username="bob", password=get_test_user_password())
     assert logged_in
 
     # Get the response text for visiting the home page:
@@ -905,7 +906,7 @@ def test_agents_link_points_to_agents_page(
         marnie_user (User): User instance representing Marnie, who is not an agent.
     """
     # Log in as Marnie
-    logged_in = client.login(username="marnie", password="password")  # noqa: S106
+    logged_in = client.login(username="marnie", password=get_test_user_password())
     assert logged_in
 
     # Get the response for visiting the home page:
