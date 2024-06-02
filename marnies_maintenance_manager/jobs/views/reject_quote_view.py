@@ -9,7 +9,6 @@ from django.core.mail import EmailMessage
 from django.http import HttpRequest
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 
@@ -55,8 +54,10 @@ def reject_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
         Job.Status.INSPECTION_COMPLETED.value,
         Job.Status.QUOTE_REJECTED_BY_AGENT.value,
     }:
-        data = {"error": "Job is not in the correct state for rejecting a quote."}
-        return JsonResponse(data=data, status=status.HTTP_412_PRECONDITION_FAILED)
+        return HttpResponse(
+            "Job is not in the correct state for rejecting a quote.",
+            status=status.HTTP_412_PRECONDITION_FAILED,
+        )
 
     # Change job state to 'rejected by agent'
     job.status = Job.Status.QUOTE_REJECTED_BY_AGENT.value

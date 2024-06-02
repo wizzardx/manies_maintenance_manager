@@ -109,9 +109,9 @@ def test_fails_if_job_not_in_correct_state(
         f"/jobs/{job_created_by_bob.id}/reject-quote/",
     )
     assert response.status_code == status.HTTP_412_PRECONDITION_FAILED
-    assert response.json() == {
-        "error": "Job is not in the correct state for rejecting a quote.",
-    }
+    assert (
+        response.content.decode("utf-8")
+    ).strip() == "Job is not in the correct state for rejecting a quote."
 
 
 def test_can_reject_when_job_already_in_rejected_state(
