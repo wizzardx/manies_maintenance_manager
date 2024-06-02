@@ -30,5 +30,5 @@ def agent_list(request: HttpRequest) -> HttpResponse:
     user = cast(User, request.user)
     if not (user.is_superuser or user.is_marnie):
         return HttpResponse(status=status.HTTP_403_FORBIDDEN)
-    context = {"agent_list": User.objects.filter(is_agent=True)}
+    context = {"agent_list": User.objects.filter(is_agent=True).order_by("username")}
     return render(request, "jobs/agent_list.html", context=context)

@@ -125,3 +125,23 @@ def _get_agent_list_items(marnie_user_client: Client) -> bs4.element.ResultSet:
 
     # Grab the LI elements from there:
     return agent_list.find_all("li")
+
+
+def test_agents_are_listed_in_alphanumeric_order_by_username(
+    marnie_user_client: Client,
+    peter_agent_user: User,
+    bob_agent_user: User,
+) -> None:
+    """Ensure agents are listed in alphanumeric order by username.
+
+    Args:
+        marnie_user_client (Client): A test client for Marnie.
+        peter_agent_user (User): Peter's user instance, an agent.
+        bob_agent_user (User): Bob's user instance, an agent.
+    """
+    list_items = _get_agent_list_items(marnie_user_client)
+    agent_usernames = [li.a.string for li in list_items]
+
+    # Bob should come before Steve, since "bob" comes before "steve" in
+    # alphanumeric order.
+    assert agent_usernames == sorted(agent_usernames)
