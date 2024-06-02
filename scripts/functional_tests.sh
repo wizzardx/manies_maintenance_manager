@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # Clear out the pycached "lastfailed" marker if it refers to something besides the
 # functional tests:
