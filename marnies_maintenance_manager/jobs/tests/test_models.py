@@ -392,10 +392,12 @@ class TestJobModelPerAgentAutoIncrementingNumberField:
         with pytest.raises(IntegrityError):
             job1.save()
 
-    def test_has_date_of_inspection_field(self) -> None:
-        """Ensure the Job model has a 'date_of_inspection' field."""
-        assert hasattr(Job, "date_of_inspection")
 
-    def test_has_quote_field(self) -> None:
-        """Ensure the Job model has a 'quote' field."""
-        assert hasattr(Job, "quote")
+def test_has_date_of_inspection_field() -> None:
+    """Ensure the Job model has a 'date_of_inspection' field."""
+    assert hasattr(Job, "date_of_inspection")
+
+
+def test_has_quote_field() -> None:
+    """Ensure the Job model has a 'quote' field."""
+    assert hasattr(Job, "quote")
