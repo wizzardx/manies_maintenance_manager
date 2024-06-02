@@ -652,7 +652,7 @@ class TestAcceptQuoteButtonVisibility:
         )
         assert button is not None
 
-    def test_anonymous_user_is_redirected_to_login_page(
+    def test_anonymous_user_is_redirected_to_login_page_before_seeing_view(
         self,
         bob_job_with_initial_marnie_inspection: Job,
         client: Client,
@@ -678,6 +678,24 @@ class TestAcceptQuoteButtonVisibility:
             response2.url == "/accounts/login/?next=/jobs/"
             f"{bob_job_with_initial_marnie_inspection.pk}/"
         )
+
+    def test_still_visible_after_rejecting_quote(
+        self,
+        job_rejected_by_bob: Job,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Ensure the accept quote button is visible after the agent rejects quote.
+
+        Args:
+            job_rejected_by_bob (Job): The job created by Bob with the quote rejected by
+                the agent.
+            bob_agent_user_client (Client): The Django test client for Bob.
+        """
+        button = _get_accept_quote_button_or_none(
+            job_rejected_by_bob,
+            bob_agent_user_client,
+        )
+        assert button is not None
 
 
 def _get_accept_quote_button_or_none(

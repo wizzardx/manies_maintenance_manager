@@ -53,9 +53,13 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
             and ((user.is_agent and user == obj.agent) or user.is_superuser)
         )
 
-        # The "Accept Quote" button has the same conditions for when it should be
-        # displayed.
-        accept_quote_button_present = reject_quote_button_present
+        # The "Accept Quote" button has almost the same conditions for when it should be
+        # displayed, except that it should also be displayed when the quote has been
+        # rejected by the Agent.
+        accept_quote_button_present = obj.status in {
+            Job.Status.INSPECTION_COMPLETED.value,
+            Job.Status.QUOTE_REJECTED_BY_AGENT.value,
+        } and ((user.is_agent and user == obj.agent) or user.is_superuser)
 
         context = super().get_context_data(**kwargs)
         context["update_link_present"] = update_link_present
