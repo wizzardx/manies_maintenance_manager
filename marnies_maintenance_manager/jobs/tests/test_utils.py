@@ -17,6 +17,7 @@ from marnies_maintenance_manager.jobs.utils import first_or_error
 from marnies_maintenance_manager.jobs.utils import get_marnie_email
 from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
 from marnies_maintenance_manager.jobs.utils import get_test_user_password
+from marnies_maintenance_manager.jobs.utils import make_user
 from marnies_maintenance_manager.users.models import User
 
 
@@ -182,3 +183,50 @@ class TestGetTestUserPassword:
             match="NEW_TEST_PASSWORD environment variable not set",
         ):
             get_test_user_password(key=varname)
+
+
+@pytest.mark.django_db()
+class TestMakeUser:
+    """Tests for the make_user utility function."""
+
+    @staticmethod
+    def test_without_optional_flags() -> None:
+        """Test creating a user without any optional flags set."""
+        make_user(User, "test")
+
+        # Check that the user was created, with all the flags set as expected
+        user = User.objects.get(username="test")
+        assert user.is_agent is False
+        assert user.is_superuser is False
+        assert user.is_marnie is False
+        assert user.email == "test@example.com"
+
+        email = user.emailaddress_set.first()  # type: ignore[attr-defined]
+        assert email.email == "test@example.com"
+        assert email.primary is True
+        assert email.verified is True
+
+    @staticmethod
+    def test_with_all_optional_flags_set_to_none_default_values() -> None:
+        """Test creating a user with all optional flags set to none-default values."""
+        make_user(
+            User,
+            "test",
+            is_agent=True,
+            is_superuser=True,
+            is_marnie=True,
+            email_verified=False,
+            email_primary=False,
+        )
+
+        # Check that the user was created, with all the flags set as expected
+        user = User.objects.get(username="test")
+        assert user.is_agent is True
+        assert user.is_superuser is True
+        assert user.is_marnie is True
+        assert user.email == "test@example.com"
+
+        email = user.emailaddress_set.first()  # type: ignore[attr-defined]
+        assert email.email == "test@example.com"
+        assert email.primary is False
+        assert email.verified is False
