@@ -5,9 +5,26 @@
 # pylint: disable=else-if-used,confusing-consecutive-elif
 
 import json
+import logging
+import shutil
 from pathlib import Path
 
 LASTFAILED_PATH = Path(".pytest_cache/v/cache/lastfailed")
+
+logger = logging.getLogger(__name__)
+
+
+def reset_lastfailed_file_ownership_if_needed() -> None:
+    """Reset the file ownership of the pytest lastfailed file if needed."""
+    david_username = "david"
+    if LASTFAILED_PATH.owner() != david_username:
+        # We can reset the file ownerships by copying the file to a temporary location,
+        # deleting the original file, and then renaming the temporary file back.
+        logger.warning("Resetting file ownerships: %s", LASTFAILED_PATH)
+        path_tmp = Path(str(LASTFAILED_PATH) + ".tmp")
+        shutil.copy2(LASTFAILED_PATH, path_tmp)
+        LASTFAILED_PATH.unlink()
+        shutil.move(path_tmp, LASTFAILED_PATH)
 
 
 def clear_file(
@@ -40,6 +57,9 @@ def clear_file(
     # Quit if the pytest lastfailed file does not exist:
     if not LASTFAILED_PATH.is_file():
         return
+
+    # Reset file ownership from "root" to "david" if needed:
+    reset_lastfailed_file_ownership_if_needed()
 
     # Read the contents. It's a dictionary mapping between paths and boolean values.
     with LASTFAILED_PATH.open(encoding="utf-8") as f:
