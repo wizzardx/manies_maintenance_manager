@@ -45,13 +45,13 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
 
         # The "Reject Quote" button may only be seen when the Job is a correct status,
         # and the user is Admin or an Agent. If the user is an Agent, then we also check
-        # # if it's the same agent who created the Job, even though technically that's
+        # if it's the same agent who created the Job, even though technically that's
         # not needed (since the user doesn't have permission to see other agents' jobs
         # anyway).
-        reject_quote_button_present = obj.status in {
-            Job.Status.INSPECTION_COMPLETED.value,
-            Job.Status.QUOTE_REJECTED_BY_AGENT.value,
-        } and ((user.is_agent and user == obj.agent) or user.is_superuser)
+        reject_quote_button_present = (
+            obj.status == Job.Status.INSPECTION_COMPLETED.value
+            and ((user.is_agent and user == obj.agent) or user.is_superuser)
+        )
 
         # The "Accept Quote" button has the same conditions for when it should be
         # displayed.

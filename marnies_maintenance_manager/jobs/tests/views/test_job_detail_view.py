@@ -539,12 +539,12 @@ class TestRejectQuoteButtonVisibility:
             f"{bob_job_with_initial_marnie_inspection.pk}/"
         )
 
-    def test_visible_when_quote_rejected_by_agent(
+    def test_not_visible_when_quote_rejected_by_agent(
         self,
         job_rejected_by_bob: Job,
         bob_agent_user_client: Client,
     ) -> None:
-        """Ensure the reject quote button is visible when the agent rejects the quote.
+        """Ensure the reject button is not visible when the agent rejects the quote.
 
         Args:
             job_rejected_by_bob (Job): The job created by Bob with the quote rejected by
@@ -555,7 +555,7 @@ class TestRejectQuoteButtonVisibility:
             job_rejected_by_bob,
             bob_agent_user_client,
         )
-        assert button is not None
+        assert button is None
 
 
 class TestAcceptQuoteButtonVisibility:
