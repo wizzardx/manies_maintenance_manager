@@ -16,8 +16,7 @@ PYTHON_EXEC=$(pyenv which python)
 
 # Make a Python virtual environment if it does not already exist
 log "Creating virtual environment if it doesn't exist..."
-PWD_MD5=$(pwd | md5sum | awk '{print $1}')
-VENV_DIR="/tmp/.marnies_maintenance_manager_project.$PWD_MD5.venv"
+VENV_DIR=$(scripts/print_venv_dir.sh)
 if [ ! -d "$VENV_DIR" ]; then
     $PYTHON_EXEC -m venv "$VENV_DIR"
 fi

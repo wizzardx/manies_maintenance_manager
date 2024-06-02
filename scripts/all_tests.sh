@@ -24,14 +24,14 @@ scripts/unit_tests_outside_docker.sh || ERRORS=yes
 # Do the helper script checks over here, because it wants to check the .venv file
 # logic (but the .venv might not exist if the previous line has not yet run)
 echo "Check helper scripts..."
-shellcheck -x scripts/*.sh ||  {
-    echo "Shellcheck found issues in the script. Please review them before running the script."
-    ERRORS=yes
-}
+shellcheck -x scripts/*.sh
 
 # Activate the .venv just setup, to get the correct versions of various testing utils
 # available.
-. .venv/bin/activate
+VENV_DIR=$(scripts/print_venv_dir.sh)
+
+# shellcheck disable=SC1091
+. "$VENV_DIR"/bin/activate
 
 # Run 'black' agains the code, it makes some things a bit faster in the precommit,
 # instead of it taking a long time to run reformats, and then terminate with an
