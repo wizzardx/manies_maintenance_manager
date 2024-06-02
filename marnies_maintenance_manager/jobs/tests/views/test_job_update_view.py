@@ -541,6 +541,17 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
         "is attached to this email." in email.body
     )
 
+    # There should now be exactly one job in the database. Fetch it so that we can
+    # use it to check the email body.
+    job = Job.objects.get()
+
+    # Check that there's a link to the job detail view in the email body:
+    job_id = str(job.id)
+    assert (
+        f"Details of the job can be found at: http://testserver/jobs/{job_id}/"
+        in email.body
+    )
+
     assert "Details of your original request:" in email.body
 
     # A separator line:

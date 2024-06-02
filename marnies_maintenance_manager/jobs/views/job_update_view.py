@@ -70,7 +70,7 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
 
         # Call the email body-generation logic used previously, to help us populate
         # the rest of this email body:
-        email_body += generate_email_body(instance)
+        email_body += generate_email_body(instance, self.request)
 
         email_from = DEFAULT_FROM_EMAIL
         email_to = instance.agent.email

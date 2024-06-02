@@ -64,11 +64,15 @@ def reject_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
     job.accepted_or_rejected = Job.AcceptedOrRejected.REJECTED.value
     job.save()
 
+    # Get full URL for the job detail view
+    job_detail_url = request.build_absolute_uri(job.get_absolute_url())
+
     # Send email to Marnie telling him that his quote was rejected by the agent
     email_subject = f"Quote rejected by {job.agent.username}"
     email_body = (
         f"Agent {job.agent.username} has rejected the quote for your maintenance "
         "request.\n\n"
+        f"Details of the job can be found at: {job_detail_url}\n\n"
         "Details of the original request:\n\n"
         "-----\n\n"
         "Subject: Quote for your maintenance request\n\n"
@@ -80,7 +84,7 @@ def reject_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
 
     # Call the email body-generation logic used previously, to help us populate
     # the rest of this email body:
-    email_body += generate_email_body(job)
+    email_body += generate_email_body(job, request)
 
     email_from = DEFAULT_FROM_EMAIL
     email_to = get_marnie_email()

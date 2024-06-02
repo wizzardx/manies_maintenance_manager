@@ -25,17 +25,22 @@ from marnies_maintenance_manager.users.models import User
 logger = logging.getLogger(__name__)
 
 
-def generate_email_body(job: Job) -> str:
+def generate_email_body(job: Job, request: HttpRequest) -> str:
     """Generate the email body for the maintenance request email.
 
     Args:
         job (Job): The Job object.
+        request (HttpRequest): The HTTP request.
 
     Returns:
         str: The email body.
     """
+    # Get full URL for the job detail view
+    job_detail_url = request.build_absolute_uri(job.get_absolute_url())
+
     return (
         f"{job.agent.username} has made a new maintenance request.\n\n"
+        f"Details of the job can be found at: {job_detail_url}\n\n"
         f"Date: {job.date}\n\n"
         f"Address Details:\n\n{job.address_details}\n\n"
         f"GPS Link:\n\n{job.gps_link}\n\n"
@@ -220,8 +225,7 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
             raise ValueError(msg)
 
         email_subject = f"New maintenance request by {job.agent.username}"
-
-        email_body = generate_email_body(job)
+        email_body = generate_email_body(job, self.request)
 
         email_from = DEFAULT_FROM_EMAIL
         email_cc = self.request.user.email

@@ -522,6 +522,17 @@ def test_agent_creating_job_causes_email_to_be_sent(
     assert marnie_user.email in email.to
     assert bob_agent_user.email in email.cc
 
+    # There should now be exactly one job in the database. Fetch it so that we can
+    # use it to check the email body.
+    job = Job.objects.get()
+
+    # Check that there's a link to the job detail view in the email body:
+    job_id = str(job.id)
+    assert (
+        f"Details of the job can be found at: http://testserver/jobs/{job_id}/"
+        in email.body
+    )
+
     # Check mail contents:
     assert "bob has made a new maintenance request." in email.body
     assert "Date: 2021-01-01" in email.body

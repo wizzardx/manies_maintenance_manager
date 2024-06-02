@@ -241,6 +241,13 @@ def test_email_sent_to_marnie_user(
         "Agent bob has rejected the quote for your maintenance request." in email.body
     )
 
+    # Check that there's a link to the job detail view in the email body:
+    job_id = str(bob_job_with_initial_marnie_inspection.id)
+    assert (
+        f"Details of the job can be found at: http://testserver/jobs/{job_id}/"
+        in email.body
+    )
+
     assert "Details of the original request:" in email.body
 
     # A separator line:
