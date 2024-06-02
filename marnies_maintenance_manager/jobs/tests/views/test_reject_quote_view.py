@@ -270,6 +270,7 @@ def test_email_sent_to_marnie_user(
 
     assert "bob has made a new maintenance request." in email.body
     assert "Date: 2022-01-01" in email.body
+    assert "Number: 1" in email.body
     assert "Address Details:\n\n1234 Main St, Springfield, IL" in email.body
     assert "GPS Link:\n\nhttps://www.google.com/maps" in email.body
     assert "Quote Request Details:\n\nReplace the kitchen sink" in email.body

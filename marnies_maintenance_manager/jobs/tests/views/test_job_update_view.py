@@ -564,6 +564,7 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
     # agent user had just created a new job:
 
     assert "bob has made a new maintenance request." in email.body
+    assert "Number: 1" in email.body
     assert "Date: 2022-01-01" in email.body
     assert "Address Details:\n\n1234 Main St, Springfield, IL" in email.body
     assert "GPS Link:\n\nhttps://www.google.com/maps" in email.body

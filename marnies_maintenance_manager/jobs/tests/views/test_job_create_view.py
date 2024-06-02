@@ -535,6 +535,7 @@ def test_agent_creating_job_causes_email_to_be_sent(
 
     # Check mail contents:
     assert "bob has made a new maintenance request." in email.body
+    assert "Number: 1" in email.body
     assert "Date: 2021-01-01" in email.body
     assert "Address Details:\n\nDepartment of Home Affairs Bellville" in email.body
     assert "GPS Link:\n\nhttps://maps.app.goo.gl/mXfDGVfn1dhZDxJj7" in email.body

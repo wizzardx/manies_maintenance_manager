@@ -41,6 +41,7 @@ def generate_email_body(job: Job, request: HttpRequest) -> str:
     return (
         f"{job.agent.username} has made a new maintenance request.\n\n"
         f"Details of the job can be found at: {job_detail_url}\n\n"
+        f"Number: {job.number}\n\n"
         f"Date: {job.date}\n\n"
         f"Address Details:\n\n{job.address_details}\n\n"
         f"GPS Link:\n\n{job.gps_link}\n\n"
