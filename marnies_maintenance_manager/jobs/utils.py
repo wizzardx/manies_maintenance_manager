@@ -171,7 +171,7 @@ def get_test_user_password(key: str = "TEST_USER_PASSWORD") -> str:
         raise EnvironmentVariableNotSetError(msg) from err
 
 
-def make_user(  # noqa: PLR0913  # pylint: disable=too-many-arguments
+def make_test_user(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     django_user_model: type[User],
     username: str,
     *,

@@ -17,7 +17,7 @@ from marnies_maintenance_manager.jobs.utils import first_or_error
 from marnies_maintenance_manager.jobs.utils import get_marnie_email
 from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
 from marnies_maintenance_manager.jobs.utils import get_test_user_password
-from marnies_maintenance_manager.jobs.utils import make_user
+from marnies_maintenance_manager.jobs.utils import make_test_user
 from marnies_maintenance_manager.users.models import User
 
 
@@ -186,13 +186,13 @@ class TestGetTestUserPassword:
 
 
 @pytest.mark.django_db()
-class TestMakeUser:
-    """Tests for the make_user utility function."""
+class TestMakeTestUser:
+    """Tests for the make_test_user utility function."""
 
     @staticmethod
     def test_without_optional_flags() -> None:
         """Test creating a user without any optional flags set."""
-        make_user(User, "test")
+        make_test_user(User, "test")
 
         # Check that the user was created, with all the flags set as expected
         user = User.objects.get(username="test")
@@ -209,7 +209,7 @@ class TestMakeUser:
     @staticmethod
     def test_with_all_optional_flags_set_to_none_default_values() -> None:
         """Test creating a user with all optional flags set to none-default values."""
-        make_user(
+        make_test_user(
             User,
             "test",
             is_agent=True,

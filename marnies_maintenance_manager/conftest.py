@@ -13,7 +13,7 @@ import pytest_django.fixtures
 from django.test import Client
 
 from marnies_maintenance_manager.jobs.utils import get_test_user_password
-from marnies_maintenance_manager.jobs.utils import make_user
+from marnies_maintenance_manager.jobs.utils import make_test_user
 from marnies_maintenance_manager.users.models import User
 from marnies_maintenance_manager.users.tests.factories import UserFactory
 
@@ -60,7 +60,7 @@ def bob_agent_user(django_user_model: type[User]) -> User:
     Returns:
         User: A Django User instance configured as an agent, named 'bob'.
     """
-    return make_user(django_user_model, "bob", is_agent=True)
+    return make_test_user(django_user_model, "bob", is_agent=True)
 
 
 @pytest.fixture()
@@ -73,7 +73,7 @@ def bob_agent_user_without_verified_email(django_user_model: type[User]) -> User
     Returns:
         User: A Django User instance configured as an agent, named 'bob'.
     """
-    return make_user(django_user_model, "bob", is_agent=True, email_verified=False)
+    return make_test_user(django_user_model, "bob", is_agent=True, email_verified=False)
 
 
 @pytest.fixture()
@@ -86,7 +86,7 @@ def peter_agent_user(django_user_model: type[User]) -> User:
     Returns:
         User: A Django User instance configured as an agent, named 'peter'.
     """
-    return make_user(django_user_model, "peter", is_agent=True)
+    return make_test_user(django_user_model, "peter", is_agent=True)
 
 
 @pytest.fixture()
@@ -99,7 +99,7 @@ def marnie_user(django_user_model: type[User]) -> User:
     Returns:
         User: A Django User instance configured as 'marnie', without agent privileges.
     """
-    return make_user(django_user_model, "marnie", is_marnie=True)
+    return make_test_user(django_user_model, "marnie", is_marnie=True)
 
 
 @pytest.fixture()
@@ -112,7 +112,12 @@ def marnie_user_without_verified_email(django_user_model: type[User]) -> User:
     Returns:
         User: A Django User instance configured as 'marnie', without agent privileges.
     """
-    return make_user(django_user_model, "marnie", is_marnie=True, email_verified=False)
+    return make_test_user(
+        django_user_model,
+        "marnie",
+        is_marnie=True,
+        email_verified=False,
+    )
 
 
 @pytest.fixture()
@@ -125,7 +130,7 @@ def superuser_user(django_user_model: type[User]) -> User:
     Returns:
         User: A Django User instance with superuser privileges, named 'admin'.
     """
-    return make_user(django_user_model, "admin", is_superuser=True)
+    return make_test_user(django_user_model, "admin", is_superuser=True)
 
 
 @pytest.fixture()
@@ -154,7 +159,7 @@ def unknown_user(django_user_model: type[User]) -> User:
     Returns:
         User: A Django User instance configured as an unknown user.
     """
-    return make_user(django_user_model, "unknown")
+    return make_test_user(django_user_model, "unknown")
 
 
 @pytest.fixture()
