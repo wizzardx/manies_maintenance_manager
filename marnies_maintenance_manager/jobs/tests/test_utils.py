@@ -8,16 +8,8 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch  # pylint: disable=import-private-name
 from django.core.exceptions import ObjectDoesNotExist
 
-from marnies_maintenance_manager.jobs.exceptions import EnvironmentVariableNotSetError
-from marnies_maintenance_manager.jobs.exceptions import LogicalError
-from marnies_maintenance_manager.jobs.exceptions import MarnieUserNotFoundError
-from marnies_maintenance_manager.jobs.exceptions import MultipleMarnieUsersError
-from marnies_maintenance_manager.jobs.exceptions import NoSystemAdministratorUserError
-from marnies_maintenance_manager.jobs.utils import first_or_error
-from marnies_maintenance_manager.jobs.utils import get_marnie_email
-from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
-from marnies_maintenance_manager.jobs.utils import get_test_user_password
-from marnies_maintenance_manager.jobs.utils import make_test_user
+from marnies_maintenance_manager.jobs import exceptions
+from marnies_maintenance_manager.jobs import utils
 from marnies_maintenance_manager.users.models import User
 
 
@@ -34,12 +26,15 @@ class TestGetMarnieEmail:
                                 queried.
         """
         expected = marnie_user.email
-        assert get_marnie_email() == expected
+        assert utils.get_marnie_email() == expected
 
     def test_fails_when_no_marnie_user(self) -> None:
         """Test that an exception is raised when there is no Marnie user."""
-        with pytest.raises(MarnieUserNotFoundError, match="No Marnie user found."):
-            get_marnie_email()
+        with pytest.raises(
+            exceptions.MarnieUserNotFoundError,
+            match="No Marnie user found.",
+        ):
+            utils.get_marnie_email()
 
     def test_fails_when_multiple_marnie_users(
         self,
@@ -58,10 +53,10 @@ class TestGetMarnieEmail:
         bob_agent_user.save()
 
         with pytest.raises(
-            MultipleMarnieUsersError,
+            exceptions.MultipleMarnieUsersError,
             match="Multiple Marnie users found.",
         ):
-            get_marnie_email()
+            utils.get_marnie_email()
 
 
 @pytest.mark.django_db()
@@ -75,16 +70,16 @@ class TestGetSystemAdministratorEmail:
             admin_user (User): A user instance representing an admin, expected to be
                                queried.
         """
-        email = get_sysadmin_email()
+        email = utils.get_sysadmin_email()
         assert email == "admin@example.com"
 
     def test_fails_when_no_sysadmin_user(self) -> None:
         """Ensure an exception is raised when no system administrator user is found."""
         with pytest.raises(
-            NoSystemAdministratorUserError,
+            exceptions.NoSystemAdministratorUserError,
             match="No system administrator user found.",
         ):
-            get_sysadmin_email()
+            utils.get_sysadmin_email()
 
     def test_works_when_there_are_multiple_sysadmin_users(
         self,
@@ -106,7 +101,7 @@ class TestGetSystemAdministratorEmail:
         marnie_user.is_superuser = True
         marnie_user.save()
 
-        email = get_sysadmin_email()
+        email = utils.get_sysadmin_email()
         assert email in [admin_user.email, marnie_user.email]
 
         # We should also log a warning about this.
@@ -129,8 +124,8 @@ class TestGetSystemAdministratorEmail:
         # to check the logical error handling.
         msg = "Reached logically impossible branch in get_sysadmin_email"
 
-        with pytest.raises(LogicalError, match=re.escape(msg)):
-            get_sysadmin_email(_introduce_logic_error=True)
+        with pytest.raises(exceptions.LogicalError, match=re.escape(msg)):
+            utils.get_sysadmin_email(_introduce_logic_error=True)
 
         # Check that this same message was logged at "critical" level.
         assert len(caplog.records) == 1
@@ -151,12 +146,12 @@ class TestFirstOrError:
         """
         queryset = User.objects.all()
         first = queryset.first()
-        assert first_or_error(queryset) == first
+        assert utils.first_or_error(queryset) == first
 
     def test_raises_error_when_queryset_empty(self) -> None:
         """Test that an exception is raised when the queryset is empty."""
         with pytest.raises(ObjectDoesNotExist, match="No object found."):
-            first_or_error(User.objects.none())
+            utils.first_or_error(User.objects.none())
 
 
 class TestGetTestUserPassword:
@@ -171,7 +166,7 @@ class TestGetTestUserPassword:
         varname = "NEW_TEST_PASSWORD"
         password = "the secret"  # noqa: S105
         monkeypatch.setenv(varname, password)
-        returned_password = get_test_user_password(key=varname)
+        returned_password = utils.get_test_user_password(key=varname)
         assert returned_password == password
 
     @staticmethod
@@ -179,10 +174,10 @@ class TestGetTestUserPassword:
         """Test that an exception is raised when the environment variable is not set."""
         varname = "NEW_TEST_PASSWORD"
         with pytest.raises(
-            EnvironmentVariableNotSetError,
+            exceptions.EnvironmentVariableNotSetError,
             match="NEW_TEST_PASSWORD environment variable not set",
         ):
-            get_test_user_password(key=varname)
+            utils.get_test_user_password(key=varname)
 
 
 @pytest.mark.django_db()
@@ -192,7 +187,7 @@ class TestMakeTestUser:
     @staticmethod
     def test_without_optional_flags() -> None:
         """Test creating a user without any optional flags set."""
-        make_test_user(User, "test")
+        utils.make_test_user(User, "test")
 
         # Check that the user was created, with all the flags set as expected
         user = User.objects.get(username="test")
@@ -209,7 +204,7 @@ class TestMakeTestUser:
     @staticmethod
     def test_with_all_optional_flags_set_to_none_default_values() -> None:
         """Test creating a user with all optional flags set to none-default values."""
-        make_test_user(
+        utils.make_test_user(
             User,
             "test",
             is_agent=True,
