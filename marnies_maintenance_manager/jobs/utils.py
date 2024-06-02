@@ -91,7 +91,7 @@ def get_sysadmin_email(*, _introduce_logic_error: bool = False) -> str:
 T = TypeVar("T", bound=Model)
 
 
-def first_or_error(queryset: QuerySet[T], error_message: str = "No object found.") -> T:
+def first_or_error(queryset: QuerySet[T], error_message: str = "No object found") -> T:
     """Return first object of a queryset, or raise an error if the queryset is empty.
 
     Args:

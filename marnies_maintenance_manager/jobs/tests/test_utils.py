@@ -32,7 +32,7 @@ class TestGetMarnieEmail:
         """Test that an exception is raised when there is no Marnie user."""
         with pytest.raises(
             exceptions.MarnieUserNotFoundError,
-            match="No Marnie user found.",
+            match="No Marnie user found",
         ):
             utils.get_marnie_email()
 
@@ -54,7 +54,7 @@ class TestGetMarnieEmail:
 
         with pytest.raises(
             exceptions.MultipleMarnieUsersError,
-            match="Multiple Marnie users found.",
+            match="Multiple Marnie users found",
         ):
             utils.get_marnie_email()
 
@@ -77,7 +77,7 @@ class TestGetSystemAdministratorEmail:
         """Ensure an exception is raised when no system administrator user is found."""
         with pytest.raises(
             exceptions.NoSystemAdministratorUserError,
-            match="No system administrator user found.",
+            match="No system administrator user found",
         ):
             utils.get_sysadmin_email()
 
@@ -150,7 +150,7 @@ class TestFirstOrError:
 
     def test_raises_error_when_queryset_empty(self) -> None:
         """Test that an exception is raised when the queryset is empty."""
-        with pytest.raises(ObjectDoesNotExist, match="No object found."):
+        with pytest.raises(ObjectDoesNotExist, match="No object found"):
             utils.first_or_error(User.objects.none())
 
 

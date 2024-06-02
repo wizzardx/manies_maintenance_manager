@@ -4,7 +4,7 @@
 class MarnieUserNotFoundError(Exception):
     """Exception raised when no Marnie user is found."""
 
-    def __init__(self, message: str = "No Marnie user found.") -> None:
+    def __init__(self, message: str = "No Marnie user found") -> None:
         """Initialize the exception with a message.
 
         Args:
@@ -16,7 +16,7 @@ class MarnieUserNotFoundError(Exception):
 class MultipleMarnieUsersError(Exception):
     """Exception raised when multiple Marnie users are found."""
 
-    def __init__(self, message: str = "Multiple Marnie users found.") -> None:
+    def __init__(self, message: str = "Multiple Marnie users found") -> None:
         """Initialize the exception with a message.
 
         Args:
@@ -28,7 +28,7 @@ class MultipleMarnieUsersError(Exception):
 class NoSystemAdministratorUserError(Exception):
     """Exception raised when no system administrator user is found."""
 
-    def __init__(self, message: str = "No system administrator user found.") -> None:
+    def __init__(self, message: str = "No system administrator user found") -> None:
         """Initialize the exception with a message.
 
         Args:
@@ -40,7 +40,7 @@ class NoSystemAdministratorUserError(Exception):
 class LogicalError(Exception):
     """Exception raised when a logical error is encountered."""
 
-    def __init__(self, message: str = "A logical error occurred.") -> None:
+    def __init__(self, message: str = "A logical error occurred") -> None:
         """Initialize the exception with a message.
 
         Args:
@@ -52,7 +52,7 @@ class LogicalError(Exception):
 class EnvironmentVariableNotSetError(Exception):
     """Exception raised when an expected environment variable is not set."""
 
-    def __init__(self, message: str = "Environment variable not set.") -> None:
+    def __init__(self, message: str = "Environment variable not set") -> None:
         """Initialize the exception with a message.
 
         Args:
