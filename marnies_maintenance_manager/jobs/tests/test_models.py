@@ -401,3 +401,47 @@ def test_has_date_of_inspection_field() -> None:
 def test_has_quote_field() -> None:
     """Ensure the Job model has a 'quote' field."""
     assert hasattr(Job, "quote")
+
+
+def test_valid_values_for_accept_or_reject_field(job_created_by_bob: Job) -> None:
+    """Ensure the 'accept_or_reject' field only accepts 'accept' or 'reject'.
+
+    Args:
+        job_created_by_bob (Job): Job instance created by Bob.
+    """
+    # Check for errors with supported values:
+    job = job_created_by_bob
+
+    # The default 'empty' value is allowed (for strings we use "" instead of None):
+    job.accepted_or_rejected = ""
+    job.full_clean()
+
+    job.accepted_or_rejected = "accepted"
+    job.full_clean()
+
+    job.accepted_or_rejected = "rejected"
+    job.full_clean()
+
+    # Check for errors with unsupported values:
+    job.accepted_or_rejected = "unknown"
+    with pytest.raises(ValidationError) as err:
+        job.full_clean()
+    assert err.value.message_dict["accepted_or_rejected"] == [
+        "Value 'unknown' is not a valid choice.",
+    ]
+
+    job.accepted_or_rejected = None  # type: ignore[assignment]
+    job.full_clean()  # Should not raise
+    with pytest.raises(IntegrityError) as err:  # type: ignore[assignment]
+        job.save()
+
+    # SQLite3 text:
+    expected_1 = "NOT NULL constraint failed: jobs_job.accepted_or_rejected"
+    # PostgreSQL text:
+    expected_2 = (
+        'null value in column "accepted_or_rejected" of relation "jobs_job" '
+        "violates not-null constraint"
+    )
+
+    err_str = str(err.value)
+    assert expected_1 in err_str or expected_2 in err_str
