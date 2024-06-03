@@ -18,21 +18,20 @@ paplay /usr/share/sounds/sound-icons/message
 
 show_message() {
     local message="$1"
+    echo "$message"
     yad --text="$message" --button=gtk-ok --on-top --width=300 --height=100 --center
 }
 
 if [ "$RETCODE" == "0" ]; then
-    echo "Tests done - SUCCESS"
-    show_message "Tests done""Tests done - SUCCESS"
+    show_message "Tests done - SUCCESS"
     echo "Done with all_tests_under_pycharm.sh - SUCCESS"
 else
-    echo "Tests done - FAILURE"
     show_message "Tests done - FAILURE"
     echo "Done with all_tests_under_pycharm.sh - FAILURE"
 fi
 
 # Bring the focus back to the terminal
-echo "Bringing focus back to the original terminal.".
+echo "Bringing focus back to the original terminal."
 xdotool windowactivate "$TERMINAL_WIN_ID"
 
 echo "Exiting with code $RETCODE "
