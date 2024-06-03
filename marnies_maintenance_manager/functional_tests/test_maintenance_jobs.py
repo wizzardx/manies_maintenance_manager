@@ -519,26 +519,12 @@ def test_marnie_can_update_agents_job(
     _update_job_with_inspection_date_and_quote(browser)
 
 
-def test_bob_can_reject_marnies_quote(
-    browser: WebDriver,
-    live_server_url: str,
-    marnie_user: User,
-    bob_agent_user: User,
-) -> None:
+def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
     """Ensure Bob can reject the quote submitted by Marnie.
 
     Args:
         browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-        marnie_user (User): The user instance for Marnie.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
     """
-    ## First, quickly run through the steps of an Agent creating a new Job.
-    _create_new_job(browser, live_server_url)
-
-    ## Next, Marnie does an inspection, and updates the inspection date and quote.
-    _update_job_with_inspection_date_and_quote(browser)
-
     # Bob receives the email notification that Marnie has done the initial inspection,
     # so he signs in to the website
     _sign_into_website(browser, "bob")
@@ -607,3 +593,27 @@ def test_bob_can_reject_marnies_quote(
 
     # Satisfied, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)
+
+
+def test_bob_can_reject_marnies_quote(
+    browser: WebDriver,
+    live_server_url: str,
+    marnie_user: User,
+    bob_agent_user: User,
+) -> None:
+    """Ensure Bob can reject the quote submitted by Marnie.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+        marnie_user (User): The user instance for Marnie.
+        bob_agent_user (User): The user instance for Bob, who is an agent.
+    """
+    ## First, quickly run through the steps of an Agent creating a new Job.
+    _create_new_job(browser, live_server_url)
+
+    ## Next, Marnie does an inspection, and updates the inspection date and quote.
+    _update_job_with_inspection_date_and_quote(browser)
+
+    ## Bob Rejects Marnies quote:
+    _bob_rejects_marnies_quote(browser)
