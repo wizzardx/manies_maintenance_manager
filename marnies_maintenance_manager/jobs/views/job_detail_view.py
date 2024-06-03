@@ -61,8 +61,15 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
             Job.Status.QUOTE_REJECTED_BY_AGENT.value,
         } and ((user.is_agent and user == obj.agent) or user.is_superuser)
 
+        # The "Update Quote" link is something that Marnie can use - when the Agent
+        # rejected his previously submitted quote, to upload a new one.
+        update_quote_link_present = (
+            user.is_marnie or user.is_superuser
+        ) and obj.status == Job.Status.QUOTE_REJECTED_BY_AGENT.value
+
         context = super().get_context_data(**kwargs)
         context["update_link_present"] = update_link_present
         context["reject_quote_button_present"] = reject_quote_button_present
         context["accept_quote_button_present"] = accept_quote_button_present
+        context["update_quote_link_present"] = update_quote_link_present
         return context

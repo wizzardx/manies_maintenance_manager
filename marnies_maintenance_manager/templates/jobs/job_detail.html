@@ -57,4 +57,6 @@
       <button type="submit">Accept Quote</button>
     </form>
   {% endif %}
+  <!-- Display the "Update Quote" link if our backend wants it -->
+  {% if update_quote_link_present %}<a href="#">Update Quote</a>{% endif %}
 {% endblock content %}
