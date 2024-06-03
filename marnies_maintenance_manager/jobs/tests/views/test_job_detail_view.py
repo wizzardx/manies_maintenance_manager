@@ -1,6 +1,5 @@
 """Tests for the job detail view."""
 
-# pylint: disable=no-self-use
 import datetime
 from typing import cast
 
@@ -439,8 +438,8 @@ class TestRejectQuoteButtonVisibility:
         )
         assert button is not None
 
+    @staticmethod
     def test_button_not_visible_when_marnie_has_not_done_initial_inspection(
-        self,
         job_created_by_bob: Job,
         bob_agent_user_client: Client,
     ) -> None:
@@ -456,8 +455,8 @@ class TestRejectQuoteButtonVisibility:
         )
         assert button is None
 
+    @staticmethod
     def test_marnie_cannot_see_reject_quote_button_after_doing_initial_inspection(
-        self,
         bob_job_with_initial_marnie_inspection: Job,
         marnie_user_client: Client,
     ) -> None:
@@ -474,8 +473,8 @@ class TestRejectQuoteButtonVisibility:
         )
         assert button is None
 
+    @staticmethod
     def test_another_agent_cannot_reach_page_to_see_quote_button(
-        self,
         bob_job_with_initial_marnie_inspection: Job,
         peter_agent_user_client: Client,
     ) -> None:
@@ -494,8 +493,8 @@ class TestRejectQuoteButtonVisibility:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    @staticmethod
     def test_admin_can_see_reject_quote_button(
-        self,
         bob_job_with_initial_marnie_inspection: Job,
         admin_client: Client,
     ) -> None:
@@ -512,8 +511,8 @@ class TestRejectQuoteButtonVisibility:
         )
         assert button is not None
 
+    @staticmethod
     def test_anonymous_user_is_redirected_to_login_page(
-        self,
         bob_job_with_initial_marnie_inspection: Job,
         client: Client,
     ) -> None:
@@ -539,8 +538,8 @@ class TestRejectQuoteButtonVisibility:
             f"{bob_job_with_initial_marnie_inspection.pk}/"
         )
 
+    @staticmethod
     def test_not_visible_when_quote_rejected_by_agent(
-        self,
         job_rejected_by_bob: Job,
         bob_agent_user_client: Client,
     ) -> None:
@@ -561,8 +560,8 @@ class TestRejectQuoteButtonVisibility:
 class TestAcceptQuoteButtonVisibility:
     """Tests to ensure that the accept quote button is visible to the correct users."""
 
+    @staticmethod
     def test_agent_can_see_accept_quote_button_when_marnie_has_done_initial_inspection(
-        self,
         bob_job_with_initial_marnie_inspection: Job,
         bob_agent_user_client: Client,
     ) -> None:
@@ -579,8 +578,8 @@ class TestAcceptQuoteButtonVisibility:
         )
         assert button is not None
 
+    @staticmethod
     def test_button_not_visible_when_marnie_has_not_done_initial_inspection(
-        self,
         job_created_by_bob: Job,
         bob_agent_user_client: Client,
     ) -> None:
@@ -596,8 +595,8 @@ class TestAcceptQuoteButtonVisibility:
         )
         assert button is None
 
+    @staticmethod
     def test_marnie_cannot_see_accept_quote_button_after_doing_initial_inspection(
-        self,
         bob_job_with_initial_marnie_inspection: Job,
         marnie_user_client: Client,
     ) -> None:
@@ -614,8 +613,8 @@ class TestAcceptQuoteButtonVisibility:
         )
         assert button is None
 
+    @staticmethod
     def test_another_agent_cannot_reach_page_to_see_quote_button(
-        self,
         bob_job_with_initial_marnie_inspection: Job,
         peter_agent_user_client: Client,
     ) -> None:
@@ -634,8 +633,8 @@ class TestAcceptQuoteButtonVisibility:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    @staticmethod
     def test_admin_can_see_accept_quote_button(
-        self,
         bob_job_with_initial_marnie_inspection: Job,
         admin_client: Client,
     ) -> None:
@@ -652,8 +651,8 @@ class TestAcceptQuoteButtonVisibility:
         )
         assert button is not None
 
+    @staticmethod
     def test_anonymous_user_is_redirected_to_login_page_before_seeing_view(
-        self,
         bob_job_with_initial_marnie_inspection: Job,
         client: Client,
     ) -> None:
@@ -679,8 +678,8 @@ class TestAcceptQuoteButtonVisibility:
             f"{bob_job_with_initial_marnie_inspection.pk}/"
         )
 
+    @staticmethod
     def test_still_visible_after_rejecting_quote(
-        self,
         job_rejected_by_bob: Job,
         bob_agent_user_client: Client,
     ) -> None:
