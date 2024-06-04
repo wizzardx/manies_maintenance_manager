@@ -676,7 +676,7 @@ def test_after_rejection_marnie_can_resubmit_quote(
 
     # He uploads a new Quote invoice.
     quote_invoice_field.send_keys(
-        "/app/marnies_maintenance_manager/functional_tests/test.pdf",
+        "/app/marnies_maintenance_manager/functional_tests/test_2.pdf",
     )
 
     # He clicks the "submit" button.

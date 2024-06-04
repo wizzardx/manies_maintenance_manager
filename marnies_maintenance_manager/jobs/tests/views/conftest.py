@@ -3,7 +3,6 @@
 # pylint: disable=redefined-outer-name
 
 import datetime
-from pathlib import Path
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -55,9 +54,6 @@ def job_created_by_peter(peter_agent_user: User) -> Job:
     )
 
 
-BASIC_TEST_PDF_FILE = Path(__file__).parent / "test.pdf"
-
-
 @pytest.fixture()
 def bob_job_update_url(job_created_by_bob: Job) -> str:
     """Return the URL for the job update view for the job created by Bob.
@@ -69,20 +65,6 @@ def bob_job_update_url(job_created_by_bob: Job) -> str:
         str: The URL for Bobs job update view.
     """
     return reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
-
-
-@pytest.fixture()
-def test_pdf() -> SimpleUploadedFile:
-    """Return a test PDF file as a SimpleUploadedFile.
-
-    Returns:
-        SimpleUploadedFile: The test PDF file.
-    """
-    return SimpleUploadedFile(
-        "test.pdf",
-        BASIC_TEST_PDF_FILE.read_bytes(),
-        content_type="application/pdf",
-    )
 
 
 @pytest.fixture()

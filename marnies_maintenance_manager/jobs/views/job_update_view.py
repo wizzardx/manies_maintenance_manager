@@ -1,5 +1,6 @@
 """View for updating a Maintenance Job."""
 
+from typing import TYPE_CHECKING
 from typing import cast
 
 from django.contrib import messages
@@ -17,8 +18,16 @@ from marnies_maintenance_manager.jobs.utils import get_marnie_email
 from marnies_maintenance_manager.jobs.views.job_create_view import generate_email_body
 from marnies_maintenance_manager.users.models import User
 
+if TYPE_CHECKING:  # pylint: disable=consider-ternary-expression
+    TypedUpdateView = UpdateView[  # pragma: no cover
+        Job,
+        JobUpdateForm,
+    ]
+else:
+    TypedUpdateView = UpdateView
 
-class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # type: ignore[type-arg]
+
+class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, TypedUpdateView):
     """Update a Maintenance Job."""
 
     model = Job
@@ -49,7 +58,7 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # typ
         Returns:
             HttpResponse: The HTTP response.
         """
-        instance = cast(Job, form.save(commit=False))
+        instance = form.save(commit=False)
         instance.status = Job.Status.INSPECTION_COMPLETED.value
         instance.save()
 

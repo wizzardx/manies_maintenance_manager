@@ -15,10 +15,10 @@ from rest_framework import status
 
 from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE
 from marnies_maintenance_manager.jobs.views.job_update_view import JobUpdateView
 from marnies_maintenance_manager.users.models import User
 
-from .conftest import BASIC_TEST_PDF_FILE
 from .utils import check_basic_page_html_structure
 
 
