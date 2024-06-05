@@ -267,3 +267,32 @@ def test_on_success_sends_an_email_to_the_agent(
     assert attach_name.endswith(".pdf")
     assert attachment[1] == BASIC_TEST_PDF_FILE_2.read_bytes()
     assert attachment[2] == "application/pdf"
+
+
+def test_on_success_sends_flash_message(
+    job_rejected_by_bob: Job,
+    marnie_user_client: Client,
+    test_pdf_2: SimpleUploadedFile,
+) -> None:
+    """Test that the view sends a flash message on success.
+
+    Args:
+        job_rejected_by_bob (Job): A Job instance created by Bob, with a rejected quote.
+        marnie_user_client (Client): The Django test client for Marnie.
+        test_pdf_2 (SimpleUploadedFile): A test PDF file.
+    """
+    response = marnie_user_client.post(
+        reverse("jobs:update_quote", kwargs={"pk": job_rejected_by_bob.pk}),
+        data={"quote": test_pdf_2},
+        follow=True,
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    messages = response.context["messages"]
+    assert len(messages) == 1
+    message = next(iter(messages))
+    assert (
+        message.message
+        == "Your updated quote has been uploaded. An email has been sent to bob."
+    )
+    assert message.tags == "success"

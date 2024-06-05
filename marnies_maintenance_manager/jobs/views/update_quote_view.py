@@ -2,6 +2,7 @@
 
 from typing import TYPE_CHECKING
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.core.mail import EmailMessage
@@ -96,6 +97,17 @@ class QuoteUpdateView(
 
         # Send the mail:
         email.send()
+
+        # Get username associated with the Agent who originally created the Maintenance
+        # Job:
+        agent_username = instance.agent.username
+
+        # Send a success flash message to the user:
+        messages.success(
+            self.request,
+            "Your updated quote has been uploaded. "
+            f"An email has been sent to {agent_username}.",
+        )
 
         # Do any final logic/etc. on parent classes, and return the result of that
         # (an HTTP response) to our caller:
