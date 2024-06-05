@@ -3,7 +3,6 @@
 # pylint: disable=unused-argument,no-self-use,magic-value-comparison
 
 import functools
-from typing import cast
 
 import pytest
 from bs4 import BeautifulSoup
@@ -11,6 +10,7 @@ from django.http import HttpResponse
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.tests.views.utils import HTTP_SUCCESS_STATUS_CODE
 from marnies_maintenance_manager.jobs.tests.views.utils import (
@@ -786,7 +786,7 @@ def _create_user_and_check_no_primary_email_warning(
     )
 
     response = client.get("/")
-    response2 = cast(HttpResponse, response)
+    response2 = check_type(response, HttpResponse)
 
     expected_msg_template = USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES[
         "NO_PRIMARY_EMAIL_ADDRESS"

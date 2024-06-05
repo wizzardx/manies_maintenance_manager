@@ -16,13 +16,12 @@ To execute these tests, run the following command:
 
 # pylint: disable=unused-argument
 
-from typing import cast
-
 from bs4 import BeautifulSoup
 from django.core.mail import EmailMessage
 from django.http.response import HttpResponse
 from django.test.client import Client
 from django.views.generic.base import View as BaseView
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 
@@ -100,7 +99,7 @@ def check_basic_page_html_structure(  # noqa: PLR0913
             f"instead of {expected_view_class}"
         )
 
-    return cast(HttpResponse, response)
+    return check_type(response, HttpResponse)
 
 
 def assert_email_contains_job_details(

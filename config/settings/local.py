@@ -1,9 +1,12 @@
 # ruff: noqa: E501
 """Django local development settings for Marnie's Maintenance Manager project."""
 
-from typing import cast
-
 # pylint: disable=wildcard-import, unused-wildcard-import
+
+from typing import Any
+
+from typeguard import check_type
+
 from .base import *  # noqa: F403
 from .base import INSTALLED_APPS
 from .base import MIDDLEWARE
@@ -83,5 +86,5 @@ INSTALLED_APPS += ["django_fastdev"]
 # Enable template debugging:
 for template in TEMPLATES:
     options = template["OPTIONS"]
-    options = cast(dict[str, bool], options)
+    options = check_type(options, dict[str, Any])
     options["debug"] = True

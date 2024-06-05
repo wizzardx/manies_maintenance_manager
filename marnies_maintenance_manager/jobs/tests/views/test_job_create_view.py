@@ -2,8 +2,6 @@
 
 # pylint: disable=magic-value-comparison,no-self-use,unused-argument,too-many-arguments
 
-from typing import cast
-
 import pytest
 from bs4 import BeautifulSoup
 from django.contrib.messages.storage.base import Message
@@ -11,6 +9,7 @@ from django.core import mail
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests.views.utils import (
@@ -364,7 +363,7 @@ def _get_flashed_message_after_creating_a_job(client: Client) -> Message:
     response = client.get(response.url)  # type: ignore[attr-defined]
     messages = list(response.context["messages"])
     assert len(messages) == 1
-    return cast(Message, messages[0])
+    return check_type(messages[0], Message)
 
 
 def _check_creating_a_job_flashes_and_logs_errors(

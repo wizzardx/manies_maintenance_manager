@@ -2,13 +2,12 @@
 
 # pylint: disable=magic-value-comparison
 
-from typing import cast
-
 import pytest
 from django.core import mail
 from django.http import HttpResponseRedirect
 from django.test import Client
 from rest_framework import status
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
@@ -132,7 +131,7 @@ def test_can_reject_when_job_already_in_rejected_state(
         f"/jobs/{bob_job_with_initial_marnie_inspection.id}/reject-quote/",
     )
     assert response.status_code == status.HTTP_302_FOUND
-    response2 = cast(HttpResponseRedirect, response)
+    response2 = check_type(response, HttpResponseRedirect)
     assert response2.url == f"/jobs/{bob_job_with_initial_marnie_inspection.id}/"
 
 
@@ -162,7 +161,7 @@ def test_redirects_to_job_detail_view(
         f"/jobs/{bob_job_with_initial_marnie_inspection.id}/reject-quote/",
     )
     assert response.status_code == status.HTTP_302_FOUND
-    response2 = cast(HttpResponseRedirect, response)
+    response2 = check_type(response, HttpResponseRedirect)
     assert response2.url == f"/jobs/{bob_job_with_initial_marnie_inspection.id}/"
 
 
@@ -188,7 +187,7 @@ def _reject_quote_and_get_job(client: Client, job: Job) -> Job:
         f"/jobs/{job.id}/reject-quote/",
     )
     assert response.status_code == status.HTTP_302_FOUND
-    response2 = cast(HttpResponseRedirect, response)
+    response2 = check_type(response, HttpResponseRedirect)
     assert response2.url == f"/jobs/{job.id}/"
 
     job = Job.objects.get(id=job.id)

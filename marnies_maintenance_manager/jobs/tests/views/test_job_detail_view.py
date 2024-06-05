@@ -1,13 +1,13 @@
 """Tests for the job detail view."""
 
 import datetime
-from typing import cast
 
 from bs4 import BeautifulSoup
 from django.http import HttpResponseRedirect
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 
@@ -385,7 +385,7 @@ class TestQuoteDownloadLinkVisibility:
         assert response.status_code == status.HTTP_302_FOUND
 
         # Check that the user is redirected to the login page.
-        response2 = cast(HttpResponseRedirect, response)
+        response2 = check_type(response, HttpResponseRedirect)
         assert (
             response2.url == "/accounts/login/?next=/jobs/"
             f"{bob_job_with_initial_marnie_inspection.pk}/"
@@ -532,7 +532,7 @@ class TestRejectQuoteButtonVisibility:
         assert response.status_code == status.HTTP_302_FOUND
 
         # Check that the user is redirected to the login page.
-        response2 = cast(HttpResponseRedirect, response)
+        response2 = check_type(response, HttpResponseRedirect)
         assert (
             response2.url == "/accounts/login/?next=/jobs/"
             f"{bob_job_with_initial_marnie_inspection.pk}/"
@@ -672,7 +672,7 @@ class TestAcceptQuoteButtonVisibility:
         assert response.status_code == status.HTTP_302_FOUND
 
         # Check that the user is redirected to the login page.
-        response2 = cast(HttpResponseRedirect, response)
+        response2 = check_type(response, HttpResponseRedirect)
         assert (
             response2.url == "/accounts/login/?next=/jobs/"
             f"{bob_job_with_initial_marnie_inspection.pk}/"

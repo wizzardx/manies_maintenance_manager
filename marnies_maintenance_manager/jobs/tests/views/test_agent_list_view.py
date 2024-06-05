@@ -2,8 +2,6 @@
 
 # pylint: disable=magic-value-comparison,unused-argument
 
-from typing import cast
-
 import bs4
 import pytest
 from bs4 import BeautifulSoup
@@ -11,6 +9,7 @@ from django.http import HttpResponseRedirect
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
+from typeguard import check_type
 
 from marnies_maintenance_manager.users.models import User
 
@@ -56,7 +55,7 @@ def test_anonymous_user_cannot_reach_agents_view(client: Client) -> None:
     """
     response = client.get(reverse("jobs:agent_list"))
     assert response.status_code == status.HTTP_302_FOUND
-    response2 = cast(HttpResponseRedirect, response)
+    response2 = check_type(response, HttpResponseRedirect)
     assert response2.url == "/accounts/login/?next=/jobs/agents/"
 
 

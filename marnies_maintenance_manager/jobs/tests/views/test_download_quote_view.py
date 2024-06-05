@@ -3,13 +3,13 @@
 # pylint: disable=magic-value-comparison
 
 from pathlib import Path
-from typing import cast
 
 from django.http import FileResponse
 from django.http import HttpResponseRedirect
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 
@@ -163,9 +163,9 @@ class TestAbilityToDownloadQuoteFiles:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
             admin_client (Client): The Django test client for the admin user.
         """
-        response = cast(
-            FileResponse,
+        response = check_type(
             admin_client.get(bob_job_with_initial_marnie_inspection.quote.url),
+            FileResponse,
         )
         assert response.status_code == status.HTTP_200_OK
         content = b"".join(response.streaming_content)  # type: ignore[arg-type]
@@ -191,14 +191,14 @@ class TestAbilityToDownloadQuoteFiles:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
             client (Client): The Django test client for an anonymous user.
         """
-        response = cast(
-            FileResponse,
+        response = check_type(
             client.get(bob_job_with_initial_marnie_inspection.quote.url),
+            HttpResponseRedirect,
         )
         assert response.status_code == status.HTTP_302_FOUND
 
         # Check the redirection details:
-        response2 = cast(HttpResponseRedirect, response)
+        response2 = check_type(response, HttpResponseRedirect)
         assert response2.url == "/accounts/login/?next=/media/quotes/test.pdf"
 
 

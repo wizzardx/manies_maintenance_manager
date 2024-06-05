@@ -2,7 +2,6 @@
 
 import logging
 from typing import Any
-from typing import cast
 
 from django import forms
 from django.contrib import messages
@@ -13,6 +12,7 @@ from django.http import HttpRequest
 from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.constants import DEFAULT_FROM_EMAIL
 from marnies_maintenance_manager.jobs.exceptions import MarnieUserNotFoundError
@@ -60,13 +60,13 @@ def _marnie_has_verified_email_address(marnie_email: str) -> bool:
     Returns:
         bool: True if Marnie has a verified email address, False otherwise.
     """
-    return cast(
-        bool,
+    return check_type(
         User.objects.get(email=marnie_email)
         .emailaddress_set.filter(  # type: ignore[attr-defined]
             verified=True,
         )
         .exists(),
+        bool,
     )
 
 
@@ -300,5 +300,5 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         Returns:
             bool: True if the user has the required permissions, False otherwise.
         """
-        user = cast(User, self.request.user)
+        user = check_type(self.request.user, User)
         return user.is_agent or user.is_superuser

@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import typing
-from typing import cast
 
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.conf import settings
+from typeguard import check_type
 
 if typing.TYPE_CHECKING:
     from allauth.socialaccount.models import SocialLogin
@@ -69,7 +69,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[misc]
 
         See: https://docs.allauth.org/en/latest/socialaccount/advanced.html#creating-and-populating-user-instances
         """
-        user = cast(User, super().populate_user(request, sociallogin, data))
+        user = check_type(super().populate_user(request, sociallogin, data), User)
         if not user.name:
             if name := data.get("name"):
                 user.name = name

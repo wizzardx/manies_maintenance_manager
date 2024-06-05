@@ -1,7 +1,6 @@
 """Provide a view to create a new Maintenance Job."""
 
 from typing import Any
-from typing import cast
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -10,6 +9,7 @@ from django.http import HttpRequest
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseBase
 from django.views.generic import ListView
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
@@ -32,7 +32,7 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
         Returns:
             bool: True if the user has the required permissions, False otherwise.
         """
-        user = cast(User, self.request.user)
+        user = check_type(self.request.user, User)
         return user.is_agent or user.is_superuser or user.is_marnie
 
     def dispatch(
@@ -68,7 +68,7 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: i
         Raises:
             ValueError: If conditions are not met or parameters are missing.
         """
-        user = cast(User, self.request.user)
+        user = check_type(self.request.user, User)
 
         if user.is_marnie:
             agent_username = self.request.GET.get("agent")

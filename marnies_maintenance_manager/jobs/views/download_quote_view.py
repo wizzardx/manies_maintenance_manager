@@ -1,13 +1,13 @@
 """Provide a view to create a new Maintenance Job."""
 
 from pathlib import Path
-from typing import cast
 from uuid import UUID
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest
 from django.http import HttpResponse
 from rest_framework import status
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
@@ -46,7 +46,7 @@ def download_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
         return HttpResponse("Quote not set for job", status=status.HTTP_404_NOT_FOUND)
 
     # Only Marnie, Admin, and the agent who created this Job may access this view.
-    user = cast(User, request.user)
+    user = check_type(request.user, User)
     if not (
         user.is_marnie or user.is_superuser or (user.is_agent and user == job.agent)
     ):

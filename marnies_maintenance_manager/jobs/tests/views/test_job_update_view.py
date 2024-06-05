@@ -3,7 +3,6 @@
 # pylint: disable=redefined-outer-name,unused-argument,magic-value-comparison
 
 import datetime
-from typing import cast
 
 import pytest
 from django.contrib.messages.storage.base import Message
@@ -12,6 +11,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.response import TemplateResponse
 from django.test import Client
 from rest_framework import status
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
@@ -441,8 +441,7 @@ def http_response_to_marnie_inspecting_site_of_job_by_bob(
     Returns:
         TemplateResponse: The HTTP response after Marnie inspects the site of the job
     """
-    response = cast(
-        TemplateResponse,
+    response = check_type(
         marnie_user_client.post(
             bob_job_update_url,
             {
@@ -451,6 +450,7 @@ def http_response_to_marnie_inspecting_site_of_job_by_bob(
             },
             follow=True,
         ),
+        TemplateResponse,
     )
 
     # Assert the response status code is 200
@@ -483,7 +483,7 @@ def flashed_message_after_inspecting_a_site(
     assert len(messages) == 1
 
     # Return the retrieved message to the caller
-    return cast(Message, messages[0])
+    return check_type(messages[0], Message)
 
 
 def test_a_flash_message_is_displayed_when_marnie_clicks_save(

@@ -1,11 +1,11 @@
 """Provide a view to create a new Maintenance Job."""
 
 from typing import Any
-from typing import cast
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views.generic import DetailView
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
@@ -22,7 +22,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         Returns:
             bool: True if the user can access this view, False otherwise.
         """
-        user = cast(User, self.request.user)
+        user = check_type(self.request.user, User)
         obj = self.get_object()
         return user.is_marnie or user == obj.agent or user.is_superuser
 
@@ -37,7 +37,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         """
         # Only Marnie and Admin can see the Update link, and only when the current Job
         # status allows for it.
-        user = cast(User, self.request.user)
+        user = check_type(self.request.user, User)
         obj = self.get_object()
         update_link_present = (
             user.is_marnie or user.is_superuser

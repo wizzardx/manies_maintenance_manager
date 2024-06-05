@@ -1,6 +1,5 @@
 """View for refusing a quote for a Maintenance Job."""
 
-from typing import cast
 from uuid import UUID
 
 from django.contrib import messages
@@ -11,6 +10,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.constants import DEFAULT_FROM_EMAIL
 from marnies_maintenance_manager.jobs.models import Job
@@ -40,7 +40,7 @@ def reject_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
         )
 
     # Return a permission error if the user is not an agent.
-    user = cast(User, request.user)
+    user = check_type(request.user, User)
 
     job = get_object_or_404(Job, pk=pk)
 

@@ -1,7 +1,6 @@
 """View for updating a Maintenance Job."""
 
 from typing import TYPE_CHECKING
-from typing import cast
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -9,6 +8,7 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.views.generic import UpdateView
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.forms import JobUpdateForm
 from marnies_maintenance_manager.jobs.models import Job
@@ -40,7 +40,7 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, TypedUpdateView):
         # Only Marnie and Admin users can reach this view. Marnie can only reach
         # this view if he has not yet completed the inspection. Admin user can
         # always reach this view.
-        user = cast(User, self.request.user)
+        user = check_type(self.request.user, User)
         obj = self.get_object()
         return user.is_superuser or (
             user.is_marnie and obj.status == Job.Status.PENDING_INSPECTION.value
@@ -108,14 +108,17 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, TypedUpdateView):
         # username to be able to reach that listing correctly.
 
         # Who is the user behind the request?
-        user = cast(User, self.request.user)
+        user = check_type(self.request.user, User)
 
         # Special logic if the user is Marnie:
         if user.is_marnie:
             # If the user is Marnie, then we need to include the agent's
             # username in the URL.
             agent_username = self.get_object().agent.username
-            return cast(str, reverse_lazy("jobs:job_list") + f"?agent={agent_username}")
+            return check_type(
+                reverse_lazy("jobs:job_list") + f"?agent={agent_username}",
+                str,
+            )
 
         # Check if we're another user, but we still reach this point.
         # It shouldn't happen in the current iteration of the code, but it will
