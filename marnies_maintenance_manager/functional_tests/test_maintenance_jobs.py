@@ -407,7 +407,7 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
     number_link.click()
 
 
-def _sign_in_as_marie_and_navigate_to_job_details(browser):
+def _sign_in_as_marie_and_navigate_to_job_details(browser: WebDriver) -> None:
     _sign_into_website(browser, "marnie")
 
     # He clicks on the Agents link
@@ -684,4 +684,65 @@ def test_after_rejection_marnie_can_resubmit_quote(
     assert expected_msg in browser.page_source
 
     # Satisfied, he logs out of the website, and goes back to sleep
+    _sign_out_of_website_and_clean_up(browser)
+
+
+def test_bob_can_accept_marnies_quote(
+    browser: WebDriver,
+    live_server_url: str,
+    marnie_user: User,
+    bob_agent_user: User,
+) -> None:
+    """Ensure Bob can accept the quote submitted by Marnie.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+        marnie_user (User): The user instance for Marnie.
+        bob_agent_user (User): The user instance for Bob, who is an agent.
+    """
+    ## First, quickly run through the steps of an Agent creating a new Job.
+    _create_new_job(browser, live_server_url)
+
+    ## Next, Marnie does an inspection, and updates the inspection date and quote.
+    _update_job_with_inspection_date_and_quote(browser)
+
+    # Bob received a notification. He saw the email, and the quote, and is happy with
+    # it, so he is ready to confirm the quote. He logs into the system:
+    _sign_into_website(browser, "bob")
+
+    # Then he goes to the Maintenance Jobs page:
+    maintenance_jobs_link = browser.find_element(By.LINK_TEXT, "Maintenance Jobs")
+    maintenance_jobs_link.click()
+
+    # He sees the details of the job, and clicks on the number to view the details:
+    _check_job_row_and_click_on_number(browser)
+
+    # He sees the details of the job, and clicks on the "Accept Quote" button:
+    accept_button = browser.find_element(By.XPATH, "//button[text()='Accept Quote']")
+    accept_button.click()
+
+    # This takes him back to the details page for the Job.
+    assert "Maintenance Job Details" in browser.title
+    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees a flash notification that an email has been sent to Marnie.
+    expected_msg = "An email has been sent to Marnie."
+    assert expected_msg in browser.page_source
+
+    # He sees a "Job Status: Accepted" entry on the page.
+    assert (
+        "<strong>Accepted or Rejected (A/R):</strong> accepted" in browser.page_source
+    )
+
+    # He does not see the "Accept Quote" button any longer.
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.LINK_TEXT, "Accept Quote")
+
+    # He does not see the "Reject Quote" button any longer.
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.LINK_TEXT, "Reject Quote")
+
+    # Happy with this so far, but not yet ready to upload a proof of payment,
+    # he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)
