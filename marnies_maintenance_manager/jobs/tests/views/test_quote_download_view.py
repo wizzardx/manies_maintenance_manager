@@ -135,19 +135,18 @@ class TestAbilityToDownloadQuoteFiles:
         assert response.content == b"Access denied"
 
     @staticmethod
-    def test_media_direct_download_link_to_quote_file_is_inaccessible_to_most_users(
+    def test_quote_files_inaccessible_to_agents(
         bob_job_with_initial_marnie_inspection: Job,
-        marnie_user_client: Client,
+        bob_agent_user_client: Client,
     ) -> None:
-        """Ensure that the direct download link to the quote file is inaccessible.
+        """Ensure that clients can't access the direct download links to quotes.
 
         Args:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
-            marnie_user_client (Client): The Django test client for Marnie.
+            bob_agent_user_client (Client): The Django test client for Bob.
         """
         # Example URL that we want to restrict access to: /media/quotes/test.pdf
-
-        response = marnie_user_client.get(
+        response = bob_agent_user_client.get(
             bob_job_with_initial_marnie_inspection.quote.url,
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
