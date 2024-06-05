@@ -276,3 +276,26 @@ def test_on_success_sends_flash_message(
         == "Your updated quote has been uploaded. An email has been sent to bob."
     )
     assert message.tags == "success"
+
+
+def test_does_not_work_if_not_in_quote_rejected_state(
+    bob_job_with_initial_marnie_inspection: Job,
+    marnie_user_client: Client,
+    test_pdf_2: SimpleUploadedFile,
+) -> None:
+    """Test that the view does not work if the job is not in the "quote rejected" state.
+
+    Args:
+        bob_job_with_initial_marnie_inspection (Job): A Job instance created by Bob,
+            with an initial Marnie inspection.
+        marnie_user_client (Client): The Django test client for Marnie.
+        test_pdf_2 (SimpleUploadedFile): A test PDF file.
+    """
+    response = marnie_user_client.post(
+        reverse(
+            "jobs:update_quote",
+            kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+        ),
+        data={"quote": test_pdf_2},
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN

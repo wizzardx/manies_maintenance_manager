@@ -41,9 +41,14 @@ class QuoteUpdateView(
             bool: True if the user can access this view, False otherwise.
 
         """
-        # Only Marnie and Admin can access this view:
+        # Only Marnie and Admin can access this view, and only when the
+        # Job is in the "quote was rejected" state.
         user = check_type(self.request.user, User)
-        return check_type(user.is_marnie or user.is_superuser, bool)
+        job = self.get_object()
+        return job.status == Job.Status.QUOTE_REJECTED_BY_AGENT.value and check_type(
+            user.is_marnie or user.is_superuser,
+            bool,
+        )
 
     def form_valid(self, form: QuoteUpdateForm) -> HttpResponse:
         """Save the form.
