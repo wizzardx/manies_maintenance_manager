@@ -45,20 +45,20 @@
   {% endif %}
   <!-- Display the "Reject Quote" button if our backend wants it -->
   {% if reject_quote_button_present %}
-    <form action="{% url 'jobs:reject_quote' pk=job.pk %}" method="post">
+    <form action="{% url 'jobs:quote_reject' pk=job.pk %}" method="post">
       {% csrf_token %}
       <button type="submit">Reject Quote</button>
     </form>
   {% endif %}
   <!-- Display the "Accept Quote" button if our backend wants it -->
   {% if accept_quote_button_present %}
-    <form action="{% url 'jobs:accept_quote' pk=job.pk %}" method="post">
+    <form action="{% url 'jobs:quote_accept' pk=job.pk %}" method="post">
       {% csrf_token %}
       <button type="submit">Accept Quote</button>
     </form>
   {% endif %}
   <!-- Display the "Update Quote" link if our backend wants it -->
   {% if update_quote_link_present %}
-    <a href="{% url 'jobs:update_quote' pk=job.pk %}">Update Quote</a>
+    <a href="{% url 'jobs:quote_update' pk=job.pk %}">Update Quote</a>
   {% endif %}
 {% endblock content %}

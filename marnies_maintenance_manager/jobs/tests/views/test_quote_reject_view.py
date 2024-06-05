@@ -31,14 +31,14 @@ def test_gets_redirected_to_login_for_anonymous_user(client: Client) -> None:
         "{% if %}",
     ):
         response = client.get(
-            "/jobs/0dd3c34c-2003-11ef-8db1-5baa8ebc9c58/reject-quote/",
+            "/jobs/0dd3c34c-2003-11ef-8db1-5baa8ebc9c58/quote/reject/",
             follow=True,
         )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.redirect_chain == [
         (
-            "/accounts/login/?next=/jobs/0dd3c34c-2003-11ef-8db1-5baa8ebc9c58/reject-quote/",
+            "/accounts/login/?next=/jobs/0dd3c34c-2003-11ef-8db1-5baa8ebc9c58/quote/reject/",
             302,
         ),
     ]
@@ -55,7 +55,7 @@ def test_fails_for_none_post_request(
         bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
     """
     response = bob_agent_user_client.get(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/reject-quote/",
+        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
     )
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
@@ -71,7 +71,7 @@ def test_gets_permission_error_for_marnie_user(
         bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
     """
     response = marnie_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/reject-quote/",
+        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
         follow=True,
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -88,7 +88,7 @@ def test_gets_permission_error_for_different_agent_user(
         bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
     """
     response = peter_agent_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/reject-quote/",
+        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
         follow=True,
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -105,7 +105,7 @@ def test_fails_if_job_not_in_correct_state(
         job_created_by_bob (Job): The job created by Bob.
     """
     response = bob_agent_user_client.post(
-        f"/jobs/{job_created_by_bob.id}/reject-quote/",
+        f"/jobs/{job_created_by_bob.id}/quote/reject/",
     )
     assert response.status_code == status.HTTP_412_PRECONDITION_FAILED
     assert (
@@ -128,7 +128,7 @@ def test_can_reject_when_job_already_in_rejected_state(
     )
     bob_job_with_initial_marnie_inspection.save()
     response = bob_agent_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/reject-quote/",
+        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
     )
     assert response.status_code == status.HTTP_302_FOUND
     response2 = check_type(response, HttpResponseRedirect)
@@ -142,7 +142,7 @@ def test_fails_for_nonexistent_job(bob_agent_user_client: Client) -> None:
         bob_agent_user_client (Client): The Django test client for Bob.
     """
     response = bob_agent_user_client.post(
-        "/jobs/0dd3c34c-2003-11ef-8db1-5baa8ebc9c58/reject-quote/",
+        "/jobs/0dd3c34c-2003-11ef-8db1-5baa8ebc9c58/quote/reject/",
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -158,7 +158,7 @@ def test_redirects_to_job_detail_view(
         bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
     """
     response = bob_agent_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/reject-quote/",
+        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
     )
     assert response.status_code == status.HTTP_302_FOUND
     response2 = check_type(response, HttpResponseRedirect)
@@ -184,7 +184,7 @@ def test_sets_job_to_rejected_by_agent(
 
 def _reject_quote_and_get_job(client: Client, job: Job) -> Job:
     response = client.post(
-        f"/jobs/{job.id}/reject-quote/",
+        f"/jobs/{job.id}/quote/reject/",
     )
     assert response.status_code == status.HTTP_302_FOUND
     response2 = check_type(response, HttpResponseRedirect)
@@ -290,7 +290,7 @@ def test_flash_message_displayed(
         bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
     """
     response = bob_agent_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/reject-quote/",
+        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
         follow=True,
     )
 

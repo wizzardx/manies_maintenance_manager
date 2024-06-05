@@ -32,7 +32,7 @@ class QuoteUpdateView(
 
     model = Job
     form_class = QuoteUpdateForm
-    template_name = "jobs/update_quote.html"
+    template_name = "jobs/quote_update.html"
 
     def test_func(self) -> bool:
         """Check if the user can access this view.

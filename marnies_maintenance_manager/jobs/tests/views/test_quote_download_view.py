@@ -31,7 +31,7 @@ class TestAbilityToDownloadQuoteFiles:
         """
         response = marnie_user_client.get(
             reverse(
-                "jobs:download_quote",
+                "jobs:quote_download",
                 kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
             ),
         )
@@ -57,7 +57,7 @@ class TestAbilityToDownloadQuoteFiles:
         job_created_by_bob.quote.delete()
 
         response = marnie_user_client.get(
-            reverse("jobs:download_quote", kwargs={"pk": job_created_by_bob.pk}),
+            reverse("jobs:quote_download", kwargs={"pk": job_created_by_bob.pk}),
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -74,7 +74,7 @@ class TestAbilityToDownloadQuoteFiles:
         """
         response = marnie_user_client.get(
             reverse(
-                "jobs:download_quote",
+                "jobs:quote_download",
                 kwargs={"pk": "d865837c-1e99-11ef-a847-cb433af9e531"},
             ),
         )
@@ -127,7 +127,7 @@ class TestAbilityToDownloadQuoteFiles:
         """
         response = peter_agent_user_client.get(
             reverse(
-                "jobs:download_quote",
+                "jobs:quote_download",
                 kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
             ),
         )
@@ -205,7 +205,7 @@ class TestAbilityToDownloadQuoteFiles:
 def _check_user_can_download_quote_files(job: Job, client: Client) -> None:
     response = client.get(
         reverse(
-            "jobs:download_quote",
+            "jobs:quote_download",
             kwargs={"pk": job.pk},
         ),
     )
@@ -231,7 +231,7 @@ def test_fails_for_none_get_request(
         bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
     """
     response = bob_agent_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/download-quote/",
+        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/download/",
     )
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
     assert response.content == b"Method not allowed"

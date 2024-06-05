@@ -8,8 +8,8 @@ from django.urls import path, re_path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
 from marnies_maintenance_manager.jobs.views.home_page_view import home_page
-from marnies_maintenance_manager.jobs.views.serve_protected_media_view import (
-    serve_protected_media,
+from marnies_maintenance_manager.jobs.views.protected_media_view import (
+    protected_media,
 )
 
 urlpatterns = [
@@ -29,7 +29,7 @@ urlpatterns = [
     # Your stuff: custom urls includes go here
     path("jobs/", include("marnies_maintenance_manager.jobs.urls", namespace="jobs")),
     # Media files:
-    re_path(r"^media/(?P<path>.*)$", serve_protected_media),
+    re_path(r"^media/(?P<path>.*)$", protected_media),
 ]
 
 

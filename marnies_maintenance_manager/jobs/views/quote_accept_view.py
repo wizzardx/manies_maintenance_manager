@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from rest_framework import status
 
 
-def accept_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
+def quote_accept(request: HttpRequest, pk: UUID) -> HttpResponse:
     """Accept the quote for a specific Maintenance Job.
 
     Args:

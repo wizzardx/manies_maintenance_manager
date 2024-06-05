@@ -16,7 +16,7 @@ GET_METHOD_NAME = "GET"
 
 
 @login_required
-def download_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
+def quote_download(request: HttpRequest, pk: UUID) -> HttpResponse:
     """Download the quote for a specific Maintenance Job.
 
     Args:

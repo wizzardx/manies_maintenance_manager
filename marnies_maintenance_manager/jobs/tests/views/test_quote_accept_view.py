@@ -7,7 +7,7 @@ from uuid import UUID
 from django.test import RequestFactory
 from rest_framework import status
 
-from marnies_maintenance_manager.jobs.views.accept_quote_view import accept_quote
+from marnies_maintenance_manager.jobs.views.quote_accept_view import quote_accept
 
 
 def test_does_nothing_because_not_yet_implemented() -> None:
@@ -17,7 +17,7 @@ def test_does_nothing_because_not_yet_implemented() -> None:
     # Assign request to a RequestFactory instance:
     request = RequestFactory().post("/jobs/123/accept_quote")
     # Call the view function:
-    response = accept_quote(request, job_id)
+    response = quote_accept(request, job_id)
     # Assert that the response content is as expected:
     assert response.content.decode() == (
         "This view is not implemented yet. Called "

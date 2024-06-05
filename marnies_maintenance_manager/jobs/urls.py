@@ -17,25 +17,25 @@ Access the job list with `/jobs/` and the creation page with `/jobs/create/`.
 
 from django.urls import path
 
-from .views.accept_quote_view import accept_quote
 from .views.agent_list_view import agent_list
-from .views.download_quote_view import download_quote
 from .views.job_create_view import JobCreateView
 from .views.job_detail_view import JobDetailView
 from .views.job_list_view import JobListView
 from .views.job_update_view import JobUpdateView
-from .views.reject_quote_view import reject_quote
-from .views.update_quote_view import QuoteUpdateView
+from .views.quote_accept_view import quote_accept
+from .views.quote_download_view import quote_download
+from .views.quote_reject_view import quote_reject
+from .views.quote_update_view import QuoteUpdateView
 
 app_name = "jobs"
 urlpatterns = [
     path("", JobListView.as_view(), name="job_list"),
+    path("agents/", agent_list, name="agent_list"),
     path("create/", JobCreateView.as_view(), name="job_create"),
     path("<uuid:pk>/", JobDetailView.as_view(), name="job_detail"),
     path("<uuid:pk>/update/", JobUpdateView.as_view(), name="job_update"),
-    path("<uuid:pk>/download-quote/", download_quote, name="download_quote"),
-    path("<uuid:pk>/reject-quote/", reject_quote, name="reject_quote"),
-    path("<uuid:pk>/accept-quote/", accept_quote, name="accept_quote"),
-    path("<uuid:pk>/update-quote/", QuoteUpdateView.as_view(), name="update_quote"),
-    path("agents/", agent_list, name="agent_list"),
+    path("<uuid:pk>/quote/accept/", quote_accept, name="quote_accept"),
+    path("<uuid:pk>/quote/download/", quote_download, name="quote_download"),
+    path("<uuid:pk>/quote/reject/", quote_reject, name="quote_reject"),
+    path("<uuid:pk>/quote/update/", QuoteUpdateView.as_view(), name="quote_update"),
 ]

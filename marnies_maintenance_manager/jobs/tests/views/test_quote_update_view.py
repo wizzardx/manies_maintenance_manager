@@ -12,7 +12,7 @@ from rest_framework import status
 from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE_2
-from marnies_maintenance_manager.jobs.views.update_quote_view import QuoteUpdateView
+from marnies_maintenance_manager.jobs.views.quote_update_view import QuoteUpdateView
 from marnies_maintenance_manager.users.models import User
 
 from .utils import assert_email_contains_job_details
@@ -31,12 +31,12 @@ def test_view_has_correct_basic_structure(
     """
     check_basic_page_html_structure(
         client=marnie_user_client,
-        url=reverse("jobs:update_quote", kwargs={"pk": job_rejected_by_bob.pk}),
+        url=reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
         expected_title="Update Quote",
-        expected_template_name="jobs/update_quote.html",
+        expected_template_name="jobs/quote_update.html",
         expected_h1_text="Update Quote",
         expected_func_name="view",
-        expected_url_name="update_quote",
+        expected_url_name="quote_update",
         expected_view_class=QuoteUpdateView,
     )
 
@@ -52,7 +52,7 @@ def test_agent_cannot_use_the_view(
         bob_agent_user_client (Client): The Django test client for Bob.
     """
     response = bob_agent_user_client.get(
-        reverse("jobs:update_quote", kwargs={"pk": job_rejected_by_bob.pk}),
+        reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -68,13 +68,13 @@ def test_must_be_logged_in_to_use_the_view(
         client (Client): The Django test client.
     """
     response = client.get(
-        reverse("jobs:update_quote", kwargs={"pk": job_rejected_by_bob.pk}),
+        reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
     )
     assert response.status_code == status.HTTP_302_FOUND
     assert isinstance(response, HttpResponseRedirect)
     assert (
         response.url
-        == f"/accounts/login/?next=/jobs/{job_rejected_by_bob.pk}/update-quote/"
+        == f"/accounts/login/?next=/jobs/{job_rejected_by_bob.pk}/quote/update/"
     )
 
 
@@ -119,7 +119,7 @@ def test_admin_can_use_the_view(
         superuser_client (Client): The Django test client for the superuser.
     """
     response = superuser_client.get(
-        reverse("jobs:update_quote", kwargs={"pk": job_rejected_by_bob.pk}),
+        reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
     )
     assert response.status_code == status.HTTP_200_OK
 
@@ -143,7 +143,7 @@ def test_cannot_resubmit_the_same_quote(
     # Attempt to re-upload the same PDF file:
     test_pdf.seek(0)
     response = superuser_client.post(
-        reverse("jobs:update_quote", kwargs={"pk": job_rejected_by_bob.pk}),
+        reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
         data={"quote": test_pdf},
     )
 
@@ -187,7 +187,7 @@ def submit_quote_update_and_check_redirect(
         attachment (SimpleUploadedFile): A test PDF file.
     """
     response = client.post(
-        reverse("jobs:update_quote", kwargs={"pk": job.pk}),
+        reverse("jobs:quote_update", kwargs={"pk": job.pk}),
         data={"quote": attachment},
     )
     assert response.status_code == status.HTTP_302_FOUND
@@ -219,7 +219,7 @@ def test_on_success_sends_an_email_to_the_agent(
 
     # As Marnie, upload a new quote.
     response = marnie_user_client.post(
-        reverse("jobs:update_quote", kwargs={"pk": job_rejected_by_bob.pk}),
+        reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
         data={"quote": test_pdf_2},
     )
     assert response.status_code == status.HTTP_302_FOUND
@@ -262,7 +262,7 @@ def test_on_success_sends_flash_message(
         test_pdf_2 (SimpleUploadedFile): A test PDF file.
     """
     response = marnie_user_client.post(
-        reverse("jobs:update_quote", kwargs={"pk": job_rejected_by_bob.pk}),
+        reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
         data={"quote": test_pdf_2},
         follow=True,
     )
@@ -293,7 +293,7 @@ def test_does_not_work_if_not_in_quote_rejected_state(
     """
     response = marnie_user_client.post(
         reverse(
-            "jobs:update_quote",
+            "jobs:quote_update",
             kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
         ),
         data={"quote": test_pdf_2},

@@ -294,7 +294,7 @@ def _ensure_can_see_link(user_client: Client, job: Job) -> None:
 
     # Confirm that the link goes to the correct URL.
     expected_url = reverse(
-        "jobs:download_quote",
+        "jobs:quote_download",
         kwargs={"pk": job.pk},
     )
     assert link["href"] == expected_url
@@ -829,7 +829,7 @@ class TestUpdateQuoteLinkVisibility:
 
         # Confirm that the link goes to the correct URL.
         expected_url = reverse(
-            "jobs:update_quote",
+            "jobs:quote_update",
             kwargs={"pk": job_rejected_by_bob.pk},
         )
         assert link["href"] == expected_url

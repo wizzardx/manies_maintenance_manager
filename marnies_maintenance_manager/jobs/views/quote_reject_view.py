@@ -22,7 +22,7 @@ POST_METHOD_NAME = "POST"
 
 
 @login_required
-def reject_quote(request: HttpRequest, pk: UUID) -> HttpResponse:
+def quote_reject(request: HttpRequest, pk: UUID) -> HttpResponse:
     """Reject the quote for a specific Maintenance Job.
 
     Args:

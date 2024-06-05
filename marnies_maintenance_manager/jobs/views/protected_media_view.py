@@ -11,7 +11,7 @@ from django.http import HttpResponse
 
 
 @login_required
-def serve_protected_media(
+def protected_media(
     request: HttpRequest,
     path: str,
 ) -> HttpResponse | FileResponse:
