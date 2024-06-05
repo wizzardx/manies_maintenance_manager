@@ -407,8 +407,7 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
     number_link.click()
 
 
-def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
-    # Marnie logs into the system.
+def _sign_in_as_marie_and_navigate_to_job_details(browser):
     _sign_into_website(browser, "marnie")
 
     # He clicks on the Agents link
@@ -424,6 +423,11 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
     # He clicks on the link with the number 1 in the text:
     number_link = browser.find_element(By.LINK_TEXT, "1")
     number_link.click()
+
+
+def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
+    # Marnie logs into the system and navigates through to the detail page of the job
+    _sign_in_as_marie_and_navigate_to_job_details(browser)
 
     # Just below the existing details, he sees an "Update" link.
     update_link = browser.find_element(By.LINK_TEXT, "Update")
@@ -642,21 +646,8 @@ def test_after_rejection_marnie_can_resubmit_quote(
     ## Bob rejects the quote.
     _bob_rejects_marnies_quote(browser)
 
-    # Marnie receives the "quote rejected" email notification from Bob, and so he logs
-    # into the website.
-    _sign_into_website(browser, "marnie")
-
-    # He clicks on the Agents link
-    agents_link = browser.find_element(By.LINK_TEXT, "Agents")
-    agents_link.click()
-
-    # He clicks on the link for Bob.
-    bob_agent_link = browser.find_element(By.LINK_TEXT, "bob")
-    bob_agent_link.click()
-
-    # He clicks on the link with the number 1 in the text:
-    number_link = browser.find_element(By.LINK_TEXT, "1")
-    number_link.click()
+    # Marnie logs into the system and navigates through to the detail page of the job
+    _sign_in_as_marie_and_navigate_to_job_details(browser)
 
     # He sees the link to his previously uploaded file for the quote:
     quote_link = browser.find_element(By.LINK_TEXT, "Download Quote")
