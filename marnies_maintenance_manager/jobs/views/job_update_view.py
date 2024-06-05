@@ -6,16 +6,13 @@ from typing import cast
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.core.mail import EmailMessage
 from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.views.generic import UpdateView
 
-from marnies_maintenance_manager.jobs.constants import DEFAULT_FROM_EMAIL
 from marnies_maintenance_manager.jobs.forms import JobUpdateForm
 from marnies_maintenance_manager.jobs.models import Job
-from marnies_maintenance_manager.jobs.utils import get_marnie_email
-from marnies_maintenance_manager.jobs.views.job_create_view import generate_email_body
+from marnies_maintenance_manager.jobs.views.utils import send_quote_update_email
 from marnies_maintenance_manager.users.models import User
 
 if TYPE_CHECKING:  # pylint: disable=consider-ternary-expression
@@ -49,6 +46,7 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, TypedUpdateView):
             user.is_marnie and obj.status == Job.Status.PENDING_INSPECTION.value
         )
 
+    # noinspection PyUnresolvedReferences
     def form_valid(self, form: JobUpdateForm) -> HttpResponse:
         """Set the status of the job to "inspection_completed" before saving the form.
 
@@ -79,33 +77,12 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, TypedUpdateView):
 
         # Call the email body-generation logic used previously, to help us populate
         # the rest of this email body:
-        email_body += generate_email_body(instance, self.request)
-
-        email_from = DEFAULT_FROM_EMAIL
-        email_to = instance.agent.email
-        email_cc = get_marnie_email()
-
-        # Create the email message:
-        email = EmailMessage(
-            subject=email_subject,
-            body=email_body,
-            from_email=email_from,
-            to=[email_to],
-            cc=[email_cc],
+        agent_username = send_quote_update_email(
+            self.request,
+            email_body,
+            email_subject,
+            instance,
         )
-
-        # Get the quote PDF file from the object instance:
-        uploaded_file = instance.quote
-
-        # Attach that to the email:
-        email.attach(uploaded_file.name, uploaded_file.read(), "application/pdf")
-
-        # Send the mail:
-        email.send()
-
-        # Get username associated with the Agent who originally created the Maintenance
-        # Job:
-        agent_username = instance.agent.username
 
         # Send a success flash message to the user:
         messages.success(

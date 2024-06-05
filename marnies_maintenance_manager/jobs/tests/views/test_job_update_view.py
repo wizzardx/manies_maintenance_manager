@@ -19,6 +19,7 @@ from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE
 from marnies_maintenance_manager.jobs.views.job_update_view import JobUpdateView
 from marnies_maintenance_manager.users.models import User
 
+from .utils import assert_email_contains_job_details
 from .utils import check_basic_page_html_structure
 
 
@@ -543,45 +544,7 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
 
     # There should now be exactly one job in the database. Fetch it so that we can
     # use it to check the email body.
-    job = Job.objects.get()
-
-    # Check that there's a link to the job detail view in the email body:
-    job_id = str(job.id)
-    assert (
-        f"Details of the job can be found at: http://testserver/jobs/{job_id}/"
-        in email.body
-    )
-
-    assert "Details of your original request:" in email.body
-
-    # A separator line:
-    assert "-----" in email.body
-
-    # The original mail subject line, as a line in the body:
-    assert "Subject: New maintenance request by bob" in email.body
-
-    # And all the original body lines, too, as per our previous test where the
-    # agent user had just created a new job:
-
-    assert "bob has made a new maintenance request." in email.body
-    assert "Number: 1" in email.body
-    assert "Date: 2022-01-01" in email.body
-    assert "Address Details:\n\n1234 Main St, Springfield, IL" in email.body
-    assert "GPS Link:\n\nhttps://www.google.com/maps" in email.body
-    assert "Quote Request Details:\n\nReplace the kitchen sink" in email.body
-    assert (
-        "PS: This mail is sent from an unmonitored email address. "
-        "Please do not reply to this email." in email.body
-    )
-
-    # Check the mail attachment
-    assert len(email.attachments) == 1
-    attachment = email.attachments[0]
-
-    # Attachment name can be something like one of these:
-    # - quotes/test_r8TJrLv.pdf
-    # - quotes/test.pdf
-    attach_name = attachment[0]
+    attach_name, attachment = assert_email_contains_job_details(email)
     assert attach_name.startswith("quotes/test"), attach_name
     assert attach_name.endswith(".pdf")
     assert attachment[1] == BASIC_TEST_PDF_FILE.read_bytes()

@@ -3,17 +3,21 @@
 # pylint: disable=unused-argument
 
 import re
+from unittest import mock
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch  # pylint: disable=import-private-name
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpRequest
 
 from marnies_maintenance_manager.jobs import exceptions
 from marnies_maintenance_manager.jobs import utils
+from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.views.utils import send_quote_update_email
 from marnies_maintenance_manager.users.models import User
 
 
-# pylint: disable=no-self-use, magic-value-comparison
+# pylint: disable=no-self-use, magic-value-comparison, redefined-outer-name
 @pytest.mark.django_db()
 class TestGetMarnieEmail:
     """Tests for the get_marnie_email utility function."""
@@ -63,6 +67,7 @@ class TestGetMarnieEmail:
 class TestGetSystemAdministratorEmail:
     """Tests for the get_sysadmin_email utility function."""
 
+    # noinspection PyUnusedLocal
     def test_gets_sysadmin_user_email(self, admin_user: User) -> None:
         """Test that the email address for the system administrator is returned.
 
@@ -137,6 +142,7 @@ class TestGetSystemAdministratorEmail:
 class TestFirstOrError:
     """Tests for the first_or_error utility function."""
 
+    # noinspection PyUnusedLocal
     def test_gets_first_object(self, admin_user: User, marnie_user: User) -> None:
         """Test that the first object in a queryset is returned.
 
@@ -225,3 +231,81 @@ class TestMakeTestUser:
         assert email.email == "test@example.com"
         assert email.primary is False
         assert email.verified is False
+
+
+@pytest.fixture()
+def job() -> Job:
+    """Return a mock of the Job object.
+
+    Returns:
+        Job: A mock of the Job object.
+    """
+    return mock.Mock(spec=Job)
+
+
+@pytest.fixture()
+def http_request() -> HttpRequest:
+    """Return a mock of the HttpRequest object.
+
+    Returns:
+        HttpRequest: A mock of the HttpRequest object.
+    """
+    return mock.Mock(spec=HttpRequest)
+
+
+@mock.patch("marnies_maintenance_manager.jobs.views.utils.EmailMessage")
+@mock.patch("marnies_maintenance_manager.jobs.views.utils.get_marnie_email")
+@mock.patch("marnies_maintenance_manager.jobs.views.utils.generate_email_body")
+def test_send_quote_update_email(
+    mock_generate_email_body: mock.Mock,
+    mock_get_marnie_email: mock.Mock,
+    mock_email_message: mock.Mock,
+    http_request: HttpRequest,
+    job: Job,
+) -> None:
+    """Test the send_quote_update_email utility function.
+
+    Args:
+        mock_generate_email_body (mock.Mock): Mock of the generate_email_body function.
+        mock_get_marnie_email (mock.Mock): Mock of the get_marnie_email function.
+        mock_email_message (mock.Mock): Mock of the EmailMessage class.
+        http_request (HttpRequest): A mock of the HttpRequest object.
+        job (Job): A mock of the Job object.
+    """
+    # Arrange
+    mock_generate_email_body.return_value = "Generated email body"
+    mock_get_marnie_email.return_value = "marnie@example.com"
+    mock_email_instance = mock.Mock()
+    mock_email_message.return_value = mock_email_instance
+
+    job.agent.email = "agent@example.com"
+    job.agent.username = "agent_username"
+    job.quote.name = "quote.pdf"
+    job.quote.read.return_value = b"PDF content"
+
+    email_body = "Initial email body"
+    email_subject = "Quote Update"
+
+    # Act
+    result = send_quote_update_email(http_request, email_body, email_subject, job)
+
+    # Assert
+    mock_generate_email_body.assert_called_once_with(job, http_request)
+    mock_get_marnie_email.assert_called_once()
+
+    mock_email_message.assert_called_once_with(
+        subject=email_subject,
+        body="Initial email bodyGenerated email body",
+        from_email="noreply@example.com",
+        to=["agent@example.com"],
+        cc=["marnie@example.com"],
+    )
+
+    mock_email_instance.attach.assert_called_once_with(
+        "quote.pdf",
+        b"PDF content",
+        "application/pdf",
+    )
+    mock_email_instance.send.assert_called_once()
+
+    assert result == "agent_username"

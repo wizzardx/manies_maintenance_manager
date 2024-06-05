@@ -15,6 +15,7 @@ from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
 
 
+# noinspection PyArgumentList
 class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):  # type: ignore[type-arg] # pylint: disable=too-many-ancestors
     """Display a list of all Maintenance Jobs.
 

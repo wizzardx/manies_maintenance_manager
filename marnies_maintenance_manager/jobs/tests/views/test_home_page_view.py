@@ -268,6 +268,7 @@ class TestAdminSpecificHomePageWarnings:
             not in response.content.decode()
         )
 
+    # noinspection PyUnusedLocal
     def test_no_warning_for_multiple_admin_users_when_i_am_not_admin(
         self,
         admin_user: User,

@@ -425,7 +425,7 @@ class TestRejectQuoteButtonVisibility:
         bob_job_with_initial_marnie_inspection: Job,
         bob_agent_user_client: Client,
     ) -> None:
-        """Ensure agent sees reject quote button when Marnie has done the inspection.
+        """Ensure agent sees reject quote button when Marnie completes inspection.
 
         Args:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob with

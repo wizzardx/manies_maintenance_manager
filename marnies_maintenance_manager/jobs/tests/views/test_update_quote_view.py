@@ -1,5 +1,7 @@
 """Tests for the QuoteUpdateView view."""
 
+# pylint: disable=magic-value-comparison
+
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpResponseRedirect
@@ -13,6 +15,7 @@ from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE_
 from marnies_maintenance_manager.jobs.views.update_quote_view import QuoteUpdateView
 from marnies_maintenance_manager.users.models import User
 
+from .utils import assert_email_contains_job_details
 from .utils import check_basic_page_html_structure
 
 
@@ -94,16 +97,10 @@ def test_view_updates_the_quote_field_on_the_job(
     test_pdf.seek(0)
     assert job_rejected_by_bob.quote.read() == test_pdf.read()
 
-    response = marnie_user_client.post(
-        reverse("jobs:update_quote", kwargs={"pk": job_rejected_by_bob.pk}),
-        data={"quote": test_pdf_2},
-    )
-
-    assert response.status_code == status.HTTP_302_FOUND
-    assert isinstance(response, HttpResponseRedirect)
-    assert response.url == reverse(
-        "jobs:job_detail",
-        kwargs={"pk": job_rejected_by_bob.pk},
+    submit_quote_update_and_check_redirect(
+        job_rejected_by_bob,
+        marnie_user_client,
+        test_pdf_2,
     )
     job_rejected_by_bob.refresh_from_db()
 
@@ -170,15 +167,34 @@ def test_on_success_redirects_to_the_detail_view(
         marnie_user_client (Client): The Django test client for Marnie.
         test_pdf_2 (SimpleUploadedFile): A test PDF file.
     """
-    response = marnie_user_client.post(
-        reverse("jobs:update_quote", kwargs={"pk": job_rejected_by_bob.pk}),
-        data={"quote": test_pdf_2},
+    submit_quote_update_and_check_redirect(
+        job_rejected_by_bob,
+        marnie_user_client,
+        test_pdf_2,
+    )
+
+
+def submit_quote_update_and_check_redirect(
+    job: Job,
+    client: Client,
+    attachment: SimpleUploadedFile,
+) -> None:
+    """Submit a quote update and check that the view redirects to the job detail view.
+
+    Args:
+        job (Job): A Job instance.
+        client (Client): A Django test client.
+        attachment (SimpleUploadedFile): A test PDF file.
+    """
+    response = client.post(
+        reverse("jobs:update_quote", kwargs={"pk": job.pk}),
+        data={"quote": attachment},
     )
     assert response.status_code == status.HTTP_302_FOUND
     assert isinstance(response, HttpResponseRedirect)
     assert response.url == reverse(
         "jobs:job_detail",
-        kwargs={"pk": job_rejected_by_bob.pk},
+        kwargs={"pk": job.pk},
     )
 
 
@@ -195,6 +211,8 @@ def test_on_success_sends_an_email_to_the_agent(
         job_rejected_by_bob (Job): A Job instance created by Bob, with a rejected quote.
         marnie_user_client (Client): The Django test client for Marnie.
         test_pdf_2 (SimpleUploadedFile): A test PDF file.
+        bob_agent_user (User): The agent user created by Bob.
+        marnie_user (User): The Marnie user.
     """
     # Clear mails before we run our logic under test:
     mail.outbox.clear()
@@ -224,45 +242,7 @@ def test_on_success_sends_an_email_to_the_agent(
 
     # There should now be exactly one job in the database. Fetch it so that we can
     # use it to check the email body.
-    job = Job.objects.get()
-
-    # Check that there's a link to the job detail view in the email body:
-    job_id = str(job.id)
-    assert (
-        f"Details of the job can be found at: http://testserver/jobs/{job_id}/"
-        in email.body
-    )
-
-    assert "Details of your original request:" in email.body
-
-    # A separator line:
-    assert "-----" in email.body
-
-    # The original mail subject line, as a line in the body:
-    assert "Subject: New maintenance request by bob" in email.body
-
-    # And all the original body lines, too, as per our previous test where the
-    # agent user had just created a new job:
-
-    assert "bob has made a new maintenance request." in email.body
-    assert "Number: 1" in email.body
-    assert "Date: 2022-01-01" in email.body
-    assert "Address Details:\n\n1234 Main St, Springfield, IL" in email.body
-    assert "GPS Link:\n\nhttps://www.google.com/maps" in email.body
-    assert "Quote Request Details:\n\nReplace the kitchen sink" in email.body
-    assert (
-        "PS: This mail is sent from an unmonitored email address. "
-        "Please do not reply to this email." in email.body
-    )
-
-    # Check the mail attachment
-    assert len(email.attachments) == 1
-    attachment = email.attachments[0]
-
-    # Attachment name can be something like one of these:
-    # - quotes/test_2_r8TJrLv.pdf
-    # - quotes/test_2.pdf
-    attach_name = attachment[0]
+    attach_name, attachment = assert_email_contains_job_details(email)
     assert attach_name.startswith("quotes/test_2"), attach_name
     assert attach_name.endswith(".pdf")
     assert attachment[1] == BASIC_TEST_PDF_FILE_2.read_bytes()

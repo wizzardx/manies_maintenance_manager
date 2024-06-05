@@ -5,15 +5,13 @@ from typing import TYPE_CHECKING
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.core.mail import EmailMessage
+from django.http import HttpResponse
 from django.views.generic import UpdateView
 from typeguard import check_type
 
-from marnies_maintenance_manager.jobs.constants import DEFAULT_FROM_EMAIL
 from marnies_maintenance_manager.jobs.forms import QuoteUpdateForm
 from marnies_maintenance_manager.jobs.models import Job
-from marnies_maintenance_manager.jobs.utils import get_marnie_email
-from marnies_maintenance_manager.jobs.views.job_create_view import generate_email_body
+from marnies_maintenance_manager.jobs.views.utils import send_quote_update_email
 from marnies_maintenance_manager.users.models import User
 
 if TYPE_CHECKING:  # pylint: disable=consider-ternary-expression
@@ -47,12 +45,14 @@ class QuoteUpdateView(
         user = check_type(self.request.user, User)
         return check_type(user.is_marnie or user.is_superuser, bool)
 
-    def form_valid(self, form: QuoteUpdateForm) -> None:
+    def form_valid(self, form: QuoteUpdateForm) -> HttpResponse:
         """Save the form.
 
         Args:
             form (QuoteUpdateForm): The form instance.
 
+        Returns:
+            HttpResponse: The HTTP response.
         """
         # This method is called when valid form data has been POSTed. It's responsible
         # for doing things before and after performing the actual save of the form.
@@ -74,33 +74,12 @@ class QuoteUpdateView(
 
         # Call the email body-generation logic used previously, to help us populate
         # the rest of this email body:
-        email_body += generate_email_body(instance, self.request)
-
-        email_from = DEFAULT_FROM_EMAIL
-        email_to = instance.agent.email
-        email_cc = get_marnie_email()
-
-        # Create the email message:
-        email = EmailMessage(
-            subject=email_subject,
-            body=email_body,
-            from_email=email_from,
-            to=[email_to],
-            cc=[email_cc],
+        agent_username = send_quote_update_email(
+            self.request,
+            email_body,
+            email_subject,
+            instance,
         )
-
-        # Get the quote PDF file from the object instance:
-        uploaded_file = instance.quote
-
-        # Attach that to the email:
-        email.attach(uploaded_file.name, uploaded_file.read(), "application/pdf")
-
-        # Send the mail:
-        email.send()
-
-        # Get username associated with the Agent who originally created the Maintenance
-        # Job:
-        agent_username = instance.agent.username
 
         # Send a success flash message to the user:
         messages.success(
@@ -111,4 +90,5 @@ class QuoteUpdateView(
 
         # Do any final logic/etc. on parent classes, and return the result of that
         # (an HTTP response) to our caller:
+        # noinspection PyUnresolvedReferences
         return super().form_valid(form)
