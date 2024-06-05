@@ -30,9 +30,9 @@ class QuoteUpdateView(
 ):
     """Update a quote for a Maintenance Job."""
 
-    model: type[Job] = Job
-    form_class: type[QuoteUpdateForm] = QuoteUpdateForm
-    template_name: str = "jobs/update_quote.html"
+    model = Job
+    form_class = QuoteUpdateForm
+    template_name = "jobs/update_quote.html"
 
     def test_func(self) -> bool:
         """Check if the user can access this view.
