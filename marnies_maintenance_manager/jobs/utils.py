@@ -3,11 +3,23 @@
 import logging
 import os
 from typing import TypeVar
+from uuid import UUID
 
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import EmailMessage
 from django.db.models import Model
 from django.db.models import QuerySet
+from django.http import HttpRequest
+from django.http import HttpResponse
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from typeguard import check_type
 
+from marnies_maintenance_manager.jobs.constants import DEFAULT_FROM_EMAIL
+from marnies_maintenance_manager.jobs.constants import POST_METHOD_NAME
+from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
 
 from .exceptions import EnvironmentVariableNotSetError
@@ -213,3 +225,130 @@ def make_test_user(  # noqa: PLR0913  # pylint: disable=too-many-arguments
         verified=email_verified,
     )
     return user_
+
+
+def quote_accept_or_reject(
+    request: HttpRequest,
+    pk: UUID,
+    *,
+    accepted: bool,
+) -> HttpResponse:
+    """Accept or reject the quote for a specific Maintenance Job.
+
+     Args:
+         request (HttpRequest): The HTTP request.
+         pk (UUID): The primary key of the Job instance.
+         accepted (bool): True if the quote is accepted, False if it is rejected.
+
+    Returns:
+         HttpResponse: The HTTP response.
+    """
+    verb = "accept" if accepted else "reject"
+
+    # Only the POST method is allowed.
+    if request.method != POST_METHOD_NAME:
+        return HttpResponse(
+            "Method not allowed",
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    # Fail for nonexistent jobs
+    job = get_object_or_404(Job, pk=pk)
+
+    # Return a permission error if the user is not an agent.
+    user = check_type(request.user, User)
+
+    # Only the agent who created the quote may accept or reject it.
+    # Besides them, admin users can always accept or reject quotes.
+    if not (user.is_superuser or (user.is_agent and user == job.agent)):
+        return HttpResponse(status=status.HTTP_403_FORBIDDEN)
+
+    # Return an error if the job is not in the correct state.
+    if job.status not in {
+        Job.Status.INSPECTION_COMPLETED.value,
+        Job.Status.QUOTE_REJECTED_BY_AGENT.value,
+    }:
+        return HttpResponse(
+            f"Job is not in the correct state for {verb}ing a quote.",
+            status=status.HTTP_412_PRECONDITION_FAILED,
+        )
+
+    # Change the job state to 'quote accepted' or 'quote rejected'
+    if accepted:
+        job.status = Job.Status.QUOTE_ACCEPTED_BY_AGENT.value
+        job.accepted_or_rejected = Job.AcceptedOrRejected.ACCEPTED.value
+    else:
+        job.status = Job.Status.QUOTE_REJECTED_BY_AGENT.value
+        job.accepted_or_rejected = Job.AcceptedOrRejected.REJECTED.value
+
+    # Save the changes to the job
+    job.save()
+
+    # Get full URL for the job detail view
+    job_detail_url = request.build_absolute_uri(job.get_absolute_url())
+
+    # Send email to Marnie telling him that his quote was accepted by the agent
+    email_subject = f"Quote {verb}ed by {job.agent.username}"
+    email_body = (
+        f"Agent {job.agent.username} has {verb}ed the quote for a maintenance job.\n\n"
+        f"Details of the job can be found at: {job_detail_url}\n\n"
+        "Details of the original request:\n\n"
+        "-----\n\n"
+        "Subject: Quote for your maintenance request\n\n"
+        "-----\n\n"
+        f"Subject: New maintenance request by {job.agent.username}\n\n"
+        f"Marnie performed the inspection on {job.date_of_inspection} and has "
+        "quoted you.\n\n"
+    )
+
+    # Call the email body-generation logic used previously, to help us populate
+    # the rest of this email body:
+    email_body += generate_email_body(job, request)
+
+    email_from = DEFAULT_FROM_EMAIL
+    email_to = get_marnie_email()
+    email_cc = job.agent.email
+
+    # Create the email message:
+    email = EmailMessage(
+        subject=email_subject,
+        body=email_body,
+        from_email=email_from,
+        to=[email_to],
+        cc=[email_cc],
+    )
+
+    # Send the mail:
+    email.send()
+
+    # Send a success flash message to the user:
+    messages.success(request, f"Quote {verb}ed. An email has been sent to Marnie.")
+
+    # Redirect to the detail view for this job.
+    return HttpResponseRedirect(job.get_absolute_url())
+
+
+def generate_email_body(job: Job, request: HttpRequest) -> str:
+    """Generate the email body for the maintenance request email.
+
+    Args:
+        job (Job): The Job object.
+        request (HttpRequest): The HTTP request.
+
+    Returns:
+        str: The email body.
+    """
+    # Get full URL for the job detail view
+    job_detail_url = request.build_absolute_uri(job.get_absolute_url())
+
+    return (
+        f"{job.agent.username} has made a new maintenance request.\n\n"
+        f"Details of the job can be found at: {job_detail_url}\n\n"
+        f"Number: {job.number}\n\n"
+        f"Date: {job.date}\n\n"
+        f"Address Details:\n\n{job.address_details}\n\n"
+        f"GPS Link:\n\n{job.gps_link}\n\n"
+        f"Quote Request Details:\n\n{job.quote_request_details}\n\n"
+        f"PS: This mail is sent from an unmonitored email address. "
+        "Please do not reply to this email.\n\n"
+    )

@@ -17,38 +17,13 @@ from typeguard import check_type
 from marnies_maintenance_manager.jobs.constants import DEFAULT_FROM_EMAIL
 from marnies_maintenance_manager.jobs.exceptions import MarnieUserNotFoundError
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.utils import generate_email_body
 from marnies_maintenance_manager.jobs.utils import get_marnie_email
 from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
 from marnies_maintenance_manager.jobs.utils import user_has_verified_email_address
 from marnies_maintenance_manager.users.models import User
 
 logger = logging.getLogger(__name__)
-
-
-def generate_email_body(job: Job, request: HttpRequest) -> str:
-    """Generate the email body for the maintenance request email.
-
-    Args:
-        job (Job): The Job object.
-        request (HttpRequest): The HTTP request.
-
-    Returns:
-        str: The email body.
-    """
-    # Get full URL for the job detail view
-    job_detail_url = request.build_absolute_uri(job.get_absolute_url())
-
-    return (
-        f"{job.agent.username} has made a new maintenance request.\n\n"
-        f"Details of the job can be found at: {job_detail_url}\n\n"
-        f"Number: {job.number}\n\n"
-        f"Date: {job.date}\n\n"
-        f"Address Details:\n\n{job.address_details}\n\n"
-        f"GPS Link:\n\n{job.gps_link}\n\n"
-        f"Quote Request Details:\n\n{job.quote_request_details}\n\n"
-        f"PS: This mail is sent from an unmonitored email address. "
-        "Please do not reply to this email.\n\n"
-    )
 
 
 def _marnie_has_verified_email_address(marnie_email: str) -> bool:

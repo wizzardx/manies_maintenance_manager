@@ -5,8 +5,8 @@ from django.http import HttpRequest
 
 from marnies_maintenance_manager.jobs.constants import DEFAULT_FROM_EMAIL
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.utils import generate_email_body
 from marnies_maintenance_manager.jobs.utils import get_marnie_email
-from marnies_maintenance_manager.jobs.views.job_create_view import generate_email_body
 
 
 def send_quote_update_email(

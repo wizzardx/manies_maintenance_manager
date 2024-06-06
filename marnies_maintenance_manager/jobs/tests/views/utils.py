@@ -17,10 +17,12 @@ To execute these tests, run the following command:
 # pylint: disable=unused-argument
 
 from bs4 import BeautifulSoup
+from django.contrib.messages.storage.base import Message
 from django.core.mail import EmailMessage
 from django.http.response import HttpResponse
 from django.test.client import Client
 from django.views.generic.base import View as BaseView
+from rest_framework import status
 from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
@@ -91,13 +93,11 @@ def check_basic_page_html_structure(  # noqa: PLR0913
         response.resolver_match.url_name == expected_url_name
     ), f"Found {response.resolver_match.url_name} instead of {expected_url_name}"
     if expected_view_class is not None:
+        func = response.resolver_match.func
+        view_class = func.view_class  # type: ignore[attr-defined]
         assert (
-            response.resolver_match.func.view_class  # type: ignore[attr-defined]
-            == expected_view_class
-        ), (
-            f"Found {response.resolver_match.func.view_class} "  # type: ignore[attr-defined]
-            f"instead of {expected_view_class}"
-        )
+            view_class == expected_view_class
+        ), f"Found {view_class} instead of {expected_view_class}"
 
     return check_type(response, HttpResponse)
 
@@ -145,3 +145,81 @@ def assert_email_contains_job_details(
     # - quotes/test.pdf
     attach_name = attachment[0]
     return attach_name, attachment
+
+
+def assert_standard_email_content(email: EmailMessage, job: Job) -> None:
+    """Assert the standard email content.
+
+    Args:
+        email (EmailMessage): The email message object.
+        job (Job): The job object.
+    """
+    assert (
+        f"Details of the job can be found at: http://testserver/jobs/{job.id}/"
+        in email.body
+    )
+
+    assert "Details of the original request:" in email.body
+
+    # A separator line:
+    assert "-----" in email.body
+
+    # Subject and body of mail that we sent a bit previously:
+
+    assert "Subject: Quote for your maintenance request" in email.body
+
+    assert (
+        "Marnie performed the inspection on 2001-02-05 and has quoted you."
+        in email.body
+    )
+
+    # The original mail subject line, as a line in the body:
+    assert "Subject: New maintenance request by bob" in email.body
+
+    # And all the original body lines, too, as per our previous test where the
+    # agent user had just created a new job:
+
+    assert "bob has made a new maintenance request." in email.body
+    assert "Date: 2022-01-01" in email.body
+    assert "Number: 1" in email.body
+    assert "Address Details:\n\n1234 Main St, Springfield, IL" in email.body
+    assert "GPS Link:\n\nhttps://www.google.com/maps" in email.body
+    assert "Quote Request Details:\n\nReplace the kitchen sink" in email.body
+    assert (
+        "PS: This mail is sent from an unmonitored email address. "
+        "Please do not reply to this email." in email.body
+    )
+
+
+def assert_standard_quote_post_response(
+    bob_agent_user_client: Client,
+    bob_job_with_initial_marnie_inspection: Job,
+    verb: str,
+) -> list[Message]:
+    """Assert the response after accepting or rejecting a quote.
+
+    Args:
+        bob_agent_user_client (Client): The Django test client for Bob the agent user.
+        bob_job_with_initial_marnie_inspection (Job): The job with an initial Marnie
+            inspection.
+        verb (str): The verb to use in the URL path.
+
+    Returns:
+        list[Message]: The messages returned by the response context.
+    """
+    assert verb in {"accept", "reject"}
+
+    response = bob_agent_user_client.post(
+        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/{verb}/",
+        follow=True,
+    )
+    # Check the response code:
+    assert response.status_code == status.HTTP_200_OK
+    # Check the redirect chain:
+    assert response.redirect_chain == [
+        (f"/jobs/{bob_job_with_initial_marnie_inspection.id}/", 302),
+    ]
+    # Check the message:
+    messages = list(response.context["messages"])
+    assert len(messages) == 1
+    return messages

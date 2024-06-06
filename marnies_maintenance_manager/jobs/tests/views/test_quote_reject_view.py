@@ -11,6 +11,12 @@ from typeguard import check_type
 
 from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.tests.views.utils import (
+    assert_standard_email_content,
+)
+from marnies_maintenance_manager.jobs.tests.views.utils import (
+    assert_standard_quote_post_response,
+)
 from marnies_maintenance_manager.users.models import User
 
 
@@ -236,47 +242,10 @@ def test_email_sent_to_marnie_user(
     assert constants.DEFAULT_FROM_EMAIL in email.from_email
 
     # Check mail contents:
-    assert (
-        "Agent bob has rejected the quote for your maintenance request." in email.body
-    )
+    assert "Agent bob has rejected the quote for a maintenance job." in email.body
 
-    # Check that there's a link to the job detail view in the email body:
-    job_id = str(bob_job_with_initial_marnie_inspection.id)
-    assert (
-        f"Details of the job can be found at: http://testserver/jobs/{job_id}/"
-        in email.body
-    )
-
-    assert "Details of the original request:" in email.body
-
-    # A separator line:
-    assert "-----" in email.body
-
-    # Subject and body of mail that we sent a bit previously:
-
-    assert "Subject: Quote for your maintenance request" in email.body
-
-    assert (
-        "Marnie performed the inspection on 2001-02-05 and has quoted you."
-        in email.body
-    )
-
-    # The original mail subject line, as a line in the body:
-    assert "Subject: New maintenance request by bob" in email.body
-
-    # And all the original body lines, too, as per our previous test where the
-    # agent user had just created a new job:
-
-    assert "bob has made a new maintenance request." in email.body
-    assert "Date: 2022-01-01" in email.body
-    assert "Number: 1" in email.body
-    assert "Address Details:\n\n1234 Main St, Springfield, IL" in email.body
-    assert "GPS Link:\n\nhttps://www.google.com/maps" in email.body
-    assert "Quote Request Details:\n\nReplace the kitchen sink" in email.body
-    assert (
-        "PS: This mail is sent from an unmonitored email address. "
-        "Please do not reply to this email." in email.body
-    )
+    # Check the rest of the email contents:
+    assert_standard_email_content(email, bob_job_with_initial_marnie_inspection)
 
 
 def test_flash_message_displayed(
@@ -289,22 +258,11 @@ def test_flash_message_displayed(
         bob_agent_user_client (Client): The Django test client for Bob.
         bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
     """
-    response = bob_agent_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
-        follow=True,
+    messages = assert_standard_quote_post_response(
+        bob_agent_user_client,
+        bob_job_with_initial_marnie_inspection,
+        "reject",
     )
-
-    # Check the response code:
-    assert response.status_code == status.HTTP_200_OK
-
-    # Check the redirect chain:
-    assert response.redirect_chain == [
-        (f"/jobs/{bob_job_with_initial_marnie_inspection.id}/", 302),
-    ]
-
-    # Check the message:
-    messages = list(response.context["messages"])
-    assert len(messages) == 1
     assert str(messages[0]) == "Quote rejected. An email has been sent to Marnie."
 
 

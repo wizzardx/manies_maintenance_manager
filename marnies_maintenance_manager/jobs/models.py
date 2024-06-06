@@ -74,6 +74,7 @@ class Job(UUIDModel, TimeStampedModel):
         PENDING_INSPECTION = "pending_inspection"
         INSPECTION_COMPLETED = "inspection_completed"
         QUOTE_REJECTED_BY_AGENT = "quote_rejected_by_agent"
+        QUOTE_ACCEPTED_BY_AGENT = "quote_accepted_by_agent"
 
     # STATUS is populated from the values seen in the Status Enum above.
     STATUS = Choices(  # type: ignore[no-untyped-call]
