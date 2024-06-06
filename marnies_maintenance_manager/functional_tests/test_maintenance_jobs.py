@@ -687,26 +687,7 @@ def test_after_rejection_marnie_can_resubmit_quote(
     _sign_out_of_website_and_clean_up(browser)
 
 
-def test_bob_can_accept_marnies_quote(
-    browser: WebDriver,
-    live_server_url: str,
-    marnie_user: User,
-    bob_agent_user: User,
-) -> None:
-    """Ensure Bob can accept the quote submitted by Marnie.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-        marnie_user (User): The user instance for Marnie.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
-    """
-    ## First, quickly run through the steps of an Agent creating a new Job.
-    _create_new_job(browser, live_server_url)
-
-    ## Next, Marnie does an inspection, and updates the inspection date and quote.
-    _update_job_with_inspection_date_and_quote(browser)
-
+def _bob_accepts_marnies_quote(browser: WebDriver) -> None:
     # Bob received a notification. He saw the email, and the quote, and is happy with
     # it, so he is ready to confirm the quote. He logs into the system:
     _sign_into_website(browser, "bob")
@@ -743,6 +724,98 @@ def test_bob_can_accept_marnies_quote(
     with pytest.raises(NoSuchElementException):
         browser.find_element(By.LINK_TEXT, "Reject Quote")
 
+    # Unlike other reused functions, we don't leave the browser here. That's because
+    # Bob, in other tests, continues doing other actions before he's done and its
+    # Marnies turn to do something.
+
+
+def test_bob_can_accept_marnies_quote(
+    browser: WebDriver,
+    live_server_url: str,
+    marnie_user: User,
+    bob_agent_user: User,
+) -> None:
+    """Ensure Bob can accept the quote submitted by Marnie.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+        marnie_user (User): The user instance for Marnie.
+        bob_agent_user (User): The user instance for Bob, who is an agent.
+    """
+    ## First, quickly run through the steps of an Agent creating a new Job.
+    _create_new_job(browser, live_server_url)
+
+    ## Next, Marnie does an inspection, and updates the inspection date and quote.
+    _update_job_with_inspection_date_and_quote(browser)
+
+    # The rest of the logic, moved over to his shared function:
+    _bob_accepts_marnies_quote(browser)
+
     # Happy with this so far, but not yet ready to upload a proof of payment,
     # he logs out of the website, and goes back to sleep
+    _sign_out_of_website_and_clean_up(browser)
+
+
+def test_agent_can_submit_deposit_pop_after_accepting_marnie_quote(
+    browser: WebDriver,
+    live_server_url: str,
+    marnie_user: User,
+    bob_agent_user: User,
+):
+    """Ensure Bob can submit proof of payment after accepting Marnie's quote.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+        marnie_user (User): The user instance for Marnie.
+        bob_agent_user (User): The user instance for Bob, who is an agent.
+    """
+    ## First, quickly run through the steps of an Agent creating a new Job.
+    _create_new_job(browser, live_server_url)
+
+    ## Next, Marnie does an inspection, and updates the inspection date and quote.
+    _update_job_with_inspection_date_and_quote(browser)
+
+    ## After this, quickly accept the quote:
+    _bob_accepts_marnies_quote(browser)
+
+    ## At this point, Bob should still be logged into the system, and the current page
+    ## should be the "Maintenance Job Details" page. Confirm that:
+    assert "Maintenance Job Details" in browser.title
+    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees a "Submit Deposit POP" link, and clicks on it.
+    submit_pop_link = browser.find_element(By.LINK_TEXT, "Submit Deposit POP")
+    submit_pop_link.click()
+
+    # He sees the "Submit Deposit POP" page, with the title and header mentioning the
+    # same.
+    assert "Submit Deposit POP" in browser.title
+    assert "Submit Deposit POP" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees the "Proof of Payment" field, and a "Submit" button.
+    pop_field = browser.find_element(By.ID, "id_proof_of_payment")
+    submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
+
+    # He uploads a Proof of Payment.
+    pop_field.send_keys(
+        "/app/marnies_maintenance_manager/functional_tests/test.pdf",
+    )
+
+    # He clicks the "submit" button.
+    submit_button.click()
+
+    # This takes him back to the details page for the Job.
+    assert "Maintenance Job Details" in browser.title
+    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees a flash notification that an email has been sent to Marnie.
+    expected_msg = (
+        "Your Deposit Proof of Payment has been uploaded. An email has "
+        "been sent to Marnie."
+    )
+    assert expected_msg in browser.page_source
+
+    # Happy with this, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)
