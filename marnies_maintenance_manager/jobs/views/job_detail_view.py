@@ -38,10 +38,10 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         # Only Marnie and Admin can see the Update link, and only when the current Job
         # status allows for it.
         user = check_type(self.request.user, User)
-        obj = self.get_object()
+        job = self.get_object()
         update_link_present = (
             user.is_marnie or user.is_superuser
-        ) and obj.status == Job.Status.PENDING_INSPECTION.value
+        ) and job.status == Job.Status.PENDING_INSPECTION.value
 
         # The "Reject Quote" button may only be seen when the Job is a correct status,
         # and the user is Admin or an Agent. If the user is an Agent, then we also check
@@ -49,23 +49,23 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         # not needed (since the user doesn't have permission to see other agents' jobs
         # anyway).
         reject_quote_button_present = (
-            obj.status == Job.Status.INSPECTION_COMPLETED.value
-            and ((user.is_agent and user == obj.agent) or user.is_superuser)
+            job.status == Job.Status.INSPECTION_COMPLETED.value
+            and ((user.is_agent and user == job.agent) or user.is_superuser)
         )
 
         # The "Accept Quote" button has almost the same conditions for when it should be
         # displayed, except that it should also be displayed when the quote has been
         # rejected by the Agent.
-        accept_quote_button_present = obj.status in {
+        accept_quote_button_present = job.status in {
             Job.Status.INSPECTION_COMPLETED.value,
             Job.Status.QUOTE_REJECTED_BY_AGENT.value,
-        } and ((user.is_agent and user == obj.agent) or user.is_superuser)
+        } and ((user.is_agent and user == job.agent) or user.is_superuser)
 
         # The "Update Quote" link is something that Marnie can use - when the Agent
         # rejected his previously submitted quote, to upload a new one.
         update_quote_link_present = (
             user.is_marnie or user.is_superuser
-        ) and obj.status == Job.Status.QUOTE_REJECTED_BY_AGENT.value
+        ) and job.status == Job.Status.QUOTE_REJECTED_BY_AGENT.value
 
         context = super().get_context_data(**kwargs)
         context["update_link_present"] = update_link_present
