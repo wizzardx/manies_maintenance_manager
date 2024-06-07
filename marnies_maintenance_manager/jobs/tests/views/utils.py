@@ -59,7 +59,9 @@ def check_basic_page_html_structure(  # noqa: PLR0913
         HttpResponse: The response object from the client.
     """
     response = client.get(url)
-    assert response.status_code == HTTP_SUCCESS_STATUS_CODE
+    assert (
+        response.status_code == HTTP_SUCCESS_STATUS_CODE
+    ), f"Expected HTTP code 200, but got {response.status_code}"
 
     # Parse HTML so that we can check for specific elements
     response_text = response.content.decode()
