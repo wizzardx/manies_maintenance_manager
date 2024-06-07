@@ -73,3 +73,7 @@ class QuoteUpdateForm(TypedModelForm):
             msg = "You must provide a new quote"
             raise forms.ValidationError(msg)
         return quote
+
+
+class DepositPOPUpdateForm(TypedModelForm):
+    """Provide a form for the Proof of Payment update view."""

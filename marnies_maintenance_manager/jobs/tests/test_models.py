@@ -6,11 +6,14 @@ import uuid
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 from django.db.utils import IntegrityError
 from django.forms.models import ModelForm
 from django.urls import reverse
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.validators import validate_pdf_contents
 from marnies_maintenance_manager.users.models import User
 
 UUID_REGEX = (
@@ -445,3 +448,30 @@ def test_valid_values_for_accept_or_reject_field(job_created_by_bob: Job) -> Non
 
     err_str = str(err.value)
     assert expected_1 in err_str or expected_2 in err_str
+
+
+def test_has_deposit_proof_of_payment_field() -> None:
+    """Ensure the Job model has a 'deposit_proof_of_payment' field."""
+    assert hasattr(Job, "deposit_proof_of_payment")
+
+
+def test_deposit_proof_of_payment_field_is_setup_correctly() -> None:
+    """Ensure the 'deposit_proof_of_payment' field is set up correctly."""
+    field = Job.deposit_proof_of_payment.field
+    assert field.null is True
+    assert field.blank is True
+    assert field.upload_to == "deposit_pops/"
+    assert field.storage is not None
+    assert field.help_text == "Upload the deposit proof of payment here."
+    assert field.verbose_name == "Deposit Proof of Payment"
+
+    # Only the .pdf file extension is allowed:
+    validators = check_type(field.validators, list)
+    num_validators_used_for_pdf = 2
+    assert len(validators) == num_validators_used_for_pdf
+    assert isinstance(validators[0], FileExtensionValidator)
+    assert validators[0].allowed_extensions == ["pdf"]
+
+    # The PDF file contents must be valid:
+    # pylint: disable=comparison-with-callable
+    assert validators[1] == validate_pdf_contents

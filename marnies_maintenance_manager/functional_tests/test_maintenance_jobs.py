@@ -762,7 +762,7 @@ def test_agent_can_submit_deposit_pop_after_accepting_marnie_quote(
     live_server_url: str,
     marnie_user: User,
     bob_agent_user: User,
-):
+) -> None:
     """Ensure Bob can submit proof of payment after accepting Marnie's quote.
 
     Args:
@@ -786,7 +786,10 @@ def test_agent_can_submit_deposit_pop_after_accepting_marnie_quote(
     assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
 
     # He sees a "Submit Deposit POP" link, and clicks on it.
-    submit_pop_link = browser.find_element(By.LINK_TEXT, "Submit Deposit POP")
+    submit_pop_link = browser.find_element(
+        By.LINK_TEXT,
+        "Submit Deposit Proof of Payment",
+    )
     submit_pop_link.click()
 
     # He sees the "Submit Deposit POP" page, with the title and header mentioning the
