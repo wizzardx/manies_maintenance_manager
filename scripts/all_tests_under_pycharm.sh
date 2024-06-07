@@ -23,10 +23,10 @@ show_message() {
 }
 
 if [ "$RETCODE" == "0" ]; then
-    show_message "Tests done - SUCCESS"
+    show_message '"All" Tests done - SUCCESS'
     echo "Done with all_tests_under_pycharm.sh - SUCCESS"
 else
-    show_message "Tests done - FAILURE"
+    show_message '"All" Tests done - FAILURE'
     echo "Done with all_tests_under_pycharm.sh - FAILURE"
 fi
 
