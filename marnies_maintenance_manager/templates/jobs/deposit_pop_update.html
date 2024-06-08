@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_filters %}
+
+{% block title %}
+  Submit Deposit POP
+{% endblock title %}
+{% block content %}
+  <h1>Submit Deposit POP</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </form>
+{% endblock content %}

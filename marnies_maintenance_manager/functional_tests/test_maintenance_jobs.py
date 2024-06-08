@@ -798,7 +798,7 @@ def test_agent_can_submit_deposit_pop_after_accepting_marnie_quote(
     assert "Submit Deposit POP" in browser.find_element(By.TAG_NAME, "h1").text
 
     # He sees the "Proof of Payment" field, and a "Submit" button.
-    pop_field = browser.find_element(By.ID, "id_proof_of_payment")
+    pop_field = browser.find_element(By.ID, "id_deposit_proof_of_payment")
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
 
     # He uploads a Proof of Payment.

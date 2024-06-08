@@ -115,6 +115,15 @@ class Job(UUIDModel, TimeStampedModel):
         default="",
     )
 
+    deposit_proof_of_payment = models.FileField(
+        upload_to="deposit_pops/",
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(["pdf"]), validate_pdf_contents],
+        help_text=_("Upload the deposit proof of payment here."),
+        verbose_name=_("Deposit Proof of Payment"),
+    )
+
     class Meta:
         """Meta options for the Job model."""
 
