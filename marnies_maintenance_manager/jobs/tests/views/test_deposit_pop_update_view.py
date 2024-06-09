@@ -6,7 +6,9 @@ from typing import Any
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.core import mail
 from django.core.exceptions import PermissionDenied
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.test import Client
@@ -15,12 +17,15 @@ from django.urls import reverse
 from rest_framework import status
 from typeguard import check_type
 
+from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE
 from marnies_maintenance_manager.jobs.views.deposit_pop_update_view import (
     DepositPOPUpdateView,
 )
 from marnies_maintenance_manager.users.models import User
 
+from .utils import assert_email_contains_job_details
 from .utils import check_basic_page_html_structure
 
 
@@ -194,3 +199,229 @@ def test_view_has_form_html(
     assert 'type="submit"' in form_html
     assert 'class="btn btn-primary"' in form_html
     assert "Submit" in form_html
+
+
+def test_posting_without_a_file_fails(
+    job_accepted_by_bob: Job,
+    bob_agent_user_client: Client,
+) -> None:
+    """Ensure that posting the form without a file fails.
+
+    Args:
+        job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
+        bob_agent_user_client (Client): The Django test client for Bob.
+    """
+    response = check_type(
+        bob_agent_user_client.post(
+            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+            data={},
+        ),
+        TemplateResponse,
+    )
+    assert response.status_code == status.HTTP_200_OK
+    context_data = check_type(response.context_data, dict[str, Any])
+    assert context_data["form"].errors == {
+        "deposit_proof_of_payment": ["This field is required."],
+    }
+
+
+def test_uploading_a_pdf_updates_the_model(
+    job_accepted_by_bob: Job,
+    bob_agent_user_client: Client,
+    test_pdf: SimpleUploadedFile,
+) -> None:
+    """Ensure that uploading a PDF file updates the Job model.
+
+    Args:
+        job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
+        bob_agent_user_client (Client): The Django test client for Bob.
+        test_pdf (SimpleUploadedFile): A test PDF file.
+    """
+    # Check that uploading a pdf file, causes the Job model's deposit_proof_of_payment
+    # field to be updated.
+
+    # Confirm that the field is not yet populated:
+    assert job_accepted_by_bob.deposit_proof_of_payment.name == ""
+
+    # Upload the PDF:
+
+    test_pdf.seek(0)
+    response = check_type(
+        bob_agent_user_client.post(
+            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+            data={"deposit_proof_of_payment": test_pdf},
+        ),
+        HttpResponseRedirect,
+    )
+
+    # Check that the response is a redirect:
+    assert response.status_code == status.HTTP_302_FOUND
+    assert response.url == reverse(
+        "jobs:job_detail",
+        kwargs={"pk": job_accepted_by_bob.pk},
+    )
+
+    # Fetch the job from the database:
+    job = Job.objects.get(pk=job_accepted_by_bob.pk)
+
+    # Check that the deposit_proof_of_payment field is now set:
+    assert job.deposit_proof_of_payment.name == "deposit_pops/test.pdf"
+
+    job.deposit_proof_of_payment.seek(0)
+    test_pdf.seek(0)
+    assert job.deposit_proof_of_payment.read() == test_pdf.read()
+
+
+def test_uploading_a_pdf_with_none_pdf_contents_fails(
+    job_accepted_by_bob: Job,
+    bob_agent_user_client: Client,
+) -> None:
+    """Ensure that uploading a PDF file with non-PDF contents fails.
+
+    Args:
+        job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
+        bob_agent_user_client (Client): The Django test client for Bob.
+    """
+    test_file = SimpleUploadedFile("test.pdf", b"not a pdf file")
+    response = check_type(
+        bob_agent_user_client.post(
+            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+            data={"deposit_proof_of_payment": test_file},
+        ),
+        TemplateResponse,
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    context_data = check_type(response.context_data, dict[str, Any])
+    assert context_data["form"].errors == {
+        "deposit_proof_of_payment": ["This is not a valid PDF file"],
+    }
+
+
+def test_uploading_a_non_pdf_file_with_pdf_contents_fails(
+    job_accepted_by_bob: Job,
+    bob_agent_user_client: Client,
+    test_pdf: SimpleUploadedFile,
+) -> None:
+    """Ensure that uploading a non-PDF file with PDF contents fails.
+
+    Args:
+        job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
+        bob_agent_user_client (Client): The Django test client for Bob.
+        test_pdf (SimpleUploadedFile): A test PDF file.
+    """
+    test_pdf.seek(0)
+    pdf_data = test_pdf.read()
+
+    test_pdf_2 = SimpleUploadedFile("test.txt", pdf_data)
+
+    # Test this upload - where the contents are pdf, but the file extension is txt
+    response = check_type(
+        bob_agent_user_client.post(
+            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+            data={"deposit_proof_of_payment": test_pdf_2},
+        ),
+        TemplateResponse,
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    context_data = check_type(response.context_data, dict[str, Any])
+    assert context_data["form"].errors == {
+        "deposit_proof_of_payment": [
+            "File extension “txt” is not allowed. Allowed extensions are: pdf.",
+        ],
+    }
+
+
+def test_sends_an_email(
+    job_accepted_by_bob: Job,
+    bob_agent_user_client: Client,
+    test_pdf: SimpleUploadedFile,
+    marnie_user: User,
+    bob_agent_user: User,
+) -> None:
+    """Ensure that an email is sent when the form is submitted.
+
+    Args:
+        job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
+        bob_agent_user_client (Client): The Django test client for Bob.
+        test_pdf (SimpleUploadedFile): A test PDF file.
+        marnie_user (User): Marnie's user account.
+        bob_agent_user (User): Bob's user account.
+    """
+    # Clear records of any already-sent emails:
+    mail.outbox.clear()
+
+    # Submit the form:
+    test_pdf.seek(0)
+    response = check_type(
+        bob_agent_user_client.post(
+            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+            data={"deposit_proof_of_payment": test_pdf},
+        ),
+        HttpResponseRedirect,
+    )
+
+    # Check that the response is a redirect:
+    assert response.status_code == status.HTTP_302_FOUND
+    assert response.url == reverse(
+        "jobs:job_detail",
+        kwargs={"pk": job_accepted_by_bob.pk},
+    )
+
+    # There should be one mail sent now;
+    assert len(mail.outbox) == 1
+
+    # Grab the mail:
+    email = mail.outbox[0]
+
+    # Check mail metadata:
+    assert email.subject == "Agent bob added a Deposit POP to the maintenance request"
+    assert marnie_user.email in email.to
+    assert bob_agent_user.email in email.cc
+    assert constants.DEFAULT_FROM_EMAIL in email.from_email
+
+    # Check mail contents:
+    assert (
+        "Agent bob added a Deposit POP to the maintenance request. The POP "
+        "is attached to this email." in email.body
+    )
+
+    # There should now be exactly one job in the database. Fetch it so that we can
+    # use it to check the email body.
+    attach_name, attachment = assert_email_contains_job_details(email)
+    assert attach_name.startswith("deposit_pops/test"), attach_name
+    assert attach_name.endswith(".pdf")
+    assert attachment[1] == BASIC_TEST_PDF_FILE.read_bytes()
+    assert attachment[2] == "application/pdf"
+
+
+def test_sends_a_success_flash_message(
+    job_accepted_by_bob: Job,
+    bob_agent_user_client: Client,
+    test_pdf: SimpleUploadedFile,
+) -> None:
+    """Ensure that a success flash message is sent when the form is submitted.
+
+    Args:
+        job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
+        bob_agent_user_client (Client): The Django test client for Bob.
+        test_pdf (SimpleUploadedFile): A test PDF file.
+    """
+    # Submit the form:
+    test_pdf.seek(0)
+    response = bob_agent_user_client.post(
+        reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+        data={"deposit_proof_of_payment": test_pdf},
+        follow=True,
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    messages = response.context["messages"]
+    assert len(messages) == 1
+    message = next(iter(messages))
+    assert message.message == (
+        "Your Deposit Proof of Payment has been uploaded. An email has been sent "
+        "to Marnie."
+    )
+    assert message.tags == "success"

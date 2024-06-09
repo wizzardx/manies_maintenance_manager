@@ -77,3 +77,13 @@ class QuoteUpdateForm(TypedModelForm):
 
 class DepositPOPUpdateForm(TypedModelForm):
     """Provide a form for the Proof of Payment update view."""
+
+    class Meta:
+        """Metaclass for the DepositPOPUpdateForm."""
+
+        model = Job
+        fields = [
+            "deposit_proof_of_payment",
+        ]
+
+    deposit_proof_of_payment = forms.FileField()
