@@ -86,5 +86,10 @@ def test_agent_can_submit_deposit_pop_after_accepting_marnie_quote(
     )
     assert expected_msg in browser.page_source
 
+    # Over in the job details page he can see the link to his previously uploaded file,
+    # with the text "Download Deposit POP":
+    pop_link_elem = browser.find_element(By.LINK_TEXT, "Download Deposit POP")
+    assert pop_link_elem is not None
+
     # Happy with this, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)
