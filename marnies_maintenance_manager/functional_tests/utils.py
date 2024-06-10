@@ -1,62 +1,27 @@
-"""Functional tests for the 'Maintenance Jobs' feature.
+"""Helper functions for functional tests.
 
-These tests ensure that the job maintenance functionalities work as expected
-from a user's perspective in the Marnie's Maintenance Manager application.
+This module contains utility functions and fixtures used across various
+functional test modules for the Marnie's Maintenance Manager application.
+These utilities include common actions such as signing in and out of the
+application, waiting for certain conditions, and creating or updating
+job entries.
 """
 
-# pylint: disable=redefined-outer-name,unused-argument,magic-value-comparison
+# pylint: disable=unused-argument, magic-value-comparison
 
 import time
 from collections.abc import Callable
-from collections.abc import Iterator
 from typing import Any
 
 import pytest
-from pytest_django.live_server_helper import LiveServer
-from selenium import webdriver
-from selenium.common.exceptions import ElementClickInterceptedException
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.chrome.options import Options
+from selenium.common import ElementClickInterceptedException
+from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from marnies_maintenance_manager.jobs.utils import get_test_user_password
-from marnies_maintenance_manager.users.models import User
 
 MAX_WAIT = 5  # Maximum time to wait during retries, before failing the test
-
-
-@pytest.fixture()
-def browser() -> Iterator[WebDriver]:
-    """Provide a configured Selenium WebDriver for testing in a Docker environment.
-
-    Yields:
-        WebDriver: A WebDriver instance for use in tests, ensuring it's closed
-                   afterward.
-    """
-    options = Options()
-    # You can add more options here if needed
-    driver = webdriver.Remote(
-        command_executor="http://chrome:4444/wd/hub",
-        options=options,
-    )
-
-    yield driver
-
-    driver.quit()
-
-
-@pytest.fixture()
-def live_server_url(live_server: LiveServer) -> str:
-    """Modify the live_server URL to use 'django' instead of '0.0.0.0'.
-
-    Args:
-        live_server (LiveServer): The pytest-django fixture providing a live server.
-
-    Returns:
-        str: The modified URL as a string.
-    """
-    return live_server.url.replace("0.0.0.0", "django")  # noqa: S104
 
 
 def wait_until(fn: Callable[[], Any]) -> Any:
@@ -277,109 +242,6 @@ def _create_new_job(
     _sign_out_of_website_and_clean_up(browser)
 
 
-@pytest.mark.django_db()
-def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logout(
-    browser: WebDriver,
-    live_server_url: str,
-    bob_agent_user: User,
-    marnie_user_client: User,
-) -> None:
-    """Ensure a user can log in, create a job, and log out.
-
-    This test simulates a user logging into the system, creating a new
-    maintenance job, and logging out, verifying each critical step.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
-        marnie_user_client (User): The user instance for Marnie, included for context.
-    """
-    # The body of our logic is moved to a helper function, because we're going
-    # to be re-using this logic a lot of times for other functional tests.
-    _create_new_job(browser, live_server_url)
-
-
-# pylint: disable=too-many-statements,too-many-locals
-def test_marnie_can_view_agents_job(
-    browser: WebDriver,
-    live_server_url: str,
-    marnie_user: User,
-    bob_agent_user: User,
-) -> None:
-    """Ensure Marnie can view the jobs submitted by Bob the Agent.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-        marnie_user (User): The user instance for Marnie.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
-    """
-    ## First, quickly run through the steps of an Agent creating a new Job.
-    _create_new_job(browser, live_server_url)
-
-    # Marnie received the notification email (in an earlier step), and so now he wants
-    # to take a look at the Maintenance Job details
-    # that were submitted by the Agent.
-
-    # Marnie logs into the system.
-    _sign_into_website(browser, "marnie")
-
-    # He sees some text on the current page that informs him that he can see the
-    # per-agent "spreadsheets" over under the "Agents" link.
-    expected_msg = "Click on the 'Agents' link to view each Agents Maintenance Jobs."
-    assert expected_msg in browser.page_source
-
-    # He also notices an "Agents" links in the navbar.
-    agents_link = browser.find_element(By.LINK_TEXT, "Agents")
-
-    # He clicks on the Agents link
-    agents_link.click()
-
-    # This takes him to a page listing the Agents. Each Agent is a link.
-    assert "Agents" in browser.title
-    assert "Agents" in browser.find_element(By.TAG_NAME, "h1").text
-    assert "bob" in browser.page_source
-
-    # He clicks on the link for Bob.
-    bob_agent_link = browser.find_element(By.LINK_TEXT, "bob")
-    bob_agent_link.click()
-
-    # This takes him to the Maintenance Jobs page for Bob the Agent.
-    assert "Maintenance Jobs for bob" in browser.title
-    assert "Maintenance Jobs for bob" in browser.find_element(By.TAG_NAME, "h1").text
-
-    ## Thoroughly check that the table has the correct headings and row contents.
-    _check_jobs_page_table(browser)
-
-    # Since he's not an Agent, he does not see the "Create Maintenance Job" link.
-    with pytest.raises(NoSuchElementException):
-        browser.find_element(By.LINK_TEXT, "Create Maintenance Job").click()
-
-    # He sees that the #1 in the Number column is a link.
-    number_link = browser.find_element(By.LINK_TEXT, "1")
-
-    # He sees an instruction which tells him to click on the link in the Number column
-    # to view the details of each Maintenance Job.
-    expected_msg = "Click on the number in each row to go to the Job details."
-    assert expected_msg in browser.page_source
-
-    # He clicks on the #1 link in the Number column.
-    number_link.click()
-
-    # This takes him to a page where he can see (but not modify) the previously -
-    # submitted details, such as the Date, Address Details, GPS Link, and Quote Request
-    # Details.
-    assert "Maintenance Job Details" in browser.title
-    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
-
-    # The previously submitted Maintenance Job details are displayed on the page.
-    assert "2021-01-01" in browser.page_source
-    assert "Department of Home Affairs Bellville" in browser.page_source
-    assert "GPS" in browser.page_source
-    assert "Please fix the leaky faucet in the staff bathroom" in browser.page_source
-
-
 def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
     table = browser.find_element(By.ID, "id_list_table")
     rows = table.find_elements(By.TAG_NAME, "tr")
@@ -502,27 +364,6 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
     _sign_out_of_website_and_clean_up(browser)
 
 
-def test_marnie_can_update_agents_job(
-    browser: WebDriver,
-    live_server_url: str,
-    marnie_user: User,
-    bob_agent_user: User,
-) -> None:
-    """Ensure Marnie can update the details of a job submitted by Bob the Agent.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-        marnie_user (User): The user instance for Marnie.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
-    """
-    ## First, quickly run through the steps of an Agent creating a new Job.
-    _create_new_job(browser, live_server_url)
-
-    # Most of our logic is now in this shared function:
-    _update_job_with_inspection_date_and_quote(browser)
-
-
 def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
     """Ensure Bob can reject the quote submitted by Marnie.
 
@@ -599,94 +440,6 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
     _sign_out_of_website_and_clean_up(browser)
 
 
-def test_bob_can_reject_marnies_quote(
-    browser: WebDriver,
-    live_server_url: str,
-    marnie_user: User,
-    bob_agent_user: User,
-) -> None:
-    """Ensure Bob can reject the quote submitted by Marnie.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-        marnie_user (User): The user instance for Marnie.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
-    """
-    ## First, quickly run through the steps of an Agent creating a new Job.
-    _create_new_job(browser, live_server_url)
-
-    ## Next, Marnie does an inspection, and updates the inspection date and quote.
-    _update_job_with_inspection_date_and_quote(browser)
-
-    ## Bob Rejects Marnies quote:
-    _bob_rejects_marnies_quote(browser)
-
-
-def test_after_rejection_marnie_can_resubmit_quote(
-    browser: WebDriver,
-    live_server_url: str,
-    marnie_user: User,
-    bob_agent_user: User,
-) -> None:
-    """Ensure Marnie can resubmit a quote after it has been rejected by Bob.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-        marnie_user (User): The user instance for Marnie.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
-    """
-    ## First, quickly run through the steps of an Agent creating a new Job.
-    _create_new_job(browser, live_server_url)
-
-    ## Next, Marnie does an inspection, and updates the inspection date and quote.
-    _update_job_with_inspection_date_and_quote(browser)
-
-    ## Bob rejects the quote.
-    _bob_rejects_marnies_quote(browser)
-
-    # Marnie logs into the system and navigates through to the detail page of the job
-    _sign_in_as_marie_and_navigate_to_job_details(browser)
-
-    # He sees the link to his previously uploaded file for the quote:
-    quote_link = browser.find_element(By.LINK_TEXT, "Download Quote")
-    assert quote_link is not None
-
-    # He sees an "Update Quote" link, and clicks on it.
-    update_quote_link = browser.find_element(By.LINK_TEXT, "Update Quote")
-    update_quote_link.click()
-
-    # He sees the "Update Quote" page, with the title and header mentioning the same.
-    assert "Update Quote" in browser.title
-    assert "Update Quote" in browser.find_element(By.TAG_NAME, "h1").text
-
-    # He sees the "Quote" field, and a "Submit" button.
-    quote_invoice_field = browser.find_element(By.ID, "id_quote")
-    submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
-
-    # He uploads a new Quote invoice.
-    quote_invoice_field.send_keys(
-        "/app/marnies_maintenance_manager/functional_tests/test_2.pdf",
-    )
-
-    # He clicks the "submit" button.
-    submit_button.click()
-
-    # This takes him back to the details page for the Job.
-    assert "Maintenance Job Details" in browser.title
-    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
-
-    # He sees a flash notification that an email has been sent to Bob.
-    expected_msg = (
-        "Your updated quote has been uploaded. An email has been sent to bob."
-    )
-    assert expected_msg in browser.page_source
-
-    # Satisfied, he logs out of the website, and goes back to sleep
-    _sign_out_of_website_and_clean_up(browser)
-
-
 def _bob_accepts_marnies_quote(browser: WebDriver) -> None:
     # Bob received a notification. He saw the email, and the quote, and is happy with
     # it, so he is ready to confirm the quote. He logs into the system:
@@ -727,98 +480,3 @@ def _bob_accepts_marnies_quote(browser: WebDriver) -> None:
     # Unlike other reused functions, we don't leave the browser here. That's because
     # Bob, in other tests, continues doing other actions before he's done and its
     # Marnies turn to do something.
-
-
-def test_bob_can_accept_marnies_quote(
-    browser: WebDriver,
-    live_server_url: str,
-    marnie_user: User,
-    bob_agent_user: User,
-) -> None:
-    """Ensure Bob can accept the quote submitted by Marnie.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-        marnie_user (User): The user instance for Marnie.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
-    """
-    ## First, quickly run through the steps of an Agent creating a new Job.
-    _create_new_job(browser, live_server_url)
-
-    ## Next, Marnie does an inspection, and updates the inspection date and quote.
-    _update_job_with_inspection_date_and_quote(browser)
-
-    # The rest of the logic, moved over to his shared function:
-    _bob_accepts_marnies_quote(browser)
-
-    # Happy with this so far, but not yet ready to upload a proof of payment,
-    # he logs out of the website, and goes back to sleep
-    _sign_out_of_website_and_clean_up(browser)
-
-
-def test_agent_can_submit_deposit_pop_after_accepting_marnie_quote(
-    browser: WebDriver,
-    live_server_url: str,
-    marnie_user: User,
-    bob_agent_user: User,
-) -> None:
-    """Ensure Bob can submit proof of payment after accepting Marnie's quote.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-        marnie_user (User): The user instance for Marnie.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
-    """
-    ## First, quickly run through the steps of an Agent creating a new Job.
-    _create_new_job(browser, live_server_url)
-
-    ## Next, Marnie does an inspection, and updates the inspection date and quote.
-    _update_job_with_inspection_date_and_quote(browser)
-
-    ## After this, quickly accept the quote:
-    _bob_accepts_marnies_quote(browser)
-
-    ## At this point, Bob should still be logged into the system, and the current page
-    ## should be the "Maintenance Job Details" page. Confirm that:
-    assert "Maintenance Job Details" in browser.title
-    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
-
-    # He sees a "Submit Deposit POP" link, and clicks on it.
-    submit_pop_link = browser.find_element(
-        By.LINK_TEXT,
-        "Submit Deposit Proof of Payment",
-    )
-    submit_pop_link.click()
-
-    # He sees the "Submit Deposit POP" page, with the title and header mentioning the
-    # same.
-    assert "Submit Deposit POP" in browser.title
-    assert "Submit Deposit POP" in browser.find_element(By.TAG_NAME, "h1").text
-
-    # He sees the "Proof of Payment" field, and a "Submit" button.
-    pop_field = browser.find_element(By.ID, "id_deposit_proof_of_payment")
-    submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
-
-    # He uploads a Proof of Payment.
-    pop_field.send_keys(
-        "/app/marnies_maintenance_manager/functional_tests/test.pdf",
-    )
-
-    # He clicks the "submit" button.
-    submit_button.click()
-
-    # This takes him back to the details page for the Job.
-    assert "Maintenance Job Details" in browser.title
-    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
-
-    # He sees a flash notification that an email has been sent to Marnie.
-    expected_msg = (
-        "Your Deposit Proof of Payment has been uploaded. An email has "
-        "been sent to Marnie."
-    )
-    assert expected_msg in browser.page_source
-
-    # Happy with this, he logs out of the website, and goes back to sleep
-    _sign_out_of_website_and_clean_up(browser)
