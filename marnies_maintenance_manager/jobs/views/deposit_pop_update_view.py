@@ -39,6 +39,14 @@ class DepositPOPUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateViewTy
         job = self.get_object()
         user = check_type(self.request.user, User)
 
+        # Not allowed to access this view if the job is not in the correct state
+        if job.status != Job.Status.QUOTE_ACCEPTED_BY_AGENT.value:
+            return False
+
+        # Not allowed if the deposit POP has already been uploaded
+        if job.deposit_proof_of_payment.name != "":
+            return False
+
         # Only superuser or the agent who created the job can update the deposit POP
         if not (user.is_superuser or (user.is_agent and user == job.agent)):
             return False

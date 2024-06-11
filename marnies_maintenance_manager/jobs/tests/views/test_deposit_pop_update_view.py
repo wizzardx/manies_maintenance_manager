@@ -460,3 +460,46 @@ def test_changes_job_state_to_deposit_pop_uploaded(
 
     # Check that the job status was updated correctly:
     assert job.status == Job.Status.DEPOSIT_POP_UPLOADED.value
+
+
+def test_permission_denied_if_the_job_is_not_in_expected_state_at_start(
+    job_accepted_by_bob: Job,
+    bob_agent_user: User,
+) -> None:
+    """Ensure PermissionDenied is raised if the job is not in the correct initial state.
+
+    Args:
+        job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
+        bob_agent_user (User): Bob's user account.
+    """
+    job_accepted_by_bob.status = Job.Status.DEPOSIT_POP_UPLOADED.value
+    job_accepted_by_bob.full_clean()
+    job_accepted_by_bob.save()
+    request = RequestFactory().get(
+        reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+    )
+    request.user = bob_agent_user
+    with pytest.raises(PermissionDenied):
+        DepositPOPUpdateView.as_view()(request, pk=job_accepted_by_bob.pk)
+
+
+def test_permission_denied_if_pop_field_already_populated_at_start(
+    bob_job_with_deposit_pop: Job,
+    bob_agent_user: User,
+) -> None:
+    """Ensure PermissionDenied is raised if deposit_proof_of_payment is filled.
+
+    Args:
+        bob_job_with_deposit_pop (Job): Job instance created by Bob, with a deposit
+            proof of payment.
+        bob_agent_user (User): Bob's user account.
+    """
+    bob_job_with_deposit_pop.status = Job.Status.QUOTE_ACCEPTED_BY_AGENT.value
+    bob_job_with_deposit_pop.save()
+
+    request = RequestFactory().get(
+        reverse("jobs:deposit_pop_update", kwargs={"pk": bob_job_with_deposit_pop.pk}),
+    )
+    request.user = bob_agent_user
+    with pytest.raises(PermissionDenied):
+        DepositPOPUpdateView.as_view()(request, pk=bob_job_with_deposit_pop.pk)
