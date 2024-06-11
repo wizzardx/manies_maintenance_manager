@@ -37,10 +37,7 @@ def _ensure_can_see_link(user_client: Client, job: Job) -> None:
     assert link is not None
 
     # Confirm that the link goes to the correct URL.
-    expected_url = reverse(
-        "jobs:quote_download",
-        kwargs={"pk": job.pk},
-    )
+    expected_url = job.quote.url
     assert link["href"] == expected_url
 
 

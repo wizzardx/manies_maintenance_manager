@@ -30,7 +30,7 @@
   <!-- Show the "Download Quote" link if a quote exists -->
   {% if job.quote %}
     <p>
-      <strong>Quote:</strong> <a href="{{ job.get_quote_download_url }}">Download Quote</a>
+      <strong>Quote:</strong> <a href="{{ job.quote.url }}">Download Quote</a>
     </p>
   {% endif %}
   <!-- Show the "Accepted" or "Rejected" (quote) state if it's been set -->

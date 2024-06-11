@@ -357,8 +357,8 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
     assert isinstance(download_url, str)
 
     ## Example href value:
-    ## http://django:37369/jobs/d7f07107-e711-44b9-be0a-1fab149229a0/quote/download/
-    assert download_url.endswith("/quote/download/")
+    ## 'http://django:41507/media/quotes/test.pdf
+    assert download_url.endswith("/media/quotes/test.pdf")
 
     ## Sign out and tidy up cookies:
     _sign_out_of_website_and_clean_up(browser)

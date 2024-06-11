@@ -24,7 +24,6 @@ from .views.job_detail_view import JobDetailView
 from .views.job_list_view import JobListView
 from .views.job_update_view import JobUpdateView
 from .views.quote_accept_view import quote_accept
-from .views.quote_download_view import quote_download
 from .views.quote_reject_view import quote_reject
 from .views.quote_update_view import QuoteUpdateView
 
@@ -36,7 +35,6 @@ urlpatterns = [
     path("<uuid:pk>/", JobDetailView.as_view(), name="job_detail"),
     path("<uuid:pk>/update/", JobUpdateView.as_view(), name="job_update"),
     path("<uuid:pk>/quote/accept/", quote_accept, name="quote_accept"),
-    path("<uuid:pk>/quote/download/", quote_download, name="quote_download"),
     path("<uuid:pk>/quote/reject/", quote_reject, name="quote_reject"),
     path("<uuid:pk>/quote/update/", QuoteUpdateView.as_view(), name="quote_update"),
     path(

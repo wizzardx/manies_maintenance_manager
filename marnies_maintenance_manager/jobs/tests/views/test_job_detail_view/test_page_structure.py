@@ -67,4 +67,4 @@ def test_job_detail_view_shows_expected_job_details(
     assert isinstance(inspect_date, datetime.date)
     assert inspect_date.isoformat() in page
 
-    assert job.get_quote_download_url() in page
+    assert job.quote.url in page
