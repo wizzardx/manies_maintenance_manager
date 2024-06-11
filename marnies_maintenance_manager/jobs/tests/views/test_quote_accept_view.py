@@ -112,6 +112,7 @@ def test_fails_for_jobs_in_incorrect_states(
     bob_agent_user: User,
     job_created_by_bob: Job,
     job_accepted_by_bob: Job,
+    bob_job_with_deposit_pop: Job,
 ) -> None:
     """Test that the view fails for jobs in incorrect states.
 
@@ -119,6 +120,7 @@ def test_fails_for_jobs_in_incorrect_states(
         bob_agent_user (User): The user who is an agent.
         job_created_by_bob (Job): The job created by Bob.
         job_accepted_by_bob (Job): The job accepted by Bob.
+        bob_job_with_deposit_pop (Job): The job with the deposit pop uploaded by Bob.
 
     Raises:
         LogicalError: If an unknown state is encountered.
@@ -137,6 +139,8 @@ def test_fails_for_jobs_in_incorrect_states(
                 job = job_created_by_bob
             case Job.Status.QUOTE_ACCEPTED_BY_AGENT:
                 job = job_accepted_by_bob
+            case Job.Status.DEPOSIT_POP_UPLOADED:
+                job = bob_job_with_deposit_pop
             case _:  # pragma: no cover
                 # This logic should never be reached, as we are looping through all the
                 # known states.

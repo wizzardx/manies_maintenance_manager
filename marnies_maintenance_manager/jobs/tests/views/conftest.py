@@ -146,3 +146,25 @@ def job_accepted_by_bob(bob_job_with_initial_marnie_inspection: Job) -> Job:
     job.full_clean()
     job.save()
     return job
+
+
+@pytest.fixture()
+def bob_job_with_deposit_pop(
+    job_accepted_by_bob: Job,
+    test_pdf: SimpleUploadedFile,
+) -> Job:
+    """Return a job where Bob has uploaded the deposit proof of payment.
+
+    Args:
+        job_accepted_by_bob (Job): The job where Bob has accepted the quote.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+
+    Returns:
+        Job: The job where Bob has uploaded the deposit proof of payment.
+    """
+    job = job_accepted_by_bob
+    job.deposit_proof_of_payment = test_pdf
+    job.status = Job.Status.DEPOSIT_POP_UPLOADED.value
+    job.full_clean()
+    job.save()
+    return job

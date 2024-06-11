@@ -244,21 +244,10 @@ def test_uploading_a_pdf_updates_the_model(
     assert job_accepted_by_bob.deposit_proof_of_payment.name == ""
 
     # Upload the PDF:
-
-    test_pdf.seek(0)
-    response = check_type(
-        bob_agent_user_client.post(
-            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
-            data={"deposit_proof_of_payment": test_pdf},
-        ),
-        HttpResponseRedirect,
-    )
-
-    # Check that the response is a redirect:
-    assert response.status_code == status.HTTP_302_FOUND
-    assert response.url == reverse(
-        "jobs:job_detail",
-        kwargs={"pk": job_accepted_by_bob.pk},
+    upload_deposit_pop_and_assert_redirect(
+        bob_agent_user_client,
+        job_accepted_by_bob,
+        test_pdf,
     )
 
     # Fetch the job from the database:
@@ -270,6 +259,34 @@ def test_uploading_a_pdf_updates_the_model(
     job.deposit_proof_of_payment.seek(0)
     test_pdf.seek(0)
     assert job.deposit_proof_of_payment.read() == test_pdf.read()
+
+
+def upload_deposit_pop_and_assert_redirect(
+    bob_agent_user_client: Client,
+    job_accepted_by_bob: Job,
+    test_pdf: SimpleUploadedFile,
+) -> None:
+    """Upload a Deposit Proof of Payment and assert that the view redirects.
+
+    Args:
+        bob_agent_user_client: The Django test client for Bob.
+        job_accepted_by_bob: Job instance created by Bob, with an accepted quote.
+        test_pdf: A test PDF file.
+    """
+    test_pdf.seek(0)
+    response = check_type(
+        bob_agent_user_client.post(
+            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+            data={"deposit_proof_of_payment": test_pdf},
+        ),
+        HttpResponseRedirect,
+    )
+    # Check that the response is a redirect:
+    assert response.status_code == status.HTTP_302_FOUND
+    assert response.url == reverse(
+        "jobs:job_detail",
+        kwargs={"pk": job_accepted_by_bob.pk},
+    )
 
 
 def test_uploading_a_pdf_with_none_pdf_contents_fails(
@@ -353,20 +370,10 @@ def test_sends_an_email(
     mail.outbox.clear()
 
     # Submit the form:
-    test_pdf.seek(0)
-    response = check_type(
-        bob_agent_user_client.post(
-            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
-            data={"deposit_proof_of_payment": test_pdf},
-        ),
-        HttpResponseRedirect,
-    )
-
-    # Check that the response is a redirect:
-    assert response.status_code == status.HTTP_302_FOUND
-    assert response.url == reverse(
-        "jobs:job_detail",
-        kwargs={"pk": job_accepted_by_bob.pk},
+    upload_deposit_pop_and_assert_redirect(
+        bob_agent_user_client,
+        job_accepted_by_bob,
+        test_pdf,
     )
 
     # There should be one mail sent now;
@@ -425,3 +432,31 @@ def test_sends_a_success_flash_message(
         "to Marnie."
     )
     assert message.tags == "success"
+
+
+def test_changes_job_state_to_deposit_pop_uploaded(
+    job_accepted_by_bob: Job,
+    bob_agent_user_client: Client,
+    test_pdf: SimpleUploadedFile,
+) -> None:
+    """Ensure the job state changes to DEPOSIT_POP_UPLOADED upon form submission.
+
+    Args:
+        job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
+        bob_agent_user_client (Client): The Django test client for Bob.
+        test_pdf (SimpleUploadedFile): A test PDF file.
+    """
+    # Submit the form:
+    test_pdf.seek(0)
+    response = bob_agent_user_client.post(
+        reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+        data={"deposit_proof_of_payment": test_pdf},
+        follow=True,
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    # Fetch the job from the database:
+    job = Job.objects.get(pk=job_accepted_by_bob.pk)
+
+    # Check that the job status was updated correctly:
+    assert job.status == Job.Status.DEPOSIT_POP_UPLOADED.value

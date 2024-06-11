@@ -39,6 +39,12 @@
       <strong>Accepted or Rejected (A/R):</strong> {{ job.accepted_or_rejected }}
     </p>
   {% endif %}
+  <!-- Show the "Deposit Proof of Payment" link if it exists -->
+  {% if job.deposit_proof_of_payment %}
+    <p>
+      <strong>Deposit POP:</strong> <a href="{{ job.deposit_proof_of_payment.url }}">Download Deposit POP</a>
+    </p>
+  {% endif %}
   <!-- Display the "Update" link if our backend wants it -->
   {% if update_link_present %}
     <a href="{% url 'jobs:job_update' pk=job.pk %}">Update</a>

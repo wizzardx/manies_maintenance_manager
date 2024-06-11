@@ -58,7 +58,9 @@ class DepositPOPUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateViewTy
         # (to the database).
 
         # We don't have anything to do before saving the form, so we just save it:
-        instance = form.save()
+        instance = form.save(commit=False)
+        instance.status = Job.Status.DEPOSIT_POP_UPLOADED.value
+        instance.save()
 
         email_subject = (
             f"Agent {instance.agent.username} added a Deposit POP to the "
