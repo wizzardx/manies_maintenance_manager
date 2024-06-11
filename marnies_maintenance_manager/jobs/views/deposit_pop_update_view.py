@@ -17,7 +17,7 @@ from marnies_maintenance_manager.jobs.utils import generate_email_body
 from marnies_maintenance_manager.jobs.utils import get_marnie_email
 from marnies_maintenance_manager.users.models import User
 
-if TYPE_CHECKING:  # pragma: no cover  # pylint: disable=consider-ternary-expression
+if TYPE_CHECKING:  # pragma: no cover # pylint: disable=consider-ternary-expression
     UpdateViewTyped = UpdateView[Job, DepositPOPUpdateForm]
 else:
     UpdateViewTyped = UpdateView

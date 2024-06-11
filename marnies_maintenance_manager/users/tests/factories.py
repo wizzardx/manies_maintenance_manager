@@ -17,6 +17,7 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
     name = Faker("name")
 
     # pylint: disable=unused-argument
+    # noinspection PyUnusedLocal
     @post_generation  # type: ignore[misc]
     def password(
         self,
@@ -43,6 +44,7 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
                 lower_case=True,
             ).evaluate(None, None, extra={"locale": None})
         )
+        # pylint: disable=no-member
         self.set_password(password)
 
     # pylint: disable=signature-differs

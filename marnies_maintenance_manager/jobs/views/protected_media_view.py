@@ -101,12 +101,11 @@ def _is_quote_file(path: Path) -> bool:
 
     Args:
         path (Path): The simplified relative path to the file.
+            - example value: Path("quotes/test.pdf")
 
     Returns:
         bool: True if the file is a quote file, otherwise False.
     """
-    # e.g. path: Path("quotes/test.pdf")
-
     # Break into parts:
     dirname, basename = path.parts
 
