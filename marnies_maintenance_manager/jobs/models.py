@@ -81,6 +81,7 @@ class Job(UUIDModel, TimeStampedModel):
         (Status.PENDING_INSPECTION.value, _("Pending Inspection")),
         (Status.INSPECTION_COMPLETED.value, _("Inspection Completed")),
         (Status.QUOTE_REJECTED_BY_AGENT.value, _("Quote Rejected By Agent")),
+        (Status.QUOTE_ACCEPTED_BY_AGENT.value, _("Quote Accepted By Agent")),
     )
     status = StatusField()  # type: ignore[no-untyped-call]
 
