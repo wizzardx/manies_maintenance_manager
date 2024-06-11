@@ -1,4 +1,4 @@
-"""Configure the users application within the Django project."""
+"""Configure the "users" application within the Django project."""
 
 import contextlib
 
@@ -7,13 +7,13 @@ from django.utils.translation import gettext_lazy as _
 
 
 class UsersConfig(AppConfig):
-    """Define configuration parameters for the users app."""
+    """Define configuration parameters for the "users" app."""
 
     name = "marnies_maintenance_manager.users"
     verbose_name = _("Users")
 
     def ready(self) -> None:
-        """Handle startup logic for the users app, including signal imports."""
+        """Handle startup logic for the "users" app, including signal imports."""
         with contextlib.suppress(ImportError):
             # pylint: disable=import-outside-toplevel,no-name-in-module,unused-import
             import marnies_maintenance_manager.users.signals  # noqa: F401

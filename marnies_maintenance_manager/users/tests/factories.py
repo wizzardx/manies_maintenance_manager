@@ -70,7 +70,7 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
             instance.save()
 
     class Meta:
-        """Meta options for UserFactory."""
+        """Meta-options for UserFactory."""
 
         model = User
         django_get_or_create = ["username"]

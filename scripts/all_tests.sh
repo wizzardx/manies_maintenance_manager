@@ -33,7 +33,7 @@ VENV_DIR=$(scripts/print_venv_dir.sh)
 # shellcheck disable=SC1091
 . "$VENV_DIR"/bin/activate
 
-# Run 'black' agains the code, it makes some things a bit faster in the precommit,
+# Run 'black' against the code, it makes some things a bit faster in the pre-commit,
 # instead of it taking a long time to run reformats, and then terminate with an
 # error message because it reformatted something.
 echo "Running Black to reformat code..."

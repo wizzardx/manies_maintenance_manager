@@ -18,7 +18,7 @@ def test_detail(user: User) -> None:
     Args:
         user (User): The user object to construct the URL.
 
-    Tests the correctness of the reverse and resolve functions for the user
+    Test the correctness of the reverse and resolve functions for the user
     detail view based on the provided user's username.
     """
     assert (

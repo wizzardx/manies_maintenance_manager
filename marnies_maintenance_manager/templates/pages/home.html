@@ -9,7 +9,7 @@
   {% if request.user.is_authenticated %}
     {% if request.user.is_marnie %}
       <p>
-        Welcome back Marnie. You can click on the "Agents" link above, to see the per-Agent listing of Maintenance Jobs, aka their "spreadsheets".
+        Welcome back, Marnie. You can click on the "Agents" link above, to see the per-Agent listing of Maintenance Jobs, aka their "spreadsheets."
       </p>
     {% elif request.user.is_agent %}
       <p>
@@ -17,7 +17,7 @@
       </p>
     {% else %}
       <p>You're signed in to this website, but we don't know who you are!</p>
-      <p>If you're a property agent then please contact Marnie so that this website can be setup for you!</p>
+      <p>If you're a property agent, then please contact Marnie so that this website can be setup for you!</p>
     {% endif %}
   {% endif %}
   {% if userinfo.has_no_admin_users %}<p>{{ warnings.NO_ADMIN_USERS }}</p>{% endif %}

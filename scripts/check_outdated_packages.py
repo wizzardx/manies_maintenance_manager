@@ -17,7 +17,7 @@ def check_outdated_packages(ignore_list: list[str]) -> int:
              packages not in the list, 0 otherwise.
     """
     try:
-        # Run pip list --outdated and capture the output
+        # Run "pip list --outdated" and capture the output
         # Using sys.executable for the full path to Python interpreter
         # This subprocess call is considered safe in this context as we're
         # invoking a known and trusted command

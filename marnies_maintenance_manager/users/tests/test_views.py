@@ -63,7 +63,7 @@ class TestUserUpdateView:
             user (User): The user object for which the URL is generated.
             rf (RequestFactory): Factory for creating request instances.
 
-        Tests the get_success_url method of the UserUpdateView.
+        Test the get_success_url method of the UserUpdateView.
         """
         view = UserUpdateView()
         request = rf.get("/fake-url/")
@@ -79,7 +79,7 @@ class TestUserUpdateView:
             user (User): The user instance expected to be retrieved.
             rf (RequestFactory): Factory for creating request instances.
 
-        Tests the get_object method of the UserUpdateView.
+        Test the get_object method of the UserUpdateView.
         """
         view = UserUpdateView()
         request = rf.get("/fake-url/")
@@ -141,7 +141,7 @@ class TestUserRedirectView:
             user (User): The logged-in user for whom the URL is generated.
             rf (RequestFactory): Factory for creating request instances.
 
-        Tests the get_redirect_url method of the UserRedirectView.
+        Test the get_redirect_url method of the UserRedirectView.
         """
         view = UserRedirectView()
         request = rf.get("/fake-url")
@@ -165,7 +165,7 @@ class TestUserDetailView:
             user (User): The user attempting to access their detail view.
             rf (RequestFactory): Factory for creating request instances.
 
-        Tests the user_detail_view function for an authenticated user.
+        Test the user_detail_view function for an authenticated user.
         """
         request = rf.get("/fake-url/")
         request.user = UserFactory()
@@ -180,7 +180,7 @@ class TestUserDetailView:
             user (User): The user attempting to access their detail view.
             rf (RequestFactory): Factory for creating request instances.
 
-        Tests the user_detail_view function for an unauthenticated user.
+        Test the user_detail_view function for an unauthenticated user.
         """
         request = rf.get("/fake-url/")
         request.user = AnonymousUser()

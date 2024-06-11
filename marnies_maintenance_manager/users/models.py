@@ -29,12 +29,12 @@ class User(AbstractUser, UUIDModel):
         ValidationError: If 'is_agent' is True and no Marnie user exists.
     """
 
-    # First and last name do not cover name patterns around the globe
+    # First and last names do not cover name patterns around the globe
     name = CharField(_("Name of User"), blank=True, max_length=255)
     first_name = None  # type: ignore[assignment]
     last_name = None  # type: ignore[assignment]
 
-    # If this is set to True, it means that this is an "Agent" user, ie the
+    # If this is set to True, it means that this is an "Agent" user, i.e., the
     # user is someone from one of the property companies that Marnie works with, who
     # can create new Maintenance Jobs.
     is_agent = BooleanField(

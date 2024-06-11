@@ -12,7 +12,7 @@ scripts/clear_none_functional_tests_pytest_lastfailed_marker.py
 # Capture the window ID of the terminal where the script is running
 TERMINAL_WIN_ID=$(xdotool getactivewindow)
 
-# Run the functional steists
+# Run the functional tests
 RETCODE=0
 
 # Reminder: Google Chrome can be seen in a local VNC client like Remmina, on

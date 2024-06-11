@@ -101,8 +101,8 @@ class TestBasicHomePageText:
         response = marnie_user_client.get(reverse("home"))
         assert response.status_code == status.HTTP_200_OK
         assert (
-            'Welcome back Marnie. You can click on the "Agents" link above, to see '
-            'the per-Agent listing of Maintenance Jobs, aka their "spreadsheets".'
+            'Welcome back, Marnie. You can click on the "Agents" link above, to see '
+            'the per-Agent listing of Maintenance Jobs, aka their "spreadsheets."'
             in response.content.decode()
         )
 
@@ -135,7 +135,7 @@ class TestBasicHomePageText:
             in response.content.decode()
         )
         assert (
-            "If you're a property agent then please contact Marnie so that this "
+            "If you're a property agent, then please contact Marnie so that this "
             "website can be setup for you!" in response.content.decode()
         )
 

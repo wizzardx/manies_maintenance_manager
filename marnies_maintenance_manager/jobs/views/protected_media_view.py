@@ -105,7 +105,7 @@ def _is_quote_file(path: Path) -> bool:
     Returns:
         bool: True if the file is a quote file, otherwise False.
     """
-    # eg path: Path("quotes/test.pdf")
+    # e.g. path: Path("quotes/test.pdf")
 
     # Break into parts:
     dirname, basename = path.parts

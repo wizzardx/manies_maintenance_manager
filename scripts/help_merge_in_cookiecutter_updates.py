@@ -33,7 +33,7 @@ def run_command(
 
     Args:
         command (list[str]): The command to run as a list of arguments.
-        ignore_errors (bool): If set to True then don't terminate on errors.
+        ignore_errors (bool): If set to True, then don't terminate on errors.
 
     Returns:
         subprocess.CompletedProcess[str]: The result of the command execution.
@@ -94,7 +94,7 @@ CURRENT_PROJECT_DIR = Path.cwd()
 NEW_TEMPLATE_BRANCH = "updated_template"
 COOKIECUTTER_DIR = Path("/home/david/.cookiecutters/cookiecutter-django")
 
-# Use tempfile for new template directory
+# Use temp file for new template directory
 NEW_TEMPLATE_DIR = Path(tempfile.mkdtemp(prefix="new_template_project_"))
 
 # Step 0: Tidy up previous runs
