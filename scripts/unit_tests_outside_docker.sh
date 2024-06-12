@@ -67,15 +67,16 @@ CMD=(
         marnies_maintenance_manager/users
         --maxfail=1
         --doctest-modules
+        --reuse-db
 )
 
 # If there are no recently-failed tests, then we use the extra parallelizations to
 # help run things super fast. (When there are recently-failed tests, then we
 # don't use these options, because they make it a bit harder follow my TDD workflow).
 if [ ! -f .pytest_cache/v/cache/lastfailed ]; then
-    log "Adding parallel execution and DB reuse options..."
+    log "Adding parallel execution and DB migration-disabling options..."
     CMD+=("-n" "auto")
-    CMD+=("--reuse-db" "--nomigrations")
+    CMD+=("--nomigrations")
 fi
 
 # Run the unit tests:
