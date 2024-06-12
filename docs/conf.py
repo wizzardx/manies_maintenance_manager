@@ -16,8 +16,8 @@ Path Setup:
 
 Project Information:
 - Project: "Marnie's Maintenance Manager"
-- Author: David Purdy
-- Copyright: 2024, David Purdy
+- Author: David
+- Copyright: 2024, David
 
 General Configuration:
 - Extensions: sphinx.ext.autodoc, sphinx.ext.napoleon
