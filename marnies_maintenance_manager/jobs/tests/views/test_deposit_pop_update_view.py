@@ -464,6 +464,28 @@ def test_changes_job_state_to_deposit_pop_uploaded(
     assert job.status == Job.Status.DEPOSIT_POP_UPLOADED.value
 
 
+def assert_permission_denied_if_job_not_in_correct_initial_state(
+    job: Job,
+    user: User,
+    expected_status: str,
+) -> None:
+    """Ensure PermissionDenied is raised if the job is not in the correct initial state.
+
+    Args:
+        job (Job): Job instance with a specific status.
+        user (User): User accessing the view.
+        expected_status (str): The status that is considered incorrect.
+    """
+    job.status = expected_status
+    job.save()
+    request = RequestFactory().get(
+        reverse("jobs:deposit_pop_update", kwargs={"pk": job.pk}),
+    )
+    request.user = user
+    with pytest.raises(PermissionDenied):
+        DepositPOPUpdateView.as_view()(request, pk=job.pk)
+
+
 def test_permission_denied_if_the_job_is_not_in_expected_state_at_start(
     job_accepted_by_bob: Job,
     bob_agent_user: User,
@@ -474,15 +496,11 @@ def test_permission_denied_if_the_job_is_not_in_expected_state_at_start(
         job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
         bob_agent_user (User): Bob's user account.
     """
-    job_accepted_by_bob.status = Job.Status.DEPOSIT_POP_UPLOADED.value
-    job_accepted_by_bob.full_clean()
-    job_accepted_by_bob.save()
-    request = RequestFactory().get(
-        reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+    assert_permission_denied_if_job_not_in_correct_initial_state(
+        job_accepted_by_bob,
+        bob_agent_user,
+        Job.Status.DEPOSIT_POP_UPLOADED.value,
     )
-    request.user = bob_agent_user
-    with pytest.raises(PermissionDenied):
-        DepositPOPUpdateView.as_view()(request, pk=job_accepted_by_bob.pk)
 
 
 def test_permission_denied_if_pop_field_already_populated_at_start(
@@ -496,12 +514,8 @@ def test_permission_denied_if_pop_field_already_populated_at_start(
             proof of payment.
         bob_agent_user (User): Bob's user account.
     """
-    bob_job_with_deposit_pop.status = Job.Status.QUOTE_ACCEPTED_BY_AGENT.value
-    bob_job_with_deposit_pop.save()
-
-    request = RequestFactory().get(
-        reverse("jobs:deposit_pop_update", kwargs={"pk": bob_job_with_deposit_pop.pk}),
+    assert_permission_denied_if_job_not_in_correct_initial_state(
+        bob_job_with_deposit_pop,
+        bob_agent_user,
+        Job.Status.QUOTE_ACCEPTED_BY_AGENT.value,
     )
-    request.user = bob_agent_user
-    with pytest.raises(PermissionDenied):
-        DepositPOPUpdateView.as_view()(request, pk=bob_job_with_deposit_pop.pk)
