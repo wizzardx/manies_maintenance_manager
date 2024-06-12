@@ -75,6 +75,9 @@ class TestQuoteUpdateForm:
             agent=bob_agent_user,
             date="2022-01-01",
             quote=test_pdf,
+            address_details="1234 Main St, Springfield, IL",
+            gps_link="https://www.google.com/maps",
+            quote_request_details="Replace the kitchen sink",
         )
         data = {"quote": test_pdf}
         form = QuoteUpdateForm(data=data, instance=job)

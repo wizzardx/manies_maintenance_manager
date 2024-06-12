@@ -124,7 +124,6 @@ def job_rejected_by_bob(bob_job_with_initial_marnie_inspection: Job) -> Job:
     job = bob_job_with_initial_marnie_inspection
     job.status = Job.Status.QUOTE_REJECTED_BY_AGENT.value
     job.accepted_or_rejected = Job.AcceptedOrRejected.REJECTED.value
-    job.full_clean()
     job.save()
     return job
 
@@ -143,7 +142,6 @@ def job_accepted_by_bob(bob_job_with_initial_marnie_inspection: Job) -> Job:
     job = bob_job_with_initial_marnie_inspection
     job.status = Job.Status.QUOTE_ACCEPTED_BY_AGENT.value
     job.accepted_or_rejected = Job.AcceptedOrRejected.ACCEPTED.value
-    job.full_clean()
     job.save()
     return job
 
@@ -165,6 +163,5 @@ def bob_job_with_deposit_pop(
     job = job_accepted_by_bob
     job.deposit_proof_of_payment = test_pdf
     job.status = Job.Status.DEPOSIT_POP_UPLOADED.value
-    job.full_clean()
     job.save()
     return job

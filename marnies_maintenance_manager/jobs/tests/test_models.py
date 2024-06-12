@@ -33,6 +33,9 @@ def test_job_id_field_is_uuid(bob_agent_user: User) -> None:
     job = Job.objects.create(
         agent=bob_agent_user,
         date="2022-01-01",
+        address_details="1234 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the kitchen sink",
     )
     assert job.id is not None
     assert isinstance(job.id, uuid.UUID)
@@ -59,6 +62,9 @@ def test_agent_field_is_not_editable(bob_agent_user: User) -> None:
     job = Job.objects.create(
         agent=bob_agent_user,
         date="2022-01-01",
+        address_details="1234 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the kitchen sink",
     )
 
     # For this test, create a ModeLForm based on all fields in the Job model
@@ -87,12 +93,14 @@ class TestJobAgentMustBeAUserOfTypeAgent:
         Args:
             marnie_user (User): User instance representing Marnie, who is not an agent.
         """
-        job = Job.objects.create(
-            agent=marnie_user,  # Marnie is not a valid agent.
-            date="2022-01-01",
-        )
         with pytest.raises(ValidationError) as err:
-            job.full_clean()
+            Job.objects.create(
+                agent=marnie_user,  # Marnie is not a valid agent.
+                date="2022-01-01",
+                address_details="1234 Main St, Springfield, IL",
+                gps_link="https://www.google.com/maps",
+                quote_request_details="Replace the kitchen sink",
+            )
 
         assert err.value.message_dict["agent"] == [
             "marnie is not an Agent.",
@@ -104,14 +112,13 @@ class TestJobAgentMustBeAUserOfTypeAgent:
         Args:
             bob_agent_user (User): The agent user Bob used to validate job creation.
         """
-        job = Job.objects.create(
+        Job.objects.create(
             agent=bob_agent_user,
             date="2022-01-01",
             address_details="1234 Main St, Springfield, IL",
             gps_link="https://www.google.com/maps",
             quote_request_details="Replace the kitchen sink",
         )
-        job.full_clean()
 
     def test_updating_a_job_with_an_invalid_agent(
         self,
@@ -276,7 +283,6 @@ def _create_three_test_jobs(
         gps_link="https://www.google.com/maps",
         quote_request_details="Replace the kitchen sink",
     )
-    job1.full_clean()
 
     job2 = Job.objects.create(
         agent=bob_agent_user,
@@ -285,7 +291,6 @@ def _create_three_test_jobs(
         gps_link="https://www.google.com/maps",
         quote_request_details="Replace the bathroom sink",
     )
-    job2.full_clean()
 
     job3 = Job.objects.create(
         agent=peter_agent_user,
@@ -294,7 +299,6 @@ def _create_three_test_jobs(
         gps_link="https://www.google.com/maps",
         quote_request_details="Replace the toilet",
     )
-    job3.full_clean()
 
     return job1, job2, job3
 
@@ -355,7 +359,6 @@ class TestJobModelPerAgentAutoIncrementingNumberField:
             gps_link="https://www.google.com/maps",
             quote_request_details="Replace the toilet",
         )
-        job4.full_clean()
 
         assert job1.number == 1
         assert job2.number == 2  # noqa: PLR2004
@@ -392,7 +395,13 @@ class TestJobModelPerAgentAutoIncrementingNumberField:
 
         # Confirm that it's an error to try to reuse the same agent job number.
         job1.number = 2
-        with pytest.raises(IntegrityError):
+
+        # This one raises:
+        with pytest.raises(ValidationError):
+            job1.full_clean()
+
+        # This also raises:
+        with pytest.raises(ValidationError):
             job1.save()
 
 
@@ -475,3 +484,27 @@ def test_deposit_proof_of_payment_field_is_setup_correctly() -> None:
     # The PDF file contents must be valid:
     # pylint: disable=comparison-with-callable
     assert validators[1] == validate_pdf_contents
+
+
+def test_full_clean_is_called_on_save(bob_agent_user: User) -> None:
+    """Ensure that the full_clean method is called on save.
+
+    Args:
+        bob_agent_user (User): The agent user Bob used to create a Job instance.
+    """
+    job = Job.objects.create(
+        agent=bob_agent_user,
+        date="2022-01-01",
+        address_details="1234 Main St, Springfield, IL",
+        gps_link="https://www.google.com/maps",
+        quote_request_details="Replace the kitchen sink",
+    )
+
+    # This should not raise an exception:
+    job.save()
+
+    # This should raise an exception:
+    job.status = "zzzzzz"
+
+    with pytest.raises(ValidationError):
+        job.save()

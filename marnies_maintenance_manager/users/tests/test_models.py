@@ -112,8 +112,7 @@ def test_is_agent_valid_when_marnie_user_is_present(
     exists, using the relevant user fixtures.
     """
     # We have a Marnie user from our fixture, so creating an Agent user should work.
-    bob = _create_bob_agent_user(django_user_model)
-    bob.full_clean()
+    _create_bob_agent_user(django_user_model)
 
 
 @pytest.mark.django_db()

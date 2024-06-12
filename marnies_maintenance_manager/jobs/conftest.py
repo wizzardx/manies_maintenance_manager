@@ -77,13 +77,10 @@ def job_created_by_bob(bob_agent_user: User) -> Job:
     Returns:
         Job: A Job model instance representing a maintenance job created by Bob.
     """
-    job = Job.objects.create(
+    return Job.objects.create(
         agent=bob_agent_user,
         date="2022-01-01",
         address_details="1234 Main St, Springfield, IL",
         gps_link="https://www.google.com/maps",
         quote_request_details="Replace the kitchen sink",
     )
-    # Make sure that the job is valid before returning it
-    job.full_clean()
-    return job

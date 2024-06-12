@@ -187,4 +187,9 @@ class Job(UUIDModel, TimeStampedModel):
                 self.number = last_job.number + 1
             else:
                 self.number = 1
+
+        # Call full_clean() to ensure that the model is validated before saving it:
+        self.full_clean()
+
+        # Now we can save the model:
         super().save(*args, **kwargs)  # type: ignore[no-untyped-call]
