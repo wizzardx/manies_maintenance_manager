@@ -77,6 +77,11 @@ if [ ! -f .pytest_cache/v/cache/lastfailed ]; then
     log "Adding parallel execution and DB migration-disabling options..."
     CMD+=("-n" "auto")
     CMD+=("--nomigrations")
+else
+    # Not running unit tests in parallel, so lets show the top 10 slowest unit tests.
+    # In parallel mode these measurments are less useful.
+    log "Adding options to show the slowest 10 tests"
+    CMD+=("--durations=10")
 fi
 
 # Run the unit tests:
