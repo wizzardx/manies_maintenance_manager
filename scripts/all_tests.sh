@@ -62,8 +62,8 @@ pylint --django-settings-module=config.settings --output-format=colorized --enab
 echo "Running pre-commit checks..."
 pre-commit run --all-files || ERRORS=yes
 
-echo "darglint..."
-darglint "${files[@]}" || ERRORS=yes
+echo "darglint2..."
+darglint2 "${files[@]}" || ERRORS=yes
 
 # Check for security issues:
 echo "Check for security issues..."
