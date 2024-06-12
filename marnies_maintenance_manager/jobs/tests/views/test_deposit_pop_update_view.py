@@ -241,17 +241,18 @@ def test_uploading_a_pdf_updates_the_model(
     # field to be updated.
 
     # Confirm that the field is not yet populated:
-    assert job_accepted_by_bob.deposit_proof_of_payment.name == ""
+    job = job_accepted_by_bob
+    assert job.deposit_proof_of_payment.name == ""
 
     # Upload the PDF:
     upload_deposit_pop_and_assert_redirect(
         bob_agent_user_client,
-        job_accepted_by_bob,
+        job,
         test_pdf,
     )
 
     # Fetch the job from the database:
-    job = Job.objects.get(pk=job_accepted_by_bob.pk)
+    job.refresh_from_db()
 
     # Check that the deposit_proof_of_payment field is now set:
     assert job.deposit_proof_of_payment.name == "deposit_pops/test.pdf"
@@ -448,15 +449,16 @@ def test_changes_job_state_to_deposit_pop_uploaded(
     """
     # Submit the form:
     test_pdf.seek(0)
+    job = job_accepted_by_bob
     response = bob_agent_user_client.post(
-        reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+        reverse("jobs:deposit_pop_update", kwargs={"pk": job.pk}),
         data={"deposit_proof_of_payment": test_pdf},
         follow=True,
     )
     assert response.status_code == status.HTTP_200_OK
 
     # Fetch the job from the database:
-    job = Job.objects.get(pk=job_accepted_by_bob.pk)
+    job.refresh_from_db()
 
     # Check that the job status was updated correctly:
     assert job.status == Job.Status.DEPOSIT_POP_UPLOADED.value

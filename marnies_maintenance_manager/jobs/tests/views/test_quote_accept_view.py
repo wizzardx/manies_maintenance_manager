@@ -281,16 +281,16 @@ def test_sets_job_status_to_quote_accepted(
         job_rejected_by_bob (Job): The job rejected by Bob.
         bob_agent_user_client (Client): The Django test client for Bob.
     """
-    job_id = job_rejected_by_bob.id
+    job = job_rejected_by_bob
     response = check_type(
         bob_agent_user_client.post(
-            f"/jobs/{job_id}/quote/accept/",
+            f"/jobs/{job.id}/quote/accept/",
         ),
         HttpResponseRedirect,
     )
 
     assert response.status_code == status.HTTP_302_FOUND
-    job = Job.objects.get(id=job_id)
+    job.refresh_from_db()
     assert job.status == Job.Status.QUOTE_ACCEPTED_BY_AGENT.value
     assert job.accepted_or_rejected == Job.AcceptedOrRejected.ACCEPTED.value
 

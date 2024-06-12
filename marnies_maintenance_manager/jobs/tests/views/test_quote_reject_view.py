@@ -196,7 +196,7 @@ def _reject_quote_and_get_job(client: Client, job: Job) -> Job:
     response2 = check_type(response, HttpResponseRedirect)
     assert response2.url == f"/jobs/{job.id}/"
 
-    job = Job.objects.get(id=job.id)
+    job.refresh_from_db()
     assert job.status == Job.Status.QUOTE_REJECTED_BY_AGENT.value
     return job
 

@@ -103,7 +103,7 @@ def bob_job_with_initial_marnie_inspection(
     assert response.status_code == status.HTTP_200_OK
 
     # Check that the job is in the correct state after inspection:
-    job = Job.objects.get(pk=job.pk)
+    job.refresh_from_db()
     assert job.status == Job.Status.INSPECTION_COMPLETED.value
 
     # Return the Job where Marnie has now inspected the site.
