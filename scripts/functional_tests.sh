@@ -18,7 +18,7 @@ RETCODE=0
 # Reminder: Google Chrome can be seen in a local VNC client like Remmina, on
 # port 5900, with password 'secret'.
 time docker compose -f docker-compose.local.yml exec django pytest \
-    marnies_maintenance_manager/functional_tests --maxfail=1 || RETCODE=$?
+    marnies_maintenance_manager/functional_tests --maxfail=1 --doctest-modules || RETCODE=$?
 
 # That script can take a while, so play a noise and run `yad` to bring my attention
 # back to it.

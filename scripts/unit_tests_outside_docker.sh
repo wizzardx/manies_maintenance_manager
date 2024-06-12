@@ -66,6 +66,7 @@ CMD=(
         marnies_maintenance_manager/jobs
         marnies_maintenance_manager/users
         --maxfail=1
+        --doctest-modules
 )
 
 # If there are no recently-failed tests, then we use the extra parallelizations to
