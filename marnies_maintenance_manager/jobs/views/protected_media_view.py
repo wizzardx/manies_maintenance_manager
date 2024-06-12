@@ -101,6 +101,11 @@ def _access_allowed(request: HttpRequest, path: Path) -> bool:
         # Yes. Check if the user is allowed to access the quote file:
         return _access_allowed_for_quote_file(user, path)
 
+    # Is it a Deposit Proof of Payment?
+    if _is_deposit_proof_of_payment_file(path):
+        # Yes. Check if the user is allowed to access the deposit proof of payment file:
+        return _access_allowed_for_deposit_proof_of_payment_file(user, path)
+
     # If the logic reaches this point, then access is not allowed:
     return False
 
@@ -125,6 +130,25 @@ def _is_quote_file(path: Path) -> bool:
     return is_quotes_dir and is_pdf_file
 
 
+def _is_deposit_proof_of_payment_file(path: Path) -> bool:
+    """Check if the file is a Deposit Proof of Payment file.
+
+    Args:
+        path (Path): The simplified relative path to the file.
+            - example value: Path("deposit_pops/test.pdf")
+
+    Returns:
+        bool: True if the file is a Deposit Proof of Payment file, otherwise False.
+    """
+    # Break into parts:
+    dirname, basename = path.parts
+    deposit_proofs_dirname = "deposit_pops"
+    is_deposit_proofs_dir = dirname == deposit_proofs_dirname
+    is_pdf_file = basename.endswith(".pdf")
+
+    return is_deposit_proofs_dir and is_pdf_file
+
+
 def _access_denied() -> HttpResponse:
     return HttpResponse(status=status.HTTP_403_FORBIDDEN)
 
@@ -147,6 +171,38 @@ def _access_allowed_for_quote_file(user: User, path: Path) -> bool:
             # This is a security measure to prevent agents from accessing quote files.
             # The file itself might actually exist on the server, but we don't want to
             # reveal its existence to agents unnecessarily.
+            return False
+        except Job.MultipleObjectsReturned:
+            # If multiple matching jobs are found, then we treat this as a permission
+            # denied.
+            return False
+
+        # Return True if the agent created the job, otherwise False.
+        return job.agent == user
+
+    # Not Marnie or an agent, so access is not allowed:
+    return False
+
+
+def _access_allowed_for_deposit_proof_of_payment_file(user: User, path: Path) -> bool:
+    # We don't need to check for admin user, they were already given access earlier.
+
+    # Marnie can access all deposit proof of payment files:
+    if user.is_marnie:
+        return True
+
+    # If the user is an agent, then they can access the deposit proof of payment file if
+    # they created the job that the deposit proof of payment is for.
+    if user.is_agent:
+        # Get the related job from the file path for the 'deposit_proof_of_payment'
+        # field:
+        try:
+            job = Job.objects.get(deposit_proof_of_payment=path)
+        except Job.DoesNotExist:
+            # If a matching job is not found, then we treat this as a permission denied.
+            # This is a security measure to prevent agents from accessing deposit proof
+            # of payment files. The file itself might actually exist on the server, but
+            # we don't want to reveal its existence to agents unnecessarily.
             return False
         except Job.MultipleObjectsReturned:
             # If multiple matching jobs are found, then we treat this as a permission

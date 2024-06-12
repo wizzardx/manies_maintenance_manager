@@ -280,3 +280,145 @@ class TestQuoteDownloadAccess:
             follow=True,
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestDepositPOPDownloadAccess:
+    """Tests for downloading deposit proof of payment."""
+
+    @staticmethod
+    def test_marnie_can_download_deposit_proof_of_payment(
+        marnie_user_client: Client,
+        bob_job_with_deposit_pop: Job,
+    ) -> None:
+        """Test that Marnie can download deposit proof of payment.
+
+        Args:
+            marnie_user_client (Client): The Django test client for the Marnie user.
+            bob_job_with_deposit_pop (Job): The job with a deposit proof of payment.
+        """
+        job = bob_job_with_deposit_pop
+        response = check_type(
+            marnie_user_client.get(job.deposit_proof_of_payment.url, follow=True),
+            FileResponse,
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_superuser_can_download_deposit_proof_of_payment(
+        superuser_client: Client,
+        bob_job_with_deposit_pop: Job,
+    ) -> None:
+        """Test that superusers can download deposit proof of payment.
+
+        Args:
+            superuser_client (Client): The Django test client for the superuser.
+            bob_job_with_deposit_pop (Job): The job with a deposit proof of payment.
+        """
+        job = bob_job_with_deposit_pop
+        response = superuser_client.get(job.deposit_proof_of_payment.url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_agent_can_download_deposit_proof_of_payment(
+        bob_agent_user_client: Client,
+        bob_job_with_deposit_pop: Job,
+    ) -> None:
+        """Test that agents who created the job can download the deposit proof.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_job_with_deposit_pop (Job): The job with a deposit proof of payment.
+        """
+        job = bob_job_with_deposit_pop
+        response = bob_agent_user_client.get(
+            job.deposit_proof_of_payment.url,
+            follow=True,
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_agent_cannot_download_unlinked_deposit_proof_of_payment(
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Test that agents cannot download unlinked deposit proof of payment.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+        """
+        response = bob_agent_user_client.get(
+            "/media/deposit_pops/test.pdf",
+            follow=True,
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_agent_cannot_download_multilinked_deposit_proof_of_payment(
+        bob_agent_user_client: Client,
+        bob_job_with_deposit_pop: Job,
+        job_created_by_peter: Job,
+    ) -> None:
+        """Test that agents cannot download deposit proofs linked to multiple jobs.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_job_with_deposit_pop (Job): The job with a deposit proof of payment.
+            job_created_by_peter (Job): The job created by Peter.
+        """
+        job = bob_job_with_deposit_pop
+
+        # Update another job to have the same deposit proof of payment as the first
+        # job, so that we can trigger the error condition and get the wanted 403 error.
+        job2 = job_created_by_peter
+        job2.deposit_proof_of_payment = job.deposit_proof_of_payment
+        job2.save()
+
+        response = bob_agent_user_client.get(
+            job.deposit_proof_of_payment.url,
+            follow=True,
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_other_agent_cannot_download_deposit_proof_of_payment(
+        peter_agent_user_client: Client,
+        bob_job_with_deposit_pop: Job,
+    ) -> None:
+        """Test that agents not creating the job cannot download deposit proof.
+
+        Args:
+            peter_agent_user_client (Client): The Django test client for the Peter agent
+                user.
+            bob_job_with_deposit_pop (Job): The job with a deposit proof of payment.
+        """
+        response = peter_agent_user_client.get(
+            bob_job_with_deposit_pop.deposit_proof_of_payment.url,
+            follow=True,
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_none_marnie_none_agent_cannot_download_deposit_proof_of_payment(
+        bob_job_with_deposit_pop: Job,
+        bob_agent_user_client: Client,
+        bob_agent_user: User,
+    ) -> None:
+        """Test that users not Marnie or agents cannot download deposit proof.
+
+        Args:
+            bob_job_with_deposit_pop (Job): The job with a deposit proof of payment.
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_agent_user (User): The Bob agent user.
+        """
+        # Before calling the view, we need to turn off the is_agent flag.
+        bob_agent_user.is_agent = False
+        bob_agent_user.save()
+
+        response = bob_agent_user_client.get(
+            bob_job_with_deposit_pop.deposit_proof_of_payment.url,
+            follow=True,
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
