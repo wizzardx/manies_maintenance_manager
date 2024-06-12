@@ -65,7 +65,7 @@ CMD=(
     pytest
         marnies_maintenance_manager/jobs
         marnies_maintenance_manager/users
-        --ff --maxfail=1 --showlocals
+        --maxfail=1
 )
 
 # If there are no recently-failed tests, then we use the extra parallelizations to

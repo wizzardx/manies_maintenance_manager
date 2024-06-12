@@ -9,4 +9,4 @@ docker compose -f docker-compose.local.yml run --rm \
     django pytest \
     marnies_maintenance_manager/jobs \
     marnies_maintenance_manager/users \
-    --ff --maxfail=1 --showlocals --durations=10
+    --maxfail=1

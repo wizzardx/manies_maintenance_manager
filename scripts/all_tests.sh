@@ -83,7 +83,7 @@ echo "Running Django's system checks..."
 docker compose -f docker-compose.local.yml exec django python manage.py check || ERRORS=yes
 
 echo "Unit and functional tests (under docker), with coverage..."
-docker compose -f docker-compose.local.yml exec django coverage run --rcfile=.coveragerc -m pytest --showlocals || ERRORS=yes
+docker compose -f docker-compose.local.yml exec django coverage run --rcfile=.coveragerc -m pytest || ERRORS=yes
 
 echo "Coverage report (console)..."
 # Run both coverage reports, even if one of them fails, before returning with an exit.
