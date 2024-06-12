@@ -274,7 +274,7 @@ def test_job_model_ordered_by_db_insertion_time(bob_agent_user: User) -> None:
 
 def _create_three_test_jobs(
     bob_agent_user: User,
-    peter_agent_user: User,
+    alice_agent_user: User,
 ) -> tuple[Job, Job, Job]:
     job1 = Job.objects.create(
         agent=bob_agent_user,
@@ -293,7 +293,7 @@ def _create_three_test_jobs(
     )
 
     job3 = Job.objects.create(
-        agent=peter_agent_user,
+        agent=alice_agent_user,
         date="2022-01-01",
         address_details="1236 Main St, Springfield, IL",
         gps_link="https://www.google.com/maps",
@@ -310,15 +310,15 @@ class TestJobModelPerAgentAutoIncrementingNumberField:
     def test_number_field_auto_increment_per_agent(
         self,
         bob_agent_user: User,
-        peter_agent_user: User,
+        alice_agent_user: User,
     ) -> None:
         """Ensure the 'number' field auto-increments per agent.
 
         Args:
             bob_agent_user (User): The agent user Bob used to create a Job instance.
-            peter_agent_user (User): The agent user Peter used to create a Job instance.
+            alice_agent_user (User): The agent user Alice used to create a Job instance.
         """
-        (job1, job2, job3) = _create_three_test_jobs(bob_agent_user, peter_agent_user)
+        (job1, job2, job3) = _create_three_test_jobs(bob_agent_user, alice_agent_user)
 
         assert job1.number == 1
         assert job2.number == 2  # noqa: PLR2004
@@ -342,18 +342,18 @@ class TestJobModelPerAgentAutoIncrementingNumberField:
     def test_number_field_increment_only_within_agent(
         self,
         bob_agent_user: User,
-        peter_agent_user: User,
+        alice_agent_user: User,
     ) -> None:
         """Ensure the 'number' field increments only within the same agent.
 
         Args:
             bob_agent_user (User): The agent user Bob used to create a Job instance.
-            peter_agent_user (User): The agent user Peter used to create a Job instance.
+            alice_agent_user (User): The agent user Alice used to create a Job instance.
         """
-        (job1, job2, job3) = _create_three_test_jobs(bob_agent_user, peter_agent_user)
+        (job1, job2, job3) = _create_three_test_jobs(bob_agent_user, alice_agent_user)
 
         job4 = Job.objects.create(
-            agent=peter_agent_user,
+            agent=alice_agent_user,
             date="2022-01-02",
             address_details="1237 Main St, Springfield, IL",
             gps_link="https://www.google.com/maps",

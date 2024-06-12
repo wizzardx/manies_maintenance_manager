@@ -49,16 +49,16 @@ class TestAbilityToReachJobDetailView:
     @staticmethod
     def test_agent_users_cannot_access_detail_view_for_jobs_they_did_not_create(
         bob_agent_user_client: Client,
-        job_created_by_peter: Job,
+        job_created_by_alice: Job,
     ) -> None:
-        """Ensure Bob cannot access the job detail view for the job Peter created.
+        """Ensure Bob cannot access the job detail view for the job Alice created.
 
         Args:
             bob_agent_user_client (Client): The Django test client for Bob.
-            job_created_by_peter (Job): The job created by Peter.
+            job_created_by_alice (Job): The job created by Alice.
         """
         response = bob_agent_user_client.get(
-            reverse("jobs:job_detail", kwargs={"pk": job_created_by_peter.pk}),
+            reverse("jobs:job_detail", kwargs={"pk": job_created_by_alice.pk}),
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 

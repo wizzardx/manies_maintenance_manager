@@ -77,16 +77,16 @@ def bob_agent_user_without_verified_email(django_user_model: type[User]) -> User
 
 
 @pytest.fixture()
-def peter_agent_user(django_user_model: type[User]) -> User:
-    """Create a user fixture named 'peter' for testing job creation and login.
+def alice_agent_user(django_user_model: type[User]) -> User:
+    """Create a user fixture named 'alice' for testing job creation and login.
 
     Args:
         django_user_model (type[User]): The Django User model.
 
     Returns:
-        User: A Django User instance configured as an agent, named 'peter'.
+        User: A Django User instance configured as an agent, named 'alice'.
     """
-    return make_test_user(django_user_model, "peter", is_agent=True)
+    return make_test_user(django_user_model, "alice", is_agent=True)
 
 
 @pytest.fixture()

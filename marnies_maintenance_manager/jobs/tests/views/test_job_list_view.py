@@ -28,17 +28,17 @@ class TestOnlySomeUsersCanAccessJobListView:
         response = bob_agent_user_client.get(reverse("jobs:job_list"))
         assert response.status_code == status.HTTP_200_OK
 
-    def test_peter_agent_user_can_access_job_list_view(
+    def test_alice_agent_user_can_access_job_list_view(
         self,
-        peter_agent_user_client: Client,
+        alice_agent_user_client: Client,
     ) -> None:
-        """Ensure that agent user 'Peter' can access the job list view.
+        """Ensure that agent user 'Alice' can access the job list view.
 
         Args:
-            peter_agent_user_client (Client): A test client for agent user Peter.
+            alice_agent_user_client (Client): A test client for agent user Alice.
 
         """
-        response = peter_agent_user_client.get(reverse("jobs:job_list"))
+        response = alice_agent_user_client.get(reverse("jobs:job_list"))
         assert response.status_code == status.HTTP_200_OK
 
     def test_anonymous_user_cannot_access_job_list_view(self, client: Client) -> None:
@@ -80,25 +80,25 @@ class TestAgentsAccessingJobListViewCanOnlySeeJobsThatTheyCreated:
         # Check that the job created by Bob is in the list
         assert job_created_by_bob in response.context["job_list"]
 
-    def test_bob_agent_cannot_see_jobs_created_by_peter_agent(
+    def test_bob_agent_cannot_see_jobs_created_by_alice_agent(
         self,
         job_created_by_bob: Job,
-        job_created_by_peter: Job,
+        job_created_by_alice: Job,
         bob_agent_user_client: Client,
     ) -> None:
-        """Bob should not see Peter's created jobs in the list.
+        """Bob should not see Alice's created jobs in the list.
 
         Args:
             bob_agent_user_client (Client): A test client configured for Bob, an agent
                                             user.
             job_created_by_bob (Job): A job instance created for Bob.
-            job_created_by_peter (Job): A job instance created for Peter, not visible
+            job_created_by_alice (Job): A job instance created for Alice, not visible
                                         to Bob.
         """
         # Get page containing a list of jobs
         response = bob_agent_user_client.get(reverse("jobs:job_list"))
-        # Check that the job created by Peter is not in the list
-        assert job_created_by_peter not in response.context["job_list"]
+        # Check that the job created by Alice is not in the list
+        assert job_created_by_alice not in response.context["job_list"]
 
 
 class TestMarnieAccessingJobListView:
@@ -327,39 +327,39 @@ class TestSuperUserAccessingJobListView:
         self,
         superuser_client: Client,
         job_created_by_bob: Job,
-        job_created_by_peter: Job,
+        job_created_by_alice: Job,
     ) -> None:
         """Ensure a superuser sees all jobs when no agent username is provided.
 
         Args:
             superuser_client (Client): A test client with superuser permissions.
             job_created_by_bob (Job): A job created by Bob
-            job_created_by_peter (Job): A job created by Peter
+            job_created_by_alice (Job): A job created by Alice
         """
         response = superuser_client.get(reverse("jobs:job_list"))
         assert response.status_code == status.HTTP_200_OK
         assert job_created_by_bob in response.context["job_list"]
-        assert job_created_by_peter in response.context["job_list"]
+        assert job_created_by_alice in response.context["job_list"]
 
     def test_with_good_agent_username_url_param_returns_just_the_agents_jobs(
         self,
         superuser_client: Client,
         job_created_by_bob: Job,
-        job_created_by_peter: Job,
+        job_created_by_alice: Job,
     ) -> None:
         """Test superuser sees only the specified agent's jobs.
 
         Args:
             superuser_client (Client): A superuser client used to view jobs.
             job_created_by_bob (Job): A job created by Bob
-            job_created_by_peter (Job): A job created by Peter
+            job_created_by_alice (Job): A job created by Alice
         """
         response = superuser_client.get(
             reverse("jobs:job_list") + f"?agent={job_created_by_bob.agent.username}",
         )
         assert response.status_code == status.HTTP_200_OK
         assert job_created_by_bob in response.context["job_list"]
-        assert job_created_by_peter not in response.context["job_list"]
+        assert job_created_by_alice not in response.context["job_list"]
 
     def test_with_nonexistent_agent_username_url_param_returns_bad_request(
         self,
@@ -452,18 +452,18 @@ class TestTipShownForMarnieIfThereAreNoJobsListed:
         page_text = response.content.decode()
         assert msg in page_text
 
-    def test_peter_msg_shown_for_peter_agent(
+    def test_alice_msg_shown_for_alice_agent(
         self,
         marnie_user_client: Client,
-        peter_agent_user: User,
+        alice_agent_user: User,
     ) -> None:
-        """Ensure the correct message is shown for Peter, the other agent.
+        """Ensure the correct message is shown for Alice, the other agent.
 
         Args:
             marnie_user_client (Client): A test client used by Marnie.
-            peter_agent_user (User): The agent user Peter.
+            alice_agent_user (User): The agent user Alice.
         """
-        agent_username = peter_agent_user.username
+        agent_username = alice_agent_user.username
         response = marnie_user_client.get(
             reverse("jobs:job_list") + f"?agent={agent_username}",
         )

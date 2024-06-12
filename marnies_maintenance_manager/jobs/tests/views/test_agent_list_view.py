@@ -128,14 +128,14 @@ def _get_agent_list_items(marnie_user_client: Client) -> bs4.element.ResultSet:
 
 def test_agents_are_listed_in_alphanumeric_order_by_username(
     marnie_user_client: Client,
-    peter_agent_user: User,
+    alice_agent_user: User,
     bob_agent_user: User,
 ) -> None:
     """Ensure agents are listed in alphanumeric order by username.
 
     Args:
         marnie_user_client (Client): A test client for Marnie.
-        peter_agent_user (User): Peter's user instance, an agent.
+        alice_agent_user (User): Alice's user instance, an agent.
         bob_agent_user (User): Bob's user instance, an agent.
     """
     list_items = _get_agent_list_items(marnie_user_client)

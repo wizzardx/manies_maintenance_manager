@@ -35,18 +35,18 @@ def job_created_by_bob(bob_agent_user: User) -> Job:
 
 
 @pytest.fixture()
-def job_created_by_peter(peter_agent_user: User) -> Job:
-    """Create a job instance for Peter the agent.
+def job_created_by_alice(alice_agent_user: User) -> Job:
+    """Create a job instance for Alice the agent.
 
     Args:
-        peter_agent_user (User): The User instance representing Peter the agent.
+        alice_agent_user (User): The User instance representing Alice the agent.
 
     Returns:
-        Job: The job instance created for Peter.
+        Job: The job instance created for Alice.
 
     """
     return Job.objects.create(
-        agent=peter_agent_user,
+        agent=alice_agent_user,
         date="2022-01-01",
         address_details="1234 Main St, Springfield, IL",
         gps_link="https://www.google.com/maps",

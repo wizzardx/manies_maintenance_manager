@@ -95,19 +95,19 @@ def test_agent_who_created_job_can_see_link(
 
 def test_agent_who_did_not_create_job_cannot_reach_page_to_see_link(
     bob_job_with_deposit_pop: Job,
-    peter_agent_user: User,
+    alice_agent_user: User,
 ) -> None:
     """Ensure an agent who didn't create the job cannot reach the page to see the link.
 
     Args:
         bob_job_with_deposit_pop (Job): The job created by Bob with the deposit pop
             uploaded.
-        peter_agent_user (User): The Peter user.
+        alice_agent_user (User): The Alice user.
     """
     request = RequestFactory().get(
         reverse("jobs:job_detail", kwargs={"pk": bob_job_with_deposit_pop.pk}),
     )
-    request.user = peter_agent_user
+    request.user = alice_agent_user
     with pytest.raises(PermissionDenied):
         JobDetailView.as_view()(request, pk=bob_job_with_deposit_pop.pk)
 

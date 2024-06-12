@@ -184,7 +184,7 @@ class TestQuoteDownloadAccess:
     def test_agent_cannot_download_multilinked_quote(
         bob_agent_user_client: Client,
         bob_job_with_initial_marnie_inspection: Job,
-        job_created_by_peter: Job,
+        job_created_by_alice: Job,
     ) -> None:
         """Test that an agent cannot download a quote that is linked to multiple jobs.
 
@@ -193,13 +193,13 @@ class TestQuoteDownloadAccess:
                 user.
             bob_job_with_initial_marnie_inspection (Job): The job with an initial agent
                 inspection.
-            job_created_by_peter (Job): The job created by Peter.
+            job_created_by_alice (Job): The job created by Alice.
         """
         job = bob_job_with_initial_marnie_inspection
 
         # Update another job to have the same quote as the first job, so that we
         # can trigger the error condition and get the wanted 403 error.
-        job2 = job_created_by_peter
+        job2 = job_created_by_alice
         job2.quote = job.quote
         job2.save()
 
@@ -210,18 +210,18 @@ class TestQuoteDownloadAccess:
 
     @staticmethod
     def test_other_agent_cannot_download_quote(
-        peter_agent_user_client: Client,
+        alice_agent_user_client: Client,
         bob_job_with_initial_marnie_inspection: Job,
     ) -> None:
         """Test that agents not originally creating the job cannot download the quote.
 
         Args:
-            peter_agent_user_client (Client): The Django test client for the Peter agent
+            alice_agent_user_client (Client): The Django test client for the Alice agent
                 user.
             bob_job_with_initial_marnie_inspection (Job): The job with an initial agent
                 inspection.
         """
-        response = peter_agent_user_client.get(
+        response = alice_agent_user_client.get(
             bob_job_with_initial_marnie_inspection.quote.url,
             follow=True,
         )
@@ -344,7 +344,7 @@ class TestDepositPOPDownloadAccess:
     def test_agent_cannot_download_multilinked_deposit_proof_of_payment(
         bob_agent_user_client: Client,
         bob_job_with_deposit_pop: Job,
-        job_created_by_peter: Job,
+        job_created_by_alice: Job,
     ) -> None:
         """Test that agents cannot download deposit proofs linked to multiple jobs.
 
@@ -352,13 +352,13 @@ class TestDepositPOPDownloadAccess:
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
             bob_job_with_deposit_pop (Job): The job with a deposit proof of payment.
-            job_created_by_peter (Job): The job created by Peter.
+            job_created_by_alice (Job): The job created by Alice.
         """
         job = bob_job_with_deposit_pop
 
         # Update another job to have the same deposit proof of payment as the first
         # job, so that we can trigger the error condition and get the wanted 403 error.
-        job2 = job_created_by_peter
+        job2 = job_created_by_alice
         job2.deposit_proof_of_payment = job.deposit_proof_of_payment
         job2.save()
 
@@ -370,17 +370,17 @@ class TestDepositPOPDownloadAccess:
 
     @staticmethod
     def test_other_agent_cannot_download_deposit_proof_of_payment(
-        peter_agent_user_client: Client,
+        alice_agent_user_client: Client,
         bob_job_with_deposit_pop: Job,
     ) -> None:
         """Test that agents not creating the job cannot download deposit proof.
 
         Args:
-            peter_agent_user_client (Client): The Django test client for the Peter agent
+            alice_agent_user_client (Client): The Django test client for the Alice agent
                 user.
             bob_job_with_deposit_pop (Job): The job with a deposit proof of payment.
         """
-        response = peter_agent_user_client.get(
+        response = alice_agent_user_client.get(
             bob_job_with_deposit_pop.deposit_proof_of_payment.url,
             follow=True,
         )

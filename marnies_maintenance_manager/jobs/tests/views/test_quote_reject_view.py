@@ -79,16 +79,16 @@ def test_gets_permission_error_for_marnie_user(
 
 
 def test_gets_permission_error_for_different_agent_user(
-    peter_agent_user_client: Client,
+    alice_agent_user_client: Client,
     bob_job_with_initial_marnie_inspection: Job,
 ) -> None:
-    """Ensure that Peter cannot reject the quote for Bob's job.
+    """Ensure that Alice cannot reject the quote for Bob's job.
 
     Args:
-        peter_agent_user_client (Client): The Django test client for Peter.
+        alice_agent_user_client (Client): The Django test client for Alice.
         bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
     """
-    response = peter_agent_user_client.post(
+    response = alice_agent_user_client.post(
         f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
         follow=True,
     )

@@ -90,15 +90,15 @@ class TestQuoteDownloadLinkVisibility:
     @staticmethod
     def test_agent_who_did_not_create_job_cannot_reach_page_to_see_link(
         bob_job_with_initial_marnie_inspection: Job,
-        peter_agent_user_client: Client,
+        alice_agent_user_client: Client,
     ) -> None:
         """Ensure agents who didn't create the job can't see the quote link.
 
         Args:
             bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
-            peter_agent_user_client (Client): The Django test client for Peter.
+            alice_agent_user_client (Client): The Django test client for Alice.
         """
-        response = peter_agent_user_client.get(
+        response = alice_agent_user_client.get(
             reverse(
                 "jobs:job_detail",
                 kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},

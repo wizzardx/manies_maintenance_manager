@@ -163,20 +163,20 @@ def test_fails_for_jobs_in_incorrect_states(
 
 
 def test_does_not_work_for_agent_who_did_not_create_the_job(
-    peter_agent_user: User,
+    alice_agent_user: User,
     bob_job_with_initial_marnie_inspection: Job,
 ) -> None:
     """Test that the view does not work for an agent who did not create the job.
 
     Args:
-        peter_agent_user (User): The user who is an agent.
+        alice_agent_user (User): The user who is an agent.
         bob_job_with_initial_marnie_inspection (Job): The job with the initial
             inspection done by Marnie.
     """
     # Arrange
     job_id = bob_job_with_initial_marnie_inspection.id
     request = RequestFactory().post(f"/jobs/{job_id}/quote/accept/")
-    request.user = peter_agent_user
+    request.user = alice_agent_user
 
     # Act
     response = quote_accept(request, job_id)

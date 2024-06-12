@@ -224,7 +224,7 @@ class TestAdminSpecificHomePageWarnings:
     def test_warning_for_multiple_admin_users(
         self,
         bob_agent_user: User,
-        peter_agent_user: User,
+        alice_agent_user: User,
         admin_client: Client,
     ) -> None:
         """Test that a warning is shown when there are multiple Admin users.
@@ -233,7 +233,7 @@ class TestAdminSpecificHomePageWarnings:
             admin_client (Client): A test client with admin privileges.
             bob_agent_user (User): User instance for Bob, temporarily made an admin
                                    for this test.
-            peter_agent_user (User): User instance for Peter, also an admin.
+            alice_agent_user (User): User instance for Alice, also an admin.
         """
         # Change Bob to an admin so that there are two admin users.
         bob_agent_user.is_superuser = True
@@ -272,19 +272,19 @@ class TestAdminSpecificHomePageWarnings:
     def test_no_warning_for_multiple_admin_users_when_i_am_not_admin(
         self,
         admin_user: User,
-        peter_agent_user: User,
+        alice_agent_user: User,
         bob_agent_user_client: Client,
     ) -> None:
         """Ensure no admin user multiple warning when not admin.
 
         Args:
             admin_user (User): An admin user instance.
-            peter_agent_user (User): Another user with admin status.
+            alice_agent_user (User): Another user with admin status.
             bob_agent_user_client (Client): Bob's client, who is not an admin.
         """
         # Make sure there are two admin users:
-        peter_agent_user.is_superuser = True
-        peter_agent_user.save()
+        alice_agent_user.is_superuser = True
+        alice_agent_user.save()
 
         # Make sure there are at least 2 admin users here:
         assert count_admin_users() >= 2  # noqa: PLR2004

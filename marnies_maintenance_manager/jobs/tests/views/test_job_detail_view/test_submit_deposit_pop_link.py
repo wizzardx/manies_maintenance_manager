@@ -62,16 +62,16 @@ class TestSubmitDepositPOPLinkVisibility:
     @staticmethod
     def test_page_with_link_not_accessible_to_agents_who_did_not_create_job(
         job_accepted_by_bob: Job,
-        peter_agent_user_client: Client,
+        alice_agent_user_client: Client,
     ) -> None:
         """Ensure agents who didn't create the job can't access the detail page.
 
         Args:
             job_accepted_by_bob (Job): The job created by Bob with the quote accepted by
                 the agent.
-            peter_agent_user_client (Client): The Django test client for Peter.
+            alice_agent_user_client (Client): The Django test client for Alice.
         """
-        response = peter_agent_user_client.get(
+        response = alice_agent_user_client.get(
             reverse("jobs:job_detail", kwargs={"pk": job_accepted_by_bob.pk}),
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN

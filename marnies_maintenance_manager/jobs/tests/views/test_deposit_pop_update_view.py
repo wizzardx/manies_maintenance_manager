@@ -90,18 +90,18 @@ def test_marnie_user_cannot_access_the_view(
 
 def test_agent_who_did_not_create_the_job_cannot_access_the_view(
     job_accepted_by_bob: Job,
-    peter_agent_user: User,
+    alice_agent_user: User,
 ) -> None:
     """Ensure agent who didn't create job can't access "Deposit POP Update" view.
 
     Args:
         job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
-        peter_agent_user (User): Peter's user account.
+        alice_agent_user (User): Alice's user account.
     """
     pk = job_accepted_by_bob.pk
     url = reverse("jobs:deposit_pop_update", kwargs={"pk": pk})
     request = RequestFactory().get(url)
-    request.user = peter_agent_user
+    request.user = alice_agent_user
     with pytest.raises(PermissionDenied):
         DepositPOPUpdateView.as_view()(request, pk=pk)
 

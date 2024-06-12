@@ -100,17 +100,17 @@ class TestJobCreateViewCanOnlyBeReachedByAgentsAndSuperuser:
         response = bob_agent_user_client.get(reverse("jobs:job_create"))
         assert response.status_code == status.HTTP_200_OK
 
-    def test_access_by_peter_agent_user_is_allowed(
+    def test_access_by_alice_agent_user_is_allowed(
         self,
-        peter_agent_user_client: Client,
+        alice_agent_user_client: Client,
     ) -> None:
-        """Confirm that Peter the agent can access the job create view.
+        """Confirm that Alice the agent can access the job create view.
 
         Args:
-            peter_agent_user_client (Client): A test client configured for Peter, an
+            alice_agent_user_client (Client): A test client configured for Alice, an
                                               agent user.
         """
-        response = peter_agent_user_client.get(reverse("jobs:job_create"))
+        response = alice_agent_user_client.get(reverse("jobs:job_create"))
         assert response.status_code == status.HTTP_200_OK
 
     def test_access_by_superuser_user_is_allowed(
