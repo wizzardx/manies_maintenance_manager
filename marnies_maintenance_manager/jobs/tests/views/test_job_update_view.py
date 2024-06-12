@@ -16,6 +16,9 @@ from typeguard import check_type
 from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE
+from marnies_maintenance_manager.jobs.tests.utils import (
+    suppress_fastdev_strict_if_deprecation_warning,
+)
 from marnies_maintenance_manager.jobs.views.job_update_view import JobUpdateView
 from marnies_maintenance_manager.users.models import User
 
@@ -62,15 +65,7 @@ def test_anonymous_user_cannot_access_the_view(
         client (Client): The Django test client.
         bob_job_update_url (str): The URL for Bobs job update view.
     """
-    # Note: Django-FastDev causes a DeprecationWarning to be logged when using the
-    # {% if %} template tag. This is somewhere deep within the Django-Allauth package,
-    # while handling a GET request to the /accounts/login/ URL. We can ignore this
-    # for our testing.
-    with pytest.warns(
-        DeprecationWarning,
-        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
-        "{% if %}",
-    ):
+    with suppress_fastdev_strict_if_deprecation_warning():
         response = client.get(bob_job_update_url, follow=True)
 
     # This should be a redirect to a login page:

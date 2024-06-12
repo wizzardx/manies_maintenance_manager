@@ -11,6 +11,9 @@ from typeguard import check_type
 
 from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.tests.utils import (
+    suppress_fastdev_strict_if_deprecation_warning,
+)
 from marnies_maintenance_manager.jobs.tests.views.utils import (
     assert_standard_email_content,
 )
@@ -27,15 +30,7 @@ def test_gets_redirected_to_login_for_anonymous_user(client: Client) -> None:
     Args:
         client (Client): The Django test client.
     """
-    # Note: Django-FastDev causes a DeprecationWarning to be logged when using the
-    # {% if %} template tag. This is somewhere deep within the Django-Allauth package,
-    # while handling a GET request to the /accounts/login/ URL. We can ignore this
-    # for our testing.
-    with pytest.warns(
-        DeprecationWarning,
-        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
-        "{% if %}",
-    ):
+    with suppress_fastdev_strict_if_deprecation_warning():
         response = client.get(
             "/jobs/0dd3c34c-2003-11ef-8db1-5baa8ebc9c58/quote/reject/",
             follow=True,

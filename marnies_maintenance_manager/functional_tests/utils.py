@@ -19,6 +19,9 @@ from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from marnies_maintenance_manager.jobs.tests.utils import (
+    suppress_fastdev_strict_if_deprecation_warning,
+)
 from marnies_maintenance_manager.jobs.utils import get_test_user_password
 
 MAX_WAIT = 5  # Maximum time to wait during retries, before failing the test
@@ -52,16 +55,7 @@ def _sign_into_website(browser: WebDriver, username: str) -> None:
     sign_in_button = browser.find_element(By.LINK_TEXT, "Sign In")
 
     # He clicks on the Sign In button
-
-    ## Note: Django-FastDev causes a DeprecationWarning to be logged when using the
-    ## {% if %} template tag. This is somewhere deep within the Django-Allauth package,
-    ## while handling a GET request to the /accounts/login/ URL. We can ignore this
-    ## for our testing.
-    with pytest.warns(
-        DeprecationWarning,
-        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
-        "{% if %}",
-    ):
+    with suppress_fastdev_strict_if_deprecation_warning():
         sign_in_button.click()
 
     # This sends him to the Sign In page, where he notices that the page title and
@@ -89,15 +83,7 @@ def _sign_out_of_website_and_clean_up(browser: WebDriver) -> None:
     # He clicks on the Sign Out button
     sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")
 
-    ## Note: Django-FastDev causes a DeprecationWarning to be logged when using the
-    ## {% if %} template tag. This is somewhere deep within the Django-Allauth package,
-    ## most likely while processing the templates for /accounts/logout/. We can also
-    # ignore this for our testing.
-    with pytest.warns(
-        DeprecationWarning,
-        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
-        "{% if %}",
-    ):
+    with suppress_fastdev_strict_if_deprecation_warning():
         sign_out_button.click()
 
     # An "Are you sure you want to sign out?" dialog pops up, asking him to confirm

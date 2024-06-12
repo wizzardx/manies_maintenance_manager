@@ -12,6 +12,9 @@ from rest_framework import status
 from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.tests.utils import (
+    suppress_fastdev_strict_if_deprecation_warning,
+)
 from marnies_maintenance_manager.users.models import User
 
 
@@ -22,15 +25,7 @@ def test_gets_redirected_to_login_for_anonymous_user(client: Client) -> None:
     Args:
         client (Client): The Django test client.
     """
-    # Note: Django-FastDev causes a DeprecationWarning to be logged when using the
-    # {% if %} template tag. This is somewhere deep within the Django-Allauth package,
-    # while handling a GET request to the /accounts/login/ URL. We can ignore this
-    # for our testing.
-    with pytest.warns(
-        DeprecationWarning,
-        match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead of "
-        "{% if %}",
-    ):
+    with suppress_fastdev_strict_if_deprecation_warning():
         response = client.get("/media/test.txt", follow=True)
     assert response.redirect_chain == [("/accounts/login/?next=/media/test.txt", 302)]
 
@@ -94,15 +89,7 @@ class TestQuoteDownloadAccess:
                 Marnie inspection.
         """
         job = bob_job_with_initial_marnie_inspection
-        # Note: Django-FastDev causes a DeprecationWarning to be logged when using the
-        # {% if %} template tag. This is somewhere deep within the Django-Allauth
-        # package, while handling a GET request to the /accounts/login/ URL. We can
-        # ignore this for our testing.
-        with pytest.warns(
-            DeprecationWarning,
-            match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} instead "
-            "of {% if %}",
-        ):
+        with suppress_fastdev_strict_if_deprecation_warning():
             response = client.get(job.quote.url, follow=True)
         assert response.redirect_chain == [
             ("/accounts/login/?next=/media/quotes/test.pdf", 302),
