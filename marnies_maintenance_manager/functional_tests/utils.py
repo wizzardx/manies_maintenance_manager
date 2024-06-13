@@ -97,7 +97,32 @@ def _sign_out_of_website_and_clean_up(browser: WebDriver) -> None:
     # Satisfied, he goes back to sleep
 
 
-def _check_jobs_page_table(browser: WebDriver) -> None:
+def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) -> None:
+    cell_texts = _check_maintenance_jobs_table(browser)
+
+    ## Make sure the cell text contents match the expected values.
+    assert cell_texts == [
+        "1",  # This is for the row number, automatically added by the system.
+        "2021-01-01",
+        "Department of Home Affairs Bellville",
+        "GPS",  # This is the displayed text, on-screen it's a link
+        "Please fix the leaky faucet in the staff bathroom",
+        "",  # This is for the Date of Inspection, which is empty for now
+        "",  # This is for the Quote, which is empty for now
+        "",  # This is for Accept or Reject A/R, which is empty for now
+        "",  # This is for the Deposit POP, which is empty for now
+    ], cell_texts
+
+
+def _check_maintenance_jobs_table(browser: WebDriver) -> list[str]:
+    """Check the maintenance jobs table for the correct row and cell contents.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+
+    Returns:
+        list[str]: A list of cell texts from the table, containing job details.
+    """
     # He notices that the new Maintenance Job is listed on the web page in a table
     table = browser.find_element(By.ID, "id_list_table")
     rows = table.find_elements(By.TAG_NAME, "tr")
@@ -114,28 +139,17 @@ def _check_jobs_page_table(browser: WebDriver) -> None:
         "Number",
         "Date",
         "Address Details",
-        "GPS Link",  # This is the displayed text, on-screen it's a link
+        "GPS Link",
         "Quote Request Details",
         "Date of Inspection",
         "Quote",
         "Accept or Reject A/R",
+        "Deposit POP",
     ]
 
     ## The second row is the new job
     row = rows[1]
-    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-
-    ## Make sure the cell text contents match the expected values.
-    assert cell_texts == [
-        "1",  # This is for the row number, automatically added by the system.
-        "2021-01-01",
-        "Department of Home Affairs Bellville",
-        "GPS",  # This is the displayed text, on-screen it's a link
-        "Please fix the leaky faucet in the staff bathroom",
-        "",  # This is for the Date of Inspection, which is empty for now
-        "",  # This is for the Quote, which is empty for now
-        "",  # This is for Accept or Reject A/R, which is empty for now
-    ]
+    return [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
 
 
 def _create_new_job(
@@ -222,7 +236,7 @@ def _create_new_job(
     assert "Maintenance Jobs" in browser.find_element(By.TAG_NAME, "h1").text
 
     ## Thoroughly check that the table has the correct headings and row contents.
-    _check_jobs_page_table(browser)
+    _check_maintenance_jobs_page_table_after_job_creation(browser)
 
     # Satisfied, he goes back to sleep
     _sign_out_of_website_and_clean_up(browser)
@@ -248,7 +262,8 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
         "2021-02-01",
         "Download Quote",
         "",
-    ]
+        "",
+    ], cell_texts
 
     # He clicks on the #1 number again:
     number_link = browser.find_element(By.LINK_TEXT, "1")
@@ -420,7 +435,8 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
         "2021-02-01",
         "Download Quote",
         "rejected",
-    ]
+        "",
+    ], cell_texts
 
     # Satisfied, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)

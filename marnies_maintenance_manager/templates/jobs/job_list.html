@@ -20,6 +20,7 @@
         <th>Date of Inspection</th>
         <th>Quote</th>
         <th>Accept or Reject A/R</th>
+        <th>Deposit POP</th>
       </tr>
     </thead>
     <tbody>
@@ -40,6 +41,9 @@
           </td>
           <td>
             {% if job.accepted_or_rejected %}{{ job.accepted_or_rejected }}{% endif %}
+          </td>
+          <td>
+            {% if job.deposit_proof_of_payment %}<a href="{{ job.deposit_proof_of_payment.url }}">Download POP</a>{% endif %}
           </td>
         </tr>
       {% endfor %}

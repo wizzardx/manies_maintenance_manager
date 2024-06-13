@@ -12,7 +12,9 @@ from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from marnies_maintenance_manager.functional_tests.utils import _check_jobs_page_table
+from marnies_maintenance_manager.functional_tests.utils import (
+    _check_maintenance_jobs_page_table_after_job_creation,
+)
 from marnies_maintenance_manager.functional_tests.utils import _create_new_job
 from marnies_maintenance_manager.functional_tests.utils import _sign_into_website
 from marnies_maintenance_manager.users.models import User
@@ -67,7 +69,7 @@ def test_marnie_can_view_agents_job(
     assert "Maintenance Jobs for bob" in browser.find_element(By.TAG_NAME, "h1").text
 
     ## Thoroughly check that the table has the correct headings and row contents.
-    _check_jobs_page_table(browser)
+    _check_maintenance_jobs_page_table_after_job_creation(browser)
 
     # Since he's not an Agent, he does not see the "Create Maintenance Job" link.
     with pytest.raises(NoSuchElementException):
