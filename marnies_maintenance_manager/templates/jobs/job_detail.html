@@ -71,4 +71,6 @@
   {% if submit_deposit_proof_of_payment_link_present %}
     <a href="{% url 'jobs:deposit_pop_update' pk=job.pk %}">Submit Deposit Proof of Payment</a>
   {% endif %}
+  <!-- Display a (different) "Update" link if the backend wants it -->
+  {% if update_link_2_present %}<a href="#">Update</a>{% endif %}
 {% endblock content %}

@@ -75,6 +75,15 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
             and (user.is_superuser or (user.is_agent and user == job.agent))
         )
 
+        # There's a second "Update" link present, used by Marnie when completing
+        # the job. This link only shows up when the agent has uploaded a proof of
+        # payment for the deposit.
+        update_link_2_present = (
+            job.status == Job.Status.DEPOSIT_POP_UPLOADED.value
+            and user.is_marnie
+            or user.is_superuser
+        )
+
         context = super().get_context_data(**kwargs)
         context["update_link_present"] = update_link_present
         context["reject_quote_button_present"] = reject_quote_button_present
@@ -83,4 +92,5 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         context["submit_deposit_proof_of_payment_link_present"] = (
             submit_deposit_proof_of_payment_link_present
         )
+        context["update_link_2_present"] = update_link_2_present
         return context
