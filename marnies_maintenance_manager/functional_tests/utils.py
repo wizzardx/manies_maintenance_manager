@@ -76,7 +76,7 @@ def _sign_into_website(browser: WebDriver, username: str) -> None:
 
     # This takes him to his user page (where he can manage his user further).
     # He also sees this in the page title bar
-    assert f"User: {username}" in browser.title
+    assert f"User: {username}" in browser.title, browser.title
 
 
 def _sign_out_of_website_and_clean_up(browser: WebDriver) -> None:
@@ -482,3 +482,50 @@ def _bob_accepts_marnies_quote(browser: WebDriver) -> None:
     # Unlike other reused functions, we don't leave the browser here. That's because
     # Bob, in other tests, continues doing other actions before he's done and its
     # Marnies turn to do something.
+
+
+def _bob_submits_deposit_pop(browser: WebDriver) -> None:
+    ## At this point, Bob should still be logged into the system, and the current page
+    ## should be the "Maintenance Job Details" page. Confirm that:
+    assert "Maintenance Job Details" in browser.title
+    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees a "Submit Deposit POP" link, and clicks on it.
+    submit_pop_link = browser.find_element(
+        By.LINK_TEXT,
+        "Submit Deposit Proof of Payment",
+    )
+    submit_pop_link.click()
+
+    # He sees the "Submit Deposit POP" page, with the title and header mentioning the
+    # same.
+    assert "Submit Deposit POP" in browser.title
+    assert "Submit Deposit POP" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees the "Proof of Payment" field, and a "Submit" button.
+    pop_field = browser.find_element(By.ID, "id_deposit_proof_of_payment")
+    submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
+
+    # He uploads a Proof of Payment.
+    pop_field.send_keys(
+        "/app/marnies_maintenance_manager/functional_tests/test.pdf",
+    )
+
+    # He clicks the "submit" button.
+    submit_button.click()
+
+    # This takes him back to the details page for the Job.
+    assert "Maintenance Job Details" in browser.title
+    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees a flash notification that an email has been sent to Marnie.
+    expected_msg = (
+        "Your Deposit Proof of Payment has been uploaded. An email has "
+        "been sent to Marnie."
+    )
+    assert expected_msg in browser.page_source
+
+    # Over in the job details page he can see the link to his previously uploaded file,
+    # with the text "Download Deposit POP":
+    pop_link_elem = browser.find_element(By.LINK_TEXT, "Download Deposit POP")
+    assert pop_link_elem is not None
