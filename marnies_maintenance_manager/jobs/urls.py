@@ -19,6 +19,7 @@ from django.urls import path
 
 from .views.agent_list_view import agent_list
 from .views.deposit_pop_update_view import DepositPOPUpdateView
+from .views.job_complete_view import JobCompleteView
 from .views.job_create_view import JobCreateView
 from .views.job_detail_view import JobDetailView
 from .views.job_list_view import JobListView
@@ -33,6 +34,7 @@ urlpatterns = [
     path("agents/", agent_list, name="agent_list"),
     path("create/", JobCreateView.as_view(), name="job_create"),
     path("<uuid:pk>/", JobDetailView.as_view(), name="job_detail"),
+    path("<uuid:pk>/complete/", JobCompleteView.as_view(), name="job_complete"),
     path("<uuid:pk>/update/", JobUpdateView.as_view(), name="job_update"),
     path("<uuid:pk>/quote/accept/", quote_accept, name="quote_accept"),
     path("<uuid:pk>/quote/reject/", quote_reject, name="quote_reject"),
