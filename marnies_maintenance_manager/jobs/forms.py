@@ -87,3 +87,13 @@ class DepositPOPUpdateForm(TypedModelForm):
         ]
 
     deposit_proof_of_payment = forms.FileField()
+
+
+class JobCompleteForm(TypedModelForm):
+    """Form for completing a job."""
+
+    class Meta:
+        """Metaclass for the JobCompleteForm."""
+
+        model = Job
+        fields = []
