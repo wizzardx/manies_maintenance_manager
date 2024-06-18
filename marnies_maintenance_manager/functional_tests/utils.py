@@ -114,6 +114,30 @@ def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) ->
     ], cell_texts
 
 
+def _check_maintenance_jobs_page_table_after_job_completion(browser: WebDriver) -> None:
+    cell_texts = _check_maintenance_jobs_table(browser)
+
+    ## Make sure the cell text contents match the expected values.
+
+    expected = [
+        "1",  # This is for the row number, automatically added by the system.
+        "2021-01-01",
+        "Department of Home Affairs Bellville",
+        "GPS",  # This is the displayed text, on-screen it's a link
+        "Please fix the leaky faucet in the staff bathroom",
+        "2021-02-01",  # Date of Inspection
+        "Download Quote",  # Quote
+        "A",  # Accept or Reject A/R
+        "Download POP",  # Deposit POP
+        "2021-03-02",  # Job Date
+        "Download Invoice",  # Invoice
+        "I fixed the leaky faucet While I was in there I noticed damage in the wall "
+        "Do you want me to fix that too?",
+        "Yes",  # Job Complete
+    ]
+    assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
+
+
 def _check_maintenance_jobs_table(browser: WebDriver) -> list[str]:
     """Check the maintenance jobs table for the correct row and cell contents.
 

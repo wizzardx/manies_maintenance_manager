@@ -34,6 +34,7 @@ Note:
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
+from typeguard import check_type
 
 from marnies_maintenance_manager.functional_tests.utils import (
     _bob_accepts_marnies_quote,
@@ -50,6 +51,8 @@ from marnies_maintenance_manager.functional_tests.utils import (
     _update_job_with_inspection_date_and_quote,
 )
 from marnies_maintenance_manager.users.models import User
+
+from .utils import _check_maintenance_jobs_page_table_after_job_completion
 
 
 def test_marnie_completes_the_job(
@@ -127,21 +130,35 @@ def test_marnie_completes_the_job(
     )
 
     # He sees a "Submit" button and clicks it:
-    submit_button = browser.find_element(By.TAG_NAME, "button")
+    submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
     submit_button.click()
 
-    # He is taken back to the job details page.
-    assert "Maintenance Job Details" in browser.title
-    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
+    # He is taken back to the maintenance jobs page for Bob.
+    assert browser.title == "Maintenance Jobs for bob"
+    assert browser.find_element(By.TAG_NAME, "h1").text == "Maintenance Jobs for bob"
 
     # He sees a flash notification that the job has been completed.
     expected_msg = "The job has been completed. An email has been sent to bob."
     assert expected_msg in browser.page_source
 
-    # He sees the link to the invoice he uploaded, with the text "Download Invoice":
+    # He checks the job-listing page in detail, that his there and in the expected
+    # state.
+    _check_maintenance_jobs_page_table_after_job_completion(browser)
+
+    # He clicks on the job number link to view the job details.
+    job_number_link = browser.find_element(By.LINK_TEXT, "1")
+    job_number_link.click()
+
+    # He is taken back to the job details page.
+    assert "Maintenance Job Details" in browser.title
+    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees the link to the invoice he uploaded, with the text "Download Invoice",
+    # and with a realistic-looking URL:
     invoice_link = browser.find_element(By.LINK_TEXT, "Download Invoice")
     assert invoice_link is not None
     assert "Download Invoice" in invoice_link.text
+    assert "test.pdf" in check_type(invoice_link.get_attribute("href"), str)
 
     # He sees the comments he entered earlier:
     comments = browser.find_element(By.CLASS_NAME, "comments")
@@ -153,40 +170,12 @@ def test_marnie_completes_the_job(
     # He sees the job completion date he entered earlier:
     job_date = browser.find_element(By.CLASS_NAME, "job-date")
     assert job_date is not None
-    assert "2021-02-03" in job_date.text
+    assert "2021-03-02" in job_date.text
 
     # He sees the link to the invoice he uploaded earlier:
     invoice_link = browser.find_element(By.LINK_TEXT, "Download Invoice")
     assert invoice_link is not None
     assert "Download Invoice" in invoice_link.text
-
-    # He sees a "Back to Jobs" link and clicks on it:
-    back_to_jobs_link = browser.find_element(By.LINK_TEXT, "Back to Jobs")
-    back_to_jobs_link.click()
-
-    # He is taken back to his "Jobs" page.
-    assert "Jobs" in browser.title
-    assert "Jobs" in browser.find_element(By.TAG_NAME, "h1").text
-
-    # He sees the job he just completed in the list of jobs.
-    job = browser.find_element(By.CLASS_NAME, "job")
-    assert job is not None
-    assert "Job" in job.text
-    assert "Completed" in job.text
-
-    # He sees the other details of the job in the job-listing table, including
-    # the inspection date and quote.
-    inspection_date = browser.find_element(By.CLASS_NAME, "inspection-date")
-    assert inspection_date is not None
-    assert "2021-02-01" in inspection_date.text
-
-    quote = browser.find_element(By.CLASS_NAME, "quote")
-    assert quote is not None
-    assert "test.pdf" in quote.text
-
-    # He sees the "Download Invoice" link in the job listing.
-    invoice_link = browser.find_element(By.LINK_TEXT, "Download Invoice")
-    assert invoice_link is not None
 
     # Happy with this, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)
