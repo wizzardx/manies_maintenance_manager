@@ -96,4 +96,6 @@ class JobCompleteForm(TypedModelForm):
         """Metaclass for the JobCompleteForm."""
 
         model = Job
-        fields = []
+        fields = [
+            "job_date",
+        ]

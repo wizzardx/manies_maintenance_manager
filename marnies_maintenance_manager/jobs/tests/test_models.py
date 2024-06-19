@@ -508,3 +508,14 @@ def test_full_clean_is_called_on_save(bob_agent_user: User) -> None:
 
     with pytest.raises(ValidationError):
         job.save()
+
+
+def test_job_date_is_setup_correctly() -> None:
+    """Ensure the 'job_date' field is set up correctly."""
+    # pylint: disable=no-member
+    # noinspection PyUnresolvedReferences
+    field = Job.job_date.field
+    assert field.null is True
+    assert field.blank is True
+    assert field.help_text == "Date when the job was completed."
+    assert field.verbose_name == "Job Date"

@@ -1,11 +1,13 @@
 """Tests for the utility functions in the "jobs" app."""
 
+# pylint: disable=no-self-use, magic-value-comparison, redefined-outer-name
 # pylint: disable=unused-argument
 
 import re
 from unittest import mock
 
 import pytest
+import pytest_mock
 from _pytest.monkeypatch import MonkeyPatch  # pylint: disable=import-private-name
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpRequest
@@ -13,11 +15,11 @@ from django.http import HttpRequest
 from marnies_maintenance_manager.jobs import exceptions
 from marnies_maintenance_manager.jobs import utils
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.jobs.views.utils import send_quote_update_email
 from marnies_maintenance_manager.users.models import User
 
 
-# pylint: disable=no-self-use, magic-value-comparison, redefined-outer-name
 @pytest.mark.django_db()
 class TestGetMarnieEmail:
     """Tests for the get_marnie_email utility function."""
@@ -309,3 +311,67 @@ def test_send_quote_update_email(
     mock_email_instance.send.assert_called_once()
 
     assert result == "agent_username"
+
+
+class TestSafeRead:
+    """Tests for the safe_read context manager."""
+
+    @staticmethod
+    def test_fails_if_tell_not_at_zero_at_start(
+        mocker: pytest_mock.MockFixture,
+    ) -> None:
+        """Test AssertionError if file pointer isn't reset to 0 at the start.
+
+        Args:
+            mocker (pytest_mock.MockFixture): A pytest-mock fixture.
+        """
+        file_like = mocker.Mock()
+        file_like.tell.return_value = 1
+        with (
+            pytest.raises(
+                AssertionError,
+                match="File pointer not reset to 0 before reading.",
+            ),
+            safe_read(file_like),
+        ):
+            pass  # pragma: no cover
+
+    @staticmethod
+    def test_fails_if_tell_not_at_zero_after_reading(
+        mocker: pytest_mock.MockFixture,
+    ) -> None:
+        """Test AssertionError if file pointer isn't reset to 0 after reading.
+
+        Args:
+            mocker (pytest_mock.MockFixture): A pytest-mock fixture.
+        """
+        file_like = mocker.Mock()
+        file_like.tell.return_value = 0
+        file_like.read.return_value = b"PDF content"
+        with (
+            pytest.raises(
+                AssertionError,
+                match="File pointer not reset to 0 after reading.",
+            ),
+            safe_read(file_like),
+        ):
+            file_like.read.assert_called_once()
+        # The 'tell' method should have been called twice by now:
+        file_like.tell.assert_has_calls([mocker.call(), mocker.call()])
+
+    @staticmethod
+    def test_no_error_when_tell_location_is_a_mock_object(
+        mocker: pytest_mock.MockFixture,
+    ) -> None:
+        """Test that the context manager works when the file pointer is a mock object.
+
+        Args:
+            mocker (pytest_mock.MockFixture): A pytest-mock fixture.
+        """
+        file_like = mocker.Mock()
+        file_like.tell.return_value = mocker.Mock()
+        file_like.read.return_value = b"PDF content"
+
+        # This code should not raise:
+        with safe_read(file_like):
+            pass

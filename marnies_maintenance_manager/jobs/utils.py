@@ -2,6 +2,9 @@
 
 import logging
 import os
+from collections.abc import Generator
+from contextlib import contextmanager
+from typing import Protocol
 from typing import TypeVar
 from uuid import UUID
 
@@ -352,3 +355,56 @@ def generate_email_body(job: Job, request: HttpRequest) -> str:
         f"PS: This mail is sent from an unmonitored email address. "
         "Please do not reply to this email.\n\n"
     )
+
+
+class TellAndSeekable(Protocol):
+    """A protocol for files that can be told and seeked."""
+
+    def tell(self) -> int:
+        """Return the current file position."""
+
+    def seek(self, offset: int) -> None:
+        """Seek to the specified offset in the file.
+
+        Args:
+            offset (int): The offset to seek to.
+        """
+
+
+@contextmanager
+def safe_read(*args: TellAndSeekable) -> Generator[None, None, None]:
+    """Ensure that the file is read from the beginning and reset the file pointer after.
+
+    Args:
+        *args (TellAndSeekable): The files to read.
+
+    Raises:
+        AssertionError: If the file pointer is not reset to 0 before reading or not
+            advanced after reading.d
+
+    Yields:
+        None: The context manager yields nothing.
+
+
+    """
+    for f in args:
+        location = f.tell()
+        # Skip mocked return values:
+        if repr(location).startswith("<Mock "):
+            continue
+        if location != 0:
+            msg = "File pointer not reset to 0 before reading."
+            raise AssertionError(msg)
+
+    try:
+        yield
+    finally:
+        for f in args:
+            location = f.tell()
+            # Skip mocked return values:
+            if repr(location).startswith("<Mock "):
+                continue
+            if location == 0:
+                msg = "File pointer not reset to 0 after reading."
+                raise AssertionError(msg)
+            f.seek(0)

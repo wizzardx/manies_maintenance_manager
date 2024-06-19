@@ -4,6 +4,7 @@
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 
+from marnies_maintenance_manager.jobs.forms import JobCompleteForm
 from marnies_maintenance_manager.jobs.forms import JobUpdateForm
 from marnies_maintenance_manager.jobs.forms import QuoteUpdateForm
 from marnies_maintenance_manager.jobs.models import Job
@@ -84,3 +85,17 @@ class TestQuoteUpdateForm:
         assert not form.is_valid()
         assert "quote" in form.errors
         assert "You must provide a new quote" in form.errors["quote"]
+
+
+class TestJobCompleteForm:
+    """Tests for the JobCompleteForm form."""
+
+    @staticmethod
+    def test_model_class_is_job() -> None:
+        """Test that the JobCompleteForm is for the Job model."""
+        assert JobCompleteForm.Meta.model == Job
+
+    @staticmethod
+    def test_has_job_date_field() -> None:
+        """Test that the JobCompleteForm has a job_date field."""
+        assert "job_date" in JobCompleteForm.Meta.fields

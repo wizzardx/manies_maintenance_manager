@@ -127,6 +127,13 @@ class Job(UUIDModel, TimeStampedModel):
         verbose_name=_("Deposit Proof of Payment"),
     )
 
+    job_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text=_("Date when the job was completed."),
+        verbose_name=_("Job Date"),
+    )
+
     class Meta:
         """Meta options for the Job model."""
 
