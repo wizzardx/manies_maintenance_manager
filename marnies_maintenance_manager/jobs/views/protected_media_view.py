@@ -160,15 +160,15 @@ def _access_allowed_for_quote_file(user: User, path: Path) -> bool:
     if user.is_marnie:
         return True
 
-    # If the user is an agent, then they can access the quote file if they created the
-    # job that the quote is for.
+    # If the user is an agent, then they can access the file if they created the job
+    # that the file is for.
     if user.is_agent:
         # Get the related job from the file path for the 'quote' field:
         try:
             job = Job.objects.get(quote=path)
         except Job.DoesNotExist:
             # If a matching job is not found, then we treat this as a permission denied.
-            # This is a security measure to prevent agents from accessing quote files.
+            # This is a security measure to prevent agents from accessing files.
             # The file itself might actually exist on the server, but we don't want to
             # reveal its existence to agents unnecessarily.
             return False

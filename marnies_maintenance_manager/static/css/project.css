@@ -1,5 +1,6 @@
 /* These styles are generated from project.scss. */
 
+/* Alert styles for different message types */
 .alert-debug {
   color: black;
   background-color: white;
@@ -12,6 +13,7 @@
   border-color: #eed3d7;
 }
 
+/* Table styling */
 #id_list_table {
     width: 100%;
     border-collapse: collapse;
@@ -28,6 +30,7 @@
     background-color: #f2f2f2;
 }
 
+/* Styles for the 'Create Maintenance Job' link */
 .create-link {
     margin-bottom: 10px;
     display: inline-block;
@@ -43,6 +46,8 @@
 }
 
 /* New styles for the About page */
+
+/* Container and main content styling */
 .container {
     width: 80%;
     margin: auto;
@@ -56,6 +61,7 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Heading and paragraph styling */
 h1 {
     text-align: center;
     color: #333;
@@ -65,6 +71,7 @@ p {
     margin-bottom: 20px;
 }
 
+/* List styling */
 ul {
     list-style-type: square;
     padding-left: 20px;

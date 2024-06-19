@@ -333,3 +333,4 @@ marnies_maintenance_manager/media/
 .ipython/
 .env
 .envs/*
+test_results.json

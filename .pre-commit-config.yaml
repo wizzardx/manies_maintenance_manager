@@ -1,3 +1,4 @@
+# noinspection SpellCheckingInspection
 exclude: '^docs/|/migrations/|devcontainer.json'
 default_stages: [commit]
 

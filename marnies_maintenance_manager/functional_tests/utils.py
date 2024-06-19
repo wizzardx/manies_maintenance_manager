@@ -102,15 +102,15 @@ def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) ->
 
     ## Make sure the cell text contents match the expected values.
     assert cell_texts == [
-        "1",  # This is for the row number, automatically added by the system.
-        "2021-01-01",
+        "1",  # Job Number
+        "2021-01-01",  # Date (assigned by Agent)
         "Department of Home Affairs Bellville",
         "GPS",  # This is the displayed text, on-screen it's a link
         "Please fix the leaky faucet in the staff bathroom",
-        "",  # This is for the Date of Inspection, which is empty for now
-        "",  # This is for the Quote, which is empty for now
-        "",  # This is for Accept or Reject A/R, which is empty for now
-        "",  # This is for the Deposit POP, which is empty for now
+        "",  # Date of Inspection
+        "",  # Quote
+        "",  # Accept or Reject A/R
+        "",  # Deposit POP
     ], cell_texts
 
 
@@ -159,6 +159,7 @@ def _check_maintenance_jobs_table(browser: WebDriver) -> list[str]:
     header_cell_texts = [
         cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")
     ]
+
     assert header_cell_texts == [
         "Number",
         "Date",
@@ -285,8 +286,8 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
         "Please fix the leaky faucet in the staff bathroom",
         "2021-02-01",
         "Download Quote",
-        "",
-        "",
+        "",  # Accept or Reject A/R
+        "",  # Deposit POP
     ], cell_texts
 
     # He clicks on the #1 number again:
@@ -450,7 +451,7 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
     rows = table.find_elements(By.TAG_NAME, "tr")
     row = rows[1]
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-    assert cell_texts == [
+    expected = [
         "1",
         "2021-01-01",
         "Department of Home Affairs Bellville",
@@ -460,7 +461,8 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
         "Download Quote",
         "rejected",
         "",
-    ], cell_texts
+    ]
+    assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 
     # Satisfied, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)

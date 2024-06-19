@@ -474,7 +474,7 @@ def assert_permission_denied_if_job_not_in_correct_initial_state(
     Args:
         job (Job): Job instance with a specific status.
         user (User): User accessing the view.
-        expected_status (str): The status that is considered incorrect.
+        expected_status (str): The status considered incorrect.
     """
     job.status = expected_status
     job.save()

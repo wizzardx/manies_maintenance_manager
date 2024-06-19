@@ -1,5 +1,7 @@
 """Tests for the job models of Marnie's Maintenance Manager."""
 
+# pylint: disable=no-self-use, magic-value-comparison
+
 import datetime
 import re
 import uuid
@@ -504,6 +506,7 @@ def test_full_clean_is_called_on_save(bob_agent_user: User) -> None:
     job.save()
 
     # This should raise an exception:
+    # noinspection SpellCheckingInspection
     job.status = "zzzzzz"
 
     with pytest.raises(ValidationError):

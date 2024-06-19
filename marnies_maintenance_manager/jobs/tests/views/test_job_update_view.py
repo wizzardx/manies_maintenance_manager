@@ -174,8 +174,7 @@ def test_view_has_date_of_inspection_field(
         ("/jobs/?agent=bob", status.HTTP_302_FOUND),
     ]
 
-    # Refresh the Maintenance Job from the database, and then check the updated
-    # record:
+    # Refresh the Maintenance Job from the database, and then check the updated record:
     job_created_by_bob.refresh_from_db()
     assert job_created_by_bob.date_of_inspection == datetime.date(2001, 2, 5)
 

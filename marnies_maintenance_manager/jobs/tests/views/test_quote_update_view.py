@@ -102,6 +102,7 @@ def test_view_updates_the_quote_field_on_the_job(
         marnie_user_client,
         test_pdf_2,
     )
+
     job_rejected_by_bob.refresh_from_db()
 
     test_pdf_2.seek(0)

@@ -6,11 +6,14 @@ import datetime
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.template.response import TemplateResponse
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.tests.views.utils import assert_no_form_errors
 from marnies_maintenance_manager.users.models import User
 
 
@@ -91,16 +94,23 @@ def bob_job_with_initial_marnie_inspection(
     # Check that the Job is in the correct initial state:
     assert job.status == Job.Status.PENDING_INSPECTION.value
 
-    response = marnie_user_client.post(
-        bob_job_update_url,
-        {
-            "date_of_inspection": "2001-02-05",
-            "quote": test_pdf,
-        },
-        follow=True,
+    response = check_type(
+        marnie_user_client.post(
+            bob_job_update_url,
+            {
+                "date_of_inspection": "2001-02-05",
+                "quote": test_pdf,
+            },
+            follow=True,
+        ),
+        TemplateResponse,
     )
+
     # Assert the response status code is 200
     assert response.status_code == status.HTTP_200_OK
+
+    # There should be no form errors
+    assert_no_form_errors(response)
 
     # Check that the job is in the correct state after inspection:
     job.refresh_from_db()
