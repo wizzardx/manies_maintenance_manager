@@ -39,10 +39,10 @@ def _check_maintenance_jobs_page_table_after_pop_submission(browser: WebDriver) 
         "Department of Home Affairs Bellville",
         "GPS",  # This is the displayed text, on-screen it's a link
         "Please fix the leaky faucet in the staff bathroom",
-        "2021-02-01",
-        "Download Quote",
-        "accepted",
-        "Download POP",
+        "2021-02-01",  # Date of Inspection
+        "Download Quote",  # Quote
+        "accepted",  # Accept or Reject A/R
+        "Download POP",  # Deposit POP
     ]
 
 
