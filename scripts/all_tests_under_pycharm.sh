@@ -7,10 +7,10 @@ set -e
 # Capture the window ID of the terminal where the script is running
 TERMINAL_WIN_ID=$(xdotool getactivewindow)
 
-# Run the script itself
+# Run the script itself, passing to it all the arguments that were passed to us
 RETCODE=0
 
-time scripts/all_tests.sh || RETCODE=$?
+time scripts/all_tests.sh "$@" || RETCODE=$?
 
 # That script can take a while, so play a noise and run `yad` to bring my attention
 # back to it.
