@@ -1,5 +1,7 @@
 """Unit tests for the custom filter to_char in the jobs app."""
 
+# pytest: disable=magic-value-comparison
+
 from marnies_maintenance_manager.jobs.templatetags.custom_filters import to_char
 
 

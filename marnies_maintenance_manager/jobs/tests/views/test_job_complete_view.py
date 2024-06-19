@@ -3,6 +3,7 @@
 import datetime
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.test import Client
 from django.urls import reverse
@@ -11,8 +12,105 @@ from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests.views.utils import assert_no_form_errors
+from marnies_maintenance_manager.jobs.tests.views.utils import (
+    check_basic_page_html_structure,
+)
 from marnies_maintenance_manager.jobs.utils import safe_read
+from marnies_maintenance_manager.jobs.views.job_complete_view import JobCompleteView
 
+
+def test_anonymous_users_are_redirected_to_login_page(
+    client: Client,
+    bob_job_with_deposit_pop: Job,
+) -> None:
+    """Ensure anonymous users are redirected to the login page.
+
+    Args:
+        client (Client): The Django test client.
+        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+    """
+    response = check_type(
+        client.get(
+            reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk}),
+        ),
+        HttpResponseRedirect,
+    )
+    assert response.status_code == status.HTTP_302_FOUND
+    assert (
+        response.url
+        == f"/accounts/login/?next=/jobs/{bob_job_with_deposit_pop.pk}/complete/"
+    )
+
+
+def test_view_is_accessible_by_marnie_when_pop_has_been_uploaded(
+    bob_job_with_deposit_pop: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Ensure Marnie can access the view after the admin uploaded the POP.
+
+    Args:
+        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    response = marnie_user_client.get(
+        reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk}),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_view_is_inaccessible_by_agents(
+    bob_job_with_deposit_pop: Job,
+    bob_agent_user_client: Client,
+) -> None:
+    """Ensure agents cannot access the view.
+
+    Args:
+        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_agent_user_client (Client): The Django test client for Bob.
+    """
+    response = bob_agent_user_client.get(
+        reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk}),
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_view_is_accessible_by_admins(
+    bob_job_with_deposit_pop: Job,
+    admin_client: Client,
+) -> None:
+    """Ensure admins can access the view.
+
+    Args:
+        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        admin_client (Client): The Django test client for the admin user.
+    """
+    response = admin_client.get(
+        reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk}),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_page_has_basic_correct_structure(
+    marnie_user_client: Client,
+    bob_job_with_deposit_pop: Job,
+) -> None:
+    """Test that the job update page has the correct basic structure.
+
+    Args:
+        marnie_user_client (Client): The Django test client for Marnie.
+        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+    """
+    url = reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk})
+    check_basic_page_html_structure(
+        client=marnie_user_client,
+        url=url,
+        expected_title="Complete the Job",
+        expected_template_name="jobs/job_complete.html",
+        expected_h1_text="Complete the Job",
+        expected_func_name="view",
+        expected_url_name="job_complete",
+        expected_view_class=JobCompleteView,
+    )
 
 
 def test_view_has_job_date_field(
