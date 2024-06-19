@@ -170,7 +170,7 @@ def _check_maintenance_jobs_table(browser: WebDriver) -> list[str]:
         "Quote",
         "Accept or Reject A/R",
         "Deposit POP",
-    ]
+    ], header_cell_texts
 
     ## The second row is the new job
     row = rows[1]
@@ -429,9 +429,7 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
     assert expected_msg in browser.page_source
 
     # He now sees a "Job Status: Rejected" entry on the page.
-    assert (
-        "<strong>Accepted or Rejected (A/R):</strong> rejected" in browser.page_source
-    )
+    assert "<strong>Accepted or Rejected (A/R):</strong> R" in browser.page_source
 
     # He does not see the "Rejected Job" button any longer.
     with pytest.raises(NoSuchElementException):
@@ -459,7 +457,7 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
         "Please fix the leaky faucet in the staff bathroom",
         "2021-02-01",
         "Download Quote",
-        "rejected",
+        "R",
         "",
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
@@ -492,10 +490,8 @@ def _bob_accepts_marnies_quote(browser: WebDriver) -> None:
     expected_msg = "An email has been sent to Marnie."
     assert expected_msg in browser.page_source
 
-    # He sees a "Job Status: Accepted" entry on the page.
-    assert (
-        "<strong>Accepted or Rejected (A/R):</strong> accepted" in browser.page_source
-    )
+    # He sees an "Accepted or Rejected (A/R): A" entry on the page.
+    assert "<strong>Accepted or Rejected (A/R):</strong> A" in browser.page_source
 
     # He does not see the "Accept Quote" button any longer.
     with pytest.raises(NoSuchElementException):

@@ -22,8 +22,6 @@ UUID_REGEX = (
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 )
 
-# pylint: disable=no-self-use, magic-value-comparison
-
 
 @pytest.mark.django_db()
 def test_job_id_field_is_uuid(bob_agent_user: User) -> None:

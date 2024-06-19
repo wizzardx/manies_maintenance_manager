@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load custom_filters %}
+
 {% block title %}
   Maintenance Job Details
 {% endblock title %}
@@ -36,7 +38,7 @@
   <!-- Show the "Accepted" or "Rejected" (quote) state if it's been set -->
   {% if job.accepted_or_rejected %}
     <p>
-      <strong>Accepted or Rejected (A/R):</strong> {{ job.accepted_or_rejected }}
+      <strong>Accepted or Rejected (A/R):</strong> {{ job.accepted_or_rejected|to_char }}
     </p>
   {% endif %}
   <!-- Show the "Deposit Proof of Payment" link if it exists -->

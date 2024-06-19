@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load custom_filters %}
+
 {% block title %}
   {{ title }}
 {% endblock title %}
@@ -40,7 +42,7 @@
             {% if job.quote %}<a href="{{ job.quote.url }}">Download Quote</a>{% endif %}
           </td>
           <td>
-            {% if job.accepted_or_rejected %}{{ job.accepted_or_rejected }}{% endif %}
+            {% if job.accepted_or_rejected %}{{ job.accepted_or_rejected|to_char }}{% endif %}
           </td>
           <td>
             {% if job.deposit_proof_of_payment %}<a href="{{ job.deposit_proof_of_payment.url }}">Download POP</a>{% endif %}

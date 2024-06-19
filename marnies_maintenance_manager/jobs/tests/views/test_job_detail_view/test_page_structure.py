@@ -38,17 +38,17 @@ def test_job_detail_view_has_correct_basic_structure(
 
 
 def test_job_detail_view_shows_expected_job_details(
-    bob_job_with_initial_marnie_inspection: Job,
+    job_accepted_by_bob: Job,
     marnie_user_client: Client,
 ) -> None:
     """Ensure that the job detail view shows the expected job details.
 
     Args:
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
-            initial inspection done by Marnie.
+        job_accepted_by_bob (Job): The job created by Bob, with a quote added by Marnie
+            that was also accepted by Bob.
         marnie_user_client (Client): The Django test client for Marnie.
     """
-    job = bob_job_with_initial_marnie_inspection
+    job = job_accepted_by_bob
     response = marnie_user_client.get(
         reverse("jobs:job_detail", kwargs={"pk": job.pk}),
     )
@@ -68,3 +68,7 @@ def test_job_detail_view_shows_expected_job_details(
     assert inspect_date.isoformat() in page
 
     assert job.quote.url in page
+
+    # Search for the Job accepted/rejected HTML:
+    assert "<strong>Accepted or Rejected (A/R):</strong> A" in page
+

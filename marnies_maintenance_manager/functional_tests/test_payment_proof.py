@@ -41,7 +41,7 @@ def _check_maintenance_jobs_page_table_after_pop_submission(browser: WebDriver) 
         "Please fix the leaky faucet in the staff bathroom",
         "2021-02-01",  # Date of Inspection
         "Download Quote",  # Quote
-        "accepted",  # Accept or Reject A/R
+        "A",  # Accept or Reject A/R
         "Download POP",  # Deposit POP
     ]
 
