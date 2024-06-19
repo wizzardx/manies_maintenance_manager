@@ -23,6 +23,7 @@
         <th>Quote</th>
         <th>Accept or Reject A/R</th>
         <th>Deposit POP</th>
+        <th>Job Date</th>
       </tr>
     </thead>
     <tbody>
@@ -47,6 +48,7 @@
           <td>
             {% if job.deposit_proof_of_payment %}<a href="{{ job.deposit_proof_of_payment.url }}">Download POP</a>{% endif %}
           </td>
+          <td>{{ job.job_date|date:"Y-m-d" }}</td>
         </tr>
       {% endfor %}
     </tbody>

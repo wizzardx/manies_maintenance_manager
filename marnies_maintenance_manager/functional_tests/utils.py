@@ -111,6 +111,7 @@ def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) ->
         "",  # Quote
         "",  # Accept or Reject A/R
         "",  # Deposit POP
+        "",  # Job Date
     ], cell_texts
 
 
@@ -170,6 +171,7 @@ def _check_maintenance_jobs_table(browser: WebDriver) -> list[str]:
         "Quote",
         "Accept or Reject A/R",
         "Deposit POP",
+        "Job Date",
     ], header_cell_texts
 
     ## The second row is the new job
@@ -288,6 +290,7 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
         "Download Quote",
         "",  # Accept or Reject A/R
         "",  # Deposit POP
+        "",  # Job Date
     ], cell_texts
 
     # He clicks on the #1 number again:
@@ -458,6 +461,7 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
         "2021-02-01",
         "Download Quote",
         "R",
+        "",
         "",
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
