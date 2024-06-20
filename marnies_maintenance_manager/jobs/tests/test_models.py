@@ -9,6 +9,7 @@ import uuid
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
+from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 from django.forms.models import ModelForm
 from django.urls import reverse
@@ -474,6 +475,16 @@ def test_deposit_proof_of_payment_field_is_setup_correctly() -> None:
     assert field.help_text == "Upload the deposit proof of payment here."
     assert field.verbose_name == "Deposit Proof of Payment"
 
+    # Only the .pdf file extension is allowed and the PDF contents must be valid:
+    assert_pdf_field_validators(field)
+
+
+def assert_pdf_field_validators(field: FileField) -> None:
+    """Ensure the validators for a field are correctly set up for PDF files.
+
+    Args:
+        field (FileField): The file field to check.
+    """
     # Only the .pdf file extension is allowed:
     validators = check_type(field.validators, list)
     num_validators_used_for_pdf = 2

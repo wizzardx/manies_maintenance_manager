@@ -362,6 +362,24 @@ def test_marnie_cannot_access_view_after_initial_site_inspection(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+def test_superuser_cannot_access_view_after_initial_site_inspection(
+    bob_job_with_initial_marnie_inspection: Job,
+    superuser_client: Client,
+    bob_job_update_url: str,
+) -> None:
+    """Ensure the superuser can't access the update view after Marnie already inspected.
+
+    Args:
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
+        superuser_client (Client): The Django test client for the superuser.
+        bob_job_update_url (str): The URL for the job update view for the job created
+            by Bob.
+    """
+    response = superuser_client.get(bob_job_update_url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
 def test_clicking_save_redirects_to_job_listing_page(
     job_created_by_bob: Job,
     marnie_user_client: Client,
