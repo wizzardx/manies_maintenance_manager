@@ -14,6 +14,7 @@ from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests.views.utils import assert_no_form_errors
+from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.users.models import User
 
 
@@ -94,17 +95,18 @@ def bob_job_with_initial_marnie_inspection(
     # Check that the Job is in the correct initial state:
     assert job.status == Job.Status.PENDING_INSPECTION.value
 
-    response = check_type(
-        marnie_user_client.post(
-            bob_job_update_url,
-            {
-                "date_of_inspection": "2001-02-05",
-                "quote": test_pdf,
-            },
-            follow=True,
-        ),
-        TemplateResponse,
-    )
+    with safe_read(test_pdf):
+        response = check_type(
+            marnie_user_client.post(
+                bob_job_update_url,
+                {
+                    "date_of_inspection": "2001-02-05",
+                    "quote": test_pdf,
+                },
+                follow=True,
+            ),
+            TemplateResponse,
+        )
 
     # Assert the response status code is 200
     assert response.status_code == status.HTTP_200_OK
@@ -173,5 +175,8 @@ def bob_job_with_deposit_pop(
     job = job_accepted_by_bob
     job.deposit_proof_of_payment = test_pdf
     job.status = Job.Status.DEPOSIT_POP_UPLOADED.value
-    job.save()
+
+    with safe_read(test_pdf):
+        job.save()
+
     return job

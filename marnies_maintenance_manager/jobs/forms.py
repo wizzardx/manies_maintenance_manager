@@ -8,6 +8,7 @@ from typeguard import check_type
 from typeguard import typechecked
 
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.utils import safe_read
 
 if TYPE_CHECKING:  # pragma: no cover
     # These are only for type checking:
@@ -66,8 +67,8 @@ class QuoteUpdateForm(TypedModelForm):
         # compare:
         read_data = []
         for file in (quote, instance_quote):
-            file.seek(0)
-            read_data.append(file.read())
+            with safe_read(file):
+                read_data.append(file.read())
 
         if read_data[0] == read_data[1]:
             msg = "You must provide a new quote"

@@ -19,40 +19,13 @@ from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE
 from marnies_maintenance_manager.jobs.tests.utils import (
     suppress_fastdev_strict_if_deprecation_warning,
 )
+from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.jobs.views.job_update_view import JobUpdateView
 from marnies_maintenance_manager.users.models import User
 
 from .utils import assert_email_contains_job_details
 from .utils import check_basic_page_html_structure
-
-
-def post_update_request_and_check_errors(
-    client: Client,
-    url: str,
-    data: dict[str, str | SimpleUploadedFile],
-    field_name: str,
-    expected_error: str,
-) -> None:
-    """Post an update request and check for errors.
-
-    Args:
-        client (Client): The Django test client.
-        url (str): The URL to post the request to.
-        data (dict): The data to post.
-        field_name (str): The field name to check for errors.
-        expected_error (str): The expected error message.
-    """
-    response = client.post(url, data, follow=True)
-    # Assert the response status code is 200
-    assert response.status_code == status.HTTP_200_OK
-
-    # Check the redirect chain that leads things up to here:
-    assert response.redirect_chain == []
-
-    # Check that the expected error is present.
-    form_errors = response.context["form"].errors
-    assert field_name in form_errors
-    assert form_errors[field_name] == [expected_error]
+from .utils import post_update_request_and_check_errors
 
 
 def test_anonymous_user_cannot_access_the_view(
@@ -158,14 +131,40 @@ def test_view_has_date_of_inspection_field(
         bob_job_update_url (str): The URL for Bobs job update view.
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
-    response = marnie_user_client.post(
+    post_job_update_and_check_response(
+        marnie_user_client,
         bob_job_update_url,
-        {
-            "date_of_inspection": "2001-02-05",
-            "quote": test_pdf,
-        },
-        follow=True,
+        test_pdf,
+        job_created_by_bob,
     )
+
+    assert job_created_by_bob.date_of_inspection == datetime.date(2001, 2, 5)
+
+
+def post_job_update_and_check_response(
+    marnie_user_client: Client,
+    bob_job_update_url: str,
+    test_pdf: SimpleUploadedFile,
+    job_created_by_bob: Job,
+) -> None:
+    """Post job update and check the response.
+
+    Args:
+        marnie_user_client (Client): The Django test client for Marnie.
+        bob_job_update_url (str): The URL for Bob's job update view.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+        job_created_by_bob (Job): The job created by Bob.
+    """
+    with safe_read(test_pdf):
+        response = marnie_user_client.post(
+            bob_job_update_url,
+            {
+                "date_of_inspection": "2001-02-05",
+                "quote": test_pdf,
+            },
+            follow=True,
+        )
+
     # Assert the response status code is 200
     assert response.status_code == status.HTTP_200_OK
 
@@ -174,9 +173,8 @@ def test_view_has_date_of_inspection_field(
         ("/jobs/?agent=bob", status.HTTP_302_FOUND),
     ]
 
-    # Refresh the Maintenance Job from the database, and then check the updated record:
+    # Refresh the Maintenance Job from the database:
     job_created_by_bob.refresh_from_db()
-    assert job_created_by_bob.date_of_inspection == datetime.date(2001, 2, 5)
 
 
 def test_view_has_quote_field(
@@ -194,25 +192,12 @@ def test_view_has_quote_field(
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
     # POST request to upload new PDF
-    response = marnie_user_client.post(
+    post_job_update_and_check_response(
+        marnie_user_client,
         bob_job_update_url,
-        {
-            "date_of_inspection": "2001-02-05",
-            "quote": test_pdf,
-        },
-        follow=True,
+        test_pdf,
+        job_created_by_bob,
     )
-
-    # Assert the response status code is 200
-    assert response.status_code == status.HTTP_200_OK
-
-    # Check the redirect chain that leads things up to here:
-    assert response.redirect_chain == [
-        ("/jobs/?agent=bob", status.HTTP_302_FOUND),
-    ]
-
-    # Refresh the Maintenance Job from the database
-    job_created_by_bob.refresh_from_db()
 
     # And confirm that the PDF file has been updated
     quote_name = job_created_by_bob.quote.name
@@ -227,6 +212,7 @@ def test_date_of_inspection_field_is_required(
     job_created_by_bob: Job,
     marnie_user_client: Client,
     bob_job_update_url: str,
+    test_pdf: SimpleUploadedFile,
 ) -> None:
     """Test that the 'date_of_inspection' field is required.
 
@@ -234,14 +220,16 @@ def test_date_of_inspection_field_is_required(
         job_created_by_bob (Job): The job created by Bob.
         marnie_user_client (Client): The Django test client for Marnie.
         bob_job_update_url (str): The URL for Bobs job update view.
+        test_pdf (SimpleUploadedFile): The test PDF file.
     """
-    post_update_request_and_check_errors(
-        client=marnie_user_client,
-        url=bob_job_update_url,
-        data={},
-        field_name="date_of_inspection",
-        expected_error="This field is required.",
-    )
+    with safe_read(test_pdf):
+        post_update_request_and_check_errors(
+            client=marnie_user_client,
+            url=bob_job_update_url,
+            data={"quote": test_pdf},
+            field_name="date_of_inspection",
+            expected_error="This field is required.",
+        )
 
 
 def test_quote_field_is_required(
@@ -259,7 +247,7 @@ def test_quote_field_is_required(
     post_update_request_and_check_errors(
         client=marnie_user_client,
         url=bob_job_update_url,
-        data={},
+        data={"date_of_inspection": "2001-02-05"},
         field_name="quote",
         expected_error="This field is required.",
     )
@@ -280,25 +268,12 @@ def test_updating_job_changes_status_to_inspection_completed(
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
     # POST request to upload new details:
-    response = marnie_user_client.post(
+    post_job_update_and_check_response(
+        marnie_user_client,
         bob_job_update_url,
-        {
-            "date_of_inspection": "2001-02-05",
-            "quote": test_pdf,
-        },
-        follow=True,
+        test_pdf,
+        job_created_by_bob,
     )
-
-    # Assert the response status code is 200
-    assert response.status_code == status.HTTP_200_OK
-
-    # Check the redirect chain that leads things up to here:
-    assert response.redirect_chain == [
-        ("/jobs/?agent=bob", status.HTTP_302_FOUND),
-    ]
-
-    # Refresh the Maintenance Job from the database
-    job_created_by_bob.refresh_from_db()
 
     # Check that the status changed as expected
     assert job_created_by_bob.status == Job.Status.INSPECTION_COMPLETED.value
@@ -323,17 +298,18 @@ def test_should_not_allow_txt_extension_file_for_quote(
         content_type="application/pdf",
     )
 
-    post_update_request_and_check_errors(
-        client=marnie_user_client,
-        url=bob_job_update_url,
-        data={
-            "date_of_inspection": "2001-02-05",
-            "quote": test_txt,
-        },
-        field_name="quote",
-        expected_error="File extension “txt” is not allowed. "
-        "Allowed extensions are: pdf.",
-    )
+    with safe_read(test_txt):
+        post_update_request_and_check_errors(
+            client=marnie_user_client,
+            url=bob_job_update_url,
+            data={
+                "date_of_inspection": "2001-02-05",
+                "quote": test_txt,
+            },
+            field_name="quote",
+            expected_error="File extension “txt” is not allowed. "
+            "Allowed extensions are: pdf.",
+        )
 
 
 def test_validates_pdf_contents(
@@ -355,16 +331,17 @@ def test_validates_pdf_contents(
         content_type="application/pdf",
     )
 
-    post_update_request_and_check_errors(
-        client=marnie_user_client,
-        url=bob_job_update_url,
-        data={
-            "date_of_inspection": "2001-02-05",
-            "quote": new_pdf,
-        },
-        field_name="quote",
-        expected_error="This is not a valid PDF file",
-    )
+    with safe_read(new_pdf):
+        post_update_request_and_check_errors(
+            client=marnie_user_client,
+            url=bob_job_update_url,
+            data={
+                "date_of_inspection": "2001-02-05",
+                "quote": new_pdf,
+            },
+            field_name="quote",
+            expected_error="This is not a valid PDF file",
+        )
 
 
 def test_marnie_cannot_access_view_after_initial_site_inspection(
@@ -399,22 +376,12 @@ def test_clicking_save_redirects_to_job_listing_page(
         bob_job_update_url (str): The URL for Bobs job update view.
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
-    response = marnie_user_client.post(
+    post_job_update_and_check_response(
+        marnie_user_client,
         bob_job_update_url,
-        {
-            "date_of_inspection": "2001-02-05",
-            "quote": test_pdf,
-        },
-        follow=True,
+        test_pdf,
+        job_created_by_bob,
     )
-
-    # Assert the response status code is 200
-    assert response.status_code == status.HTTP_200_OK
-
-    # Check the redirect chain that leads things up to here:
-    assert response.redirect_chain == [
-        ("/jobs/?agent=bob", status.HTTP_302_FOUND),
-    ]
 
 
 @pytest.fixture()
@@ -435,17 +402,18 @@ def http_response_to_marnie_inspecting_site_of_job_by_bob(
     Returns:
         TemplateResponse: The HTTP response after Marnie inspects the site of the job
     """
-    response = check_type(
-        marnie_user_client.post(
-            bob_job_update_url,
-            {
-                "date_of_inspection": "2001-02-05",
-                "quote": test_pdf,
-            },
-            follow=True,
-        ),
-        TemplateResponse,
-    )
+    with safe_read(test_pdf):
+        response = check_type(
+            marnie_user_client.post(
+                bob_job_update_url,
+                {
+                    "date_of_inspection": "2001-02-05",
+                    "quote": test_pdf,
+                },
+                follow=True,
+            ),
+            TemplateResponse,
+        )
 
     # Assert the response status code is 200
     assert response.status_code == status.HTTP_200_OK

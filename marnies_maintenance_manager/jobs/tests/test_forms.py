@@ -8,6 +8,7 @@ from marnies_maintenance_manager.jobs.forms import JobCompleteForm
 from marnies_maintenance_manager.jobs.forms import JobUpdateForm
 from marnies_maintenance_manager.jobs.forms import QuoteUpdateForm
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.users.models import User
 
 
@@ -72,14 +73,16 @@ class TestQuoteUpdateForm:
             bob_agent_user (User): A user instance for Bob the agent.
             test_pdf (SimpleUploadedFile): A test PDF file.
         """
-        job = Job.objects.create(
-            agent=bob_agent_user,
-            date="2022-01-01",
-            quote=test_pdf,
-            address_details="1234 Main St, Springfield, IL",
-            gps_link="https://www.google.com/maps",
-            quote_request_details="Replace the kitchen sink",
-        )
+        with safe_read(test_pdf):
+            job = Job.objects.create(
+                agent=bob_agent_user,
+                date="2022-01-01",
+                quote=test_pdf,
+                address_details="1234 Main St, Springfield, IL",
+                gps_link="https://www.google.com/maps",
+                quote_request_details="Replace the kitchen sink",
+            )
+
         data = {"quote": test_pdf}
         form = QuoteUpdateForm(data=data, instance=job)
         assert not form.is_valid()

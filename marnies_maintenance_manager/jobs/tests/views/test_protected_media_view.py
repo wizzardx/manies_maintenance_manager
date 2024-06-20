@@ -15,6 +15,7 @@ from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests.utils import (
     suppress_fastdev_strict_if_deprecation_warning,
 )
+from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.users.models import User
 
 
@@ -119,7 +120,9 @@ class TestQuoteDownloadAccess:
 
         streaming_content = check_type(response.streaming_content, Iterator[bytes])
         content = b"".join(streaming_content)
-        assert content == bob_job_with_initial_marnie_inspection.quote.read()
+        quote = bob_job_with_initial_marnie_inspection.quote
+        with safe_read(quote):
+            assert content == quote.read()
 
         assert response["Content-Type"] == "application/pdf"
         assert response["Content-Length"] == str(len(content))

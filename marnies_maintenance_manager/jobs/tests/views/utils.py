@@ -20,6 +20,7 @@ from typing import Any
 
 from bs4 import BeautifulSoup
 from django.contrib.messages.storage.base import Message
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.mail import EmailMessage
 from django.http.response import HttpResponse
 from django.template.response import TemplateResponse
@@ -245,3 +246,34 @@ def assert_no_form_errors(response: TemplateResponse) -> None:
             if (errors := context_data["form"].errors) != {}:
                 msg = f"Form errors found in the response context: {errors!r}"
                 raise AssertionError(msg)
+
+
+def post_update_request_and_check_errors(
+    client: Client,
+    url: str,
+    data: dict[str, str | SimpleUploadedFile],
+    field_name: str,
+    expected_error: str,
+) -> None:
+    """Post an update request and check for errors.
+
+    Args:
+        client (Client): The Django test client.
+        url (str): The URL to post the request to.
+        data (dict): The data to post.
+        field_name (str): The field name to check for errors.
+        expected_error (str): The expected error message.
+    """
+    response = client.post(url, data, follow=True)
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
+
+    # Check the redirect chain that leads things up to here:
+    assert (
+        response.redirect_chain == []
+    ), "There is a redirect chain, so there wasn't an error?"
+
+    # Check that the expected error is present.
+    form_errors = response.context["form"].errors
+    assert field_name in form_errors
+    assert form_errors == {field_name: [expected_error]}

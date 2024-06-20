@@ -20,6 +20,7 @@ from typeguard import check_type
 from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE
+from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.jobs.views.deposit_pop_update_view import (
     DepositPOPUpdateView,
 )
@@ -257,9 +258,8 @@ def test_uploading_a_pdf_updates_the_model(
     # Check that the deposit_proof_of_payment field is now set:
     assert job.deposit_proof_of_payment.name == "deposit_pops/test.pdf"
 
-    job.deposit_proof_of_payment.seek(0)
-    test_pdf.seek(0)
-    assert job.deposit_proof_of_payment.read() == test_pdf.read()
+    with safe_read(job.deposit_proof_of_payment, test_pdf):
+        assert job.deposit_proof_of_payment.read() == test_pdf.read()
 
 
 def upload_deposit_pop_and_assert_redirect(
@@ -274,14 +274,18 @@ def upload_deposit_pop_and_assert_redirect(
         job_accepted_by_bob: Job instance created by Bob, with an accepted quote.
         test_pdf: A test PDF file.
     """
-    test_pdf.seek(0)
-    response = check_type(
-        bob_agent_user_client.post(
-            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
-            data={"deposit_proof_of_payment": test_pdf},
-        ),
-        HttpResponseRedirect,
-    )
+    with safe_read(test_pdf):
+        response = check_type(
+            bob_agent_user_client.post(
+                reverse(
+                    "jobs:deposit_pop_update",
+                    kwargs={"pk": job_accepted_by_bob.pk},
+                ),
+                data={"deposit_proof_of_payment": test_pdf},
+            ),
+            HttpResponseRedirect,
+        )
+
     # Check that the response is a redirect:
     assert response.status_code == status.HTTP_302_FOUND
     assert response.url == reverse(
@@ -301,12 +305,10 @@ def test_uploading_a_pdf_with_none_pdf_contents_fails(
         bob_agent_user_client (Client): The Django test client for Bob.
     """
     test_file = SimpleUploadedFile("test.pdf", b"not a pdf file")
-    response = check_type(
-        bob_agent_user_client.post(
-            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
-            data={"deposit_proof_of_payment": test_file},
-        ),
-        TemplateResponse,
+    response = upload_file_and_get_response(
+        test_file,
+        bob_agent_user_client,
+        job_accepted_by_bob,
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -328,18 +330,14 @@ def test_uploading_a_non_pdf_file_with_pdf_contents_fails(
         bob_agent_user_client (Client): The Django test client for Bob.
         test_pdf (SimpleUploadedFile): A test PDF file.
     """
-    test_pdf.seek(0)
-    pdf_data = test_pdf.read()
+    with safe_read(test_pdf):
+        pdf_data = test_pdf.read()
 
     test_pdf_2 = SimpleUploadedFile("test.txt", pdf_data)
-
-    # Test this upload - where the contents are pdf, but the file extension is txt
-    response = check_type(
-        bob_agent_user_client.post(
-            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
-            data={"deposit_proof_of_payment": test_pdf_2},
-        ),
-        TemplateResponse,
+    response = upload_file_and_get_response(
+        test_pdf_2,
+        bob_agent_user_client,
+        job_accepted_by_bob,
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -417,12 +415,12 @@ def test_sends_a_success_flash_message(
         test_pdf (SimpleUploadedFile): A test PDF file.
     """
     # Submit the form:
-    test_pdf.seek(0)
-    response = bob_agent_user_client.post(
-        reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
-        data={"deposit_proof_of_payment": test_pdf},
-        follow=True,
-    )
+    with safe_read(test_pdf):
+        response = bob_agent_user_client.post(
+            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+            data={"deposit_proof_of_payment": test_pdf},
+            follow=True,
+        )
     assert response.status_code == status.HTTP_200_OK
 
     messages = response.context["messages"]
@@ -448,13 +446,14 @@ def test_changes_job_state_to_deposit_pop_uploaded(
         test_pdf (SimpleUploadedFile): A test PDF file.
     """
     # Submit the form:
-    test_pdf.seek(0)
     job = job_accepted_by_bob
-    response = bob_agent_user_client.post(
-        reverse("jobs:deposit_pop_update", kwargs={"pk": job.pk}),
-        data={"deposit_proof_of_payment": test_pdf},
-        follow=True,
-    )
+    with safe_read(test_pdf):
+        response = bob_agent_user_client.post(
+            reverse("jobs:deposit_pop_update", kwargs={"pk": job.pk}),
+            data={"deposit_proof_of_payment": test_pdf},
+            follow=True,
+        )
+
     assert response.status_code == status.HTTP_200_OK
 
     # Fetch the job from the database:
@@ -519,3 +518,31 @@ def test_permission_denied_if_pop_field_already_populated_at_start(
         bob_agent_user,
         Job.Status.QUOTE_ACCEPTED_BY_AGENT.value,
     )
+
+
+def upload_file_and_get_response(
+    test_file: SimpleUploadedFile,
+    client: Client,
+    job: Job,
+) -> TemplateResponse:
+    """Upload a file and get the response.
+
+    Args:
+        test_file (SimpleUploadedFile): The file to be uploaded.
+        client (Client): The Django test client.
+        job (Job): The job instance.
+
+    Returns:
+        TemplateResponse: The response from the view.
+    """
+    with safe_read(test_file):
+        return check_type(
+            client.post(
+                reverse(
+                    "jobs:deposit_pop_update",
+                    kwargs={"pk": job.pk},
+                ),
+                data={"deposit_proof_of_payment": test_file},
+            ),
+            TemplateResponse,
+        )

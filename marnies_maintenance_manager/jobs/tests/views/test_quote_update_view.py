@@ -12,6 +12,7 @@ from rest_framework import status
 from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE_2
+from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.jobs.views.quote_update_view import QuoteUpdateView
 from marnies_maintenance_manager.users.models import User
 
@@ -94,8 +95,8 @@ def test_view_updates_the_quote_field_on_the_job(
     """
     # Check before our test, that Job.quote (a FileField), has the same contents as the
     # original testing PDF file.
-    test_pdf.seek(0)
-    assert job_rejected_by_bob.quote.read() == test_pdf.read()
+    with safe_read(job_rejected_by_bob.quote, test_pdf):
+        assert job_rejected_by_bob.quote.read() == test_pdf.read()
 
     submit_quote_update_and_check_redirect(
         job_rejected_by_bob,
@@ -105,8 +106,8 @@ def test_view_updates_the_quote_field_on_the_job(
 
     job_rejected_by_bob.refresh_from_db()
 
-    test_pdf_2.seek(0)
-    assert job_rejected_by_bob.quote.read() == test_pdf_2.read()
+    with safe_read(job_rejected_by_bob.quote, test_pdf_2):
+        assert job_rejected_by_bob.quote.read() == test_pdf_2.read()
 
 
 def test_admin_can_use_the_view(
@@ -138,15 +139,15 @@ def test_cannot_resubmit_the_same_quote(
         test_pdf (SimpleUploadedFile): A test PDF file.
     """
     # Confirm the PDF file before we attempt to re-upload it:
-    test_pdf.seek(0)
-    assert job_rejected_by_bob.quote.read() == test_pdf.read()
+    with safe_read(job_rejected_by_bob.quote, test_pdf):
+        assert job_rejected_by_bob.quote.read() == test_pdf.read()
 
     # Attempt to re-upload the same PDF file:
-    test_pdf.seek(0)
-    response = superuser_client.post(
-        reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
-        data={"quote": test_pdf},
-    )
+    with safe_read(test_pdf):
+        response = superuser_client.post(
+            reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
+            data={"quote": test_pdf},
+        )
 
     # Confirm that the response is an HTTP 200 status code, and that the form has an
     # error:
@@ -187,10 +188,12 @@ def submit_quote_update_and_check_redirect(
         client (Client): A Django test client.
         attachment (SimpleUploadedFile): A test PDF file.
     """
-    response = client.post(
-        reverse("jobs:quote_update", kwargs={"pk": job.pk}),
-        data={"quote": attachment},
-    )
+    with safe_read(attachment):
+        response = client.post(
+            reverse("jobs:quote_update", kwargs={"pk": job.pk}),
+            data={"quote": attachment},
+        )
+
     assert response.status_code == status.HTTP_302_FOUND
     assert isinstance(response, HttpResponseRedirect)
     assert response.url == reverse(
@@ -219,10 +222,12 @@ def test_on_success_sends_an_email_to_the_agent(
     mail.outbox.clear()
 
     # As Marnie, upload a new quote.
-    response = marnie_user_client.post(
-        reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
-        data={"quote": test_pdf_2},
-    )
+    with safe_read(test_pdf_2):
+        response = marnie_user_client.post(
+            reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
+            data={"quote": test_pdf_2},
+        )
+
     assert response.status_code == status.HTTP_302_FOUND
 
     # Check that the appropriate email was sent:
@@ -262,11 +267,13 @@ def test_on_success_sends_flash_message(
         marnie_user_client (Client): The Django test client for Marnie.
         test_pdf_2 (SimpleUploadedFile): A test PDF file.
     """
-    response = marnie_user_client.post(
-        reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
-        data={"quote": test_pdf_2},
-        follow=True,
-    )
+    with safe_read(test_pdf_2):
+        response = marnie_user_client.post(
+            reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
+            data={"quote": test_pdf_2},
+            follow=True,
+        )
+
     assert response.status_code == status.HTTP_200_OK
 
     messages = response.context["messages"]
@@ -292,11 +299,13 @@ def test_does_not_work_if_not_in_quote_rejected_state(
         marnie_user_client (Client): The Django test client for Marnie.
         test_pdf_2 (SimpleUploadedFile): A test PDF file.
     """
-    response = marnie_user_client.post(
-        reverse(
-            "jobs:quote_update",
-            kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-        ),
-        data={"quote": test_pdf_2},
-    )
+    with safe_read(test_pdf_2):
+        response = marnie_user_client.post(
+            reverse(
+                "jobs:quote_update",
+                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
+            ),
+            data={"quote": test_pdf_2},
+        )
+
     assert response.status_code == status.HTTP_403_FORBIDDEN

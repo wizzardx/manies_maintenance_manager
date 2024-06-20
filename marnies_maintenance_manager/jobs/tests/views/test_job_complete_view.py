@@ -156,7 +156,6 @@ def submit_job_completion_form_and_assert_no_errors(
     Returns:
         TemplateResponse: The response object after submitting the form.
     """
-    test_pdf.seek(0)
     with safe_read(test_pdf):
         response = check_type(
             client.post(

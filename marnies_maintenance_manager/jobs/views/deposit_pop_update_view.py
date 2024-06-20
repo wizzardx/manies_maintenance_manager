@@ -15,6 +15,7 @@ from marnies_maintenance_manager.jobs.forms import DepositPOPUpdateForm
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.utils import generate_email_body
 from marnies_maintenance_manager.jobs.utils import get_marnie_email
+from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.users.models import User
 
 if TYPE_CHECKING:  # pragma: no cover # pylint: disable=consider-ternary-expression
@@ -103,7 +104,9 @@ class DepositPOPUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateViewTy
         # Get the quote PDF file from the object instance:
         uploaded_file = instance.deposit_proof_of_payment
         # Attach that to the email:
-        email.attach(uploaded_file.name, uploaded_file.read(), "application/pdf")
+
+        with safe_read(uploaded_file):
+            email.attach(uploaded_file.name, uploaded_file.read(), "application/pdf")
 
         # Send the mail:
         email.send()
