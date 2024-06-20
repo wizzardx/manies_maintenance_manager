@@ -4,6 +4,8 @@ This module contains tests to verify that the job detail view has the correct
 HTML structure and displays the expected job details.
 """
 
+# pylint: disable=magic-value-comparison
+
 import datetime
 
 from django.test import Client

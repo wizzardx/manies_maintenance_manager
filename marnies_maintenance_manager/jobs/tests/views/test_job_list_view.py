@@ -428,13 +428,33 @@ class TestTipShownForMarnieIfThereAreNoJobsListed:
             job_created_by_bob (Job): A job created by Bob.
         """
         agent_username = job_created_by_bob.agent.username
-        response = marnie_user_client.get(
+        msg, page_text = self.get_job_list_for_agent_and_verify_response(
+            marnie_user_client,
+            agent_username,
+        )
+        assert msg not in page_text
+
+    def get_job_list_for_agent_and_verify_response(
+        self,
+        client: Client,
+        agent_username: str,
+    ) -> tuple[str, str]:
+        """Get the job list for an agent and verify the response.
+
+        Args:
+            client (Client): A test client.
+            agent_username (str): The username of the agent.
+
+        Returns:
+            tuple[str, str]: A tuple containing the message and page text.
+        """
+        response = client.get(
             reverse("jobs:job_list") + f"?agent={agent_username}",
         )
         assert response.status_code == status.HTTP_200_OK
         page_text = response.content.decode()
         msg = self.MESSAGE_TEMPLATE.format(agent_username=agent_username)
-        assert msg not in page_text
+        return msg, page_text
 
     def test_msg_shown_if_marnie_and_no_jobs_exist(
         self,
@@ -468,10 +488,8 @@ class TestTipShownForMarnieIfThereAreNoJobsListed:
             alice_agent_user (User): The agent user Alice.
         """
         agent_username = alice_agent_user.username
-        response = marnie_user_client.get(
-            reverse("jobs:job_list") + f"?agent={agent_username}",
+        msg, page_text = self.get_job_list_for_agent_and_verify_response(
+            marnie_user_client,
+            agent_username,
         )
-        assert response.status_code == status.HTTP_200_OK
-        page_text = response.content.decode()
-        msg = self.MESSAGE_TEMPLATE.format(agent_username=agent_username)
         assert msg in page_text

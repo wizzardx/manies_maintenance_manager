@@ -63,7 +63,7 @@ class QuoteUpdateForm(TypedModelForm):
         quote = check_type(self.cleaned_data.get("quote"), File)
         instance_quote = check_type(self.instance.quote, File)
 
-        # Seek to 0 and then dread data from the two different files we want to
+        # Seek to 0 and then read data from the two different files we want to
         # compare:
         read_data = []
         for file in (quote, instance_quote):

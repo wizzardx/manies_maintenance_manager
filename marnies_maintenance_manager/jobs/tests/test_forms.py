@@ -31,7 +31,7 @@ class TestJobUpdateForm:
         assert "quote" in JobUpdateForm.Meta.fields
 
     @staticmethod
-    def test_date_of_inspection_field_is_required_date_input() -> None:
+    def test_date_of_inspection_field_is_required() -> None:
         """Test that the date_of_inspection field is required."""
         data = {"date_of_inspection": ""}
         form = JobUpdateForm(data=data)
@@ -40,7 +40,7 @@ class TestJobUpdateForm:
         assert "This field is required." in form.errors["date_of_inspection"]
 
     @staticmethod
-    def test_quote_field_is_required_file_field() -> None:
+    def test_quote_field_is_required() -> None:
         """Test that the quote field is required."""
         data = {"quote": ""}
         form = JobUpdateForm(data=data)
