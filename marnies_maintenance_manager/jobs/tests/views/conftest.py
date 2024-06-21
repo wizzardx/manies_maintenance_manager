@@ -180,3 +180,29 @@ def bob_job_with_deposit_pop(
         job.save()
 
     return job
+
+
+@pytest.fixture()
+def bob_job_completed_by_marnie(
+    bob_job_with_deposit_pop: Job,
+    test_pdf: SimpleUploadedFile,
+) -> Job:
+    """Return a job where Marnie has completed the job.
+
+    Args:
+        bob_job_with_deposit_pop (Job): The job where Bob has uploaded the deposit proof
+            of payment.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+
+    Returns:
+        Job: The job where Marnie has completed the job.
+    """
+    job = bob_job_with_deposit_pop
+    job.status = Job.Status.MARNIE_COMPLETED.value
+    job.comments = "Job completed successfully"
+    job.invoice = test_pdf
+    with safe_read(test_pdf):
+        # I haven't been able to find out where in job.save(), the invoice field
+        # is read from but not reset back to position 0.
+        job.save()
+    return job

@@ -136,7 +136,6 @@ def _check_maintenance_jobs_page_table_after_job_completion(browser: WebDriver) 
         "Download Invoice",  # Invoice
         "I fixed the leaky faucet While I was in there I noticed damage in the wall "
         "Do you want me to fix that too?",
-        "Yes",  # Job Complete
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 

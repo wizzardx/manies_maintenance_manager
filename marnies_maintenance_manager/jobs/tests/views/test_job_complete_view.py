@@ -383,6 +383,36 @@ def test_comments_field_is_required(
     assert response.context["form"].errors == {"comments": ["This field is required."]}
 
 
+def test_updating_job_changes_status_to_completed(
+    marnie_user_client: Client,
+    bob_job_with_deposit_pop: Job,
+    test_pdf: SimpleUploadedFile,
+) -> None:
+    """Ensure updating the job changes the status to complete.
+
+    Args:
+        marnie_user_client (Client): The Django test client for Marnie.
+        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+    """
+    # Check status before updating
+    assert bob_job_with_deposit_pop.status == Job.Status.DEPOSIT_POP_UPLOADED.value
+
+    # Update the job
+    submit_job_completion_form_and_assert_no_errors(
+        marnie_user_client,
+        bob_job_with_deposit_pop,
+        test_pdf,
+    )
+
+    # Refresh the Maintenance Job from the database, and then check the updated
+    # record:
+    bob_job_with_deposit_pop.refresh_from_db()
+
+    # Check the job status, after the update
+    assert bob_job_with_deposit_pop.status == Job.Status.MARNIE_COMPLETED.value
+
+
 def test_should_not_allow_txt_extension_file_for_invoice(
     marnie_user_client: Client,
     bob_job_with_deposit_pop: Job,

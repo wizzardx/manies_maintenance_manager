@@ -64,8 +64,10 @@ class JobCompleteView(
         # for doing things before and after performing the actual save of the form.
         # (to the database).
 
-        # Save form to DB, and get the Job, which we use a bit later in this method.
-        job = form.save()
+        # Update the Job's state to completed (Marnie completed the Job)
+        job = form.save(commit=False)
+        job.status = Job.Status.MARNIE_COMPLETED.value
+        job.save()
 
         # Call validations/etc on parent classes
         # noinspection PyUnresolvedReferences

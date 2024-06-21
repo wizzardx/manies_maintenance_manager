@@ -76,6 +76,7 @@ class Job(UUIDModel, TimeStampedModel):
         QUOTE_REJECTED_BY_AGENT = "quote_rejected_by_agent"
         QUOTE_ACCEPTED_BY_AGENT = "quote_accepted_by_agent"
         DEPOSIT_POP_UPLOADED = "deposit_pop_uploaded"
+        MARNIE_COMPLETED = "marnie_completed"
 
     # STATUS is populated from the values seen in the Status Enum above.
     STATUS = Choices(  # type: ignore[no-untyped-call]
@@ -84,6 +85,7 @@ class Job(UUIDModel, TimeStampedModel):
         (Status.QUOTE_REJECTED_BY_AGENT.value, _("Quote Rejected By Agent")),
         (Status.QUOTE_ACCEPTED_BY_AGENT.value, _("Quote Accepted By Agent")),
         (Status.DEPOSIT_POP_UPLOADED.value, _("Deposit POP Uploaded")),
+        (Status.MARNIE_COMPLETED.value, _("Marnie has completed the job")),
     )
     status = StatusField()  # type: ignore[no-untyped-call]
 
