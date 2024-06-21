@@ -43,6 +43,7 @@ def _check_maintenance_jobs_page_table_after_pop_submission(browser: WebDriver) 
         "Download Quote",  # Quote
         "A",  # Accept or Reject A/R
         "Download POP",  # Deposit POP
+        "",  # Invoice
         "",  # Job Date
         "",  # Comments on the job
     ]

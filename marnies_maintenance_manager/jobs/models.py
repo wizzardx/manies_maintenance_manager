@@ -134,6 +134,15 @@ class Job(UUIDModel, TimeStampedModel):
         verbose_name=_("Job Date"),
     )
 
+    invoice = models.FileField(
+        upload_to="invoices/",
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(["pdf"]), validate_pdf_contents],
+        help_text=_("Upload the invoice here."),
+        verbose_name=_("Invoice"),
+    )
+
     comments = models.TextField(
         default="",
         blank=True,

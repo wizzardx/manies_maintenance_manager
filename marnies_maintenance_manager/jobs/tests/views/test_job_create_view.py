@@ -443,6 +443,7 @@ def test_maintenance_jobs_page_returns_correct_html(
         "Accept or Reject A/R",
         "Deposit POP",
         "Job Date",
+        "Invoice",
         "Comments on the job",
     ]
 

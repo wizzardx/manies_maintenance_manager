@@ -104,9 +104,23 @@ class TestJobCompleteForm:
         assert "job_date" in JobCompleteForm.Meta.fields
 
     @staticmethod
+    def test_has_invoice_field() -> None:
+        """Test that the JobCompleteForm has an invoice field."""
+        assert "invoice" in JobCompleteForm.Meta.fields
+
+    @staticmethod
     def test_has_comments_field() -> None:
         """Test that the JobCompleteForm has a comments field."""
         assert "comments" in JobCompleteForm.Meta.fields
+
+    @staticmethod
+    def test_invoice_field_is_required() -> None:
+        """Test that the invoice field is required."""
+        data = {"invoice": ""}
+        form = JobCompleteForm(data=data)
+        assert not form.is_valid()
+        assert "invoice" in form.errors
+        assert "This field is required." in form.errors["invoice"]
 
     @staticmethod
     def test_comments_field_is_required() -> None:

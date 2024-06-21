@@ -533,6 +533,20 @@ def test_job_date_is_setup_correctly() -> None:
     assert field.verbose_name == "Job Date"
 
 
+def test_invoice_field_is_setup_correctly() -> None:
+    """Ensure the 'invoice' field is set up correctly."""
+    field = Job.invoice.field
+    assert field.null is True
+    assert field.blank is True
+    assert field.upload_to == "invoices/"
+    assert field.storage is not None
+    assert field.verbose_name == "Invoice"
+    assert field.help_text == "Upload the invoice here."
+
+    # Only the .pdf file extension is allowed and the PDF contents must be valid:
+    assert_pdf_field_validators(field)
+
+
 def test_comments_field_is_setup_correctly() -> None:
     """Ensure the 'comments' field is set up correctly."""
     # pylint: disable=no-member

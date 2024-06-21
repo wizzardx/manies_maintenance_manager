@@ -287,6 +287,7 @@ class TestMarnieAccessingJobListView:
             "Accept or Reject A/R",
             "Deposit POP",
             "Job Date",
+            "Invoice",
             "Comments on the job",
         ]
 
@@ -308,6 +309,7 @@ class TestMarnieAccessingJobListView:
             "",  # Accept or Reject A/R
             "",  # Deposit POP
             "",  # Job Date
+            "",  # Invoice
             "",  # Comments
         ]
         assert first_row_text_list == expected_row_text_list
