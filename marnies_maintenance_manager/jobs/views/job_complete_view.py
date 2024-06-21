@@ -2,8 +2,10 @@
 
 from typing import TYPE_CHECKING
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.http import HttpResponse
 from django.views.generic import UpdateView
 from typeguard import check_type
 
@@ -47,3 +49,31 @@ class JobCompleteView(
         return (job.status == Job.Status.DEPOSIT_POP_UPLOADED.value) and (
             user.is_superuser or user.is_marnie
         )
+
+    def form_valid(self, form: JobCompleteForm) -> HttpResponse:
+        """Save the form.
+
+        Args:
+            form (JobCompleteForm): The form instance.
+
+        Returns:
+            HttpResponse: The HTTP response.
+        """
+        # This method is called when valid form data has been POSTed. It's responsible
+        # for doing things before and after performing the actual save of the form.
+        # (to the database).
+
+        # Save form to DB, and get the Job, which we use a bit later in this method.
+        job = form.save()
+
+        # Call validations/etc on parent classes
+        # noinspection PyUnresolvedReferences
+        response = super().form_valid(form)
+
+        # Send a success flash message to the user:
+        agent = job.agent
+        msg = f"The job has been completed. An email has been sent to {agent.username}."
+        messages.success(self.request, msg)
+
+        # Return response back to the caller:
+        return response

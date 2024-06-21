@@ -503,3 +503,31 @@ def submit_job_completion_form(
     # Assert the response status code is 200
     assert response.status_code == status.HTTP_200_OK
     return response
+
+
+def test_flash_message_displayed_after_saving(
+    marnie_user_client: Client,
+    bob_job_with_deposit_pop: Job,
+    test_pdf: SimpleUploadedFile,
+) -> None:
+    """Ensure a flash message is displayed after saving the form.
+
+    Args:
+        marnie_user_client (Client): The Django test client for Marnie.
+        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+    """
+    response = submit_job_completion_form(
+        marnie_user_client,
+        bob_job_with_deposit_pop,
+        test_pdf,
+        "2022-03-04",
+        "This job is now complete.",
+    )
+
+    # Check the messages that were displayed:
+    messages = list(response.context["messages"])
+    assert len(messages) == 1
+    assert (
+        str(messages[0]) == "The job has been completed. An email has been sent to bob."
+    )
