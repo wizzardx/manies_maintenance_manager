@@ -18,7 +18,7 @@ from marnies_maintenance_manager.functional_tests.utils import (
 )
 from marnies_maintenance_manager.functional_tests.utils import _create_new_job
 from marnies_maintenance_manager.functional_tests.utils import (
-    _sign_in_as_marie_and_navigate_to_job_details,
+    _sign_in_as_marnie_and_navigate_to_job_details,
 )
 from marnies_maintenance_manager.functional_tests.utils import (
     _sign_out_of_website_and_clean_up,
@@ -105,7 +105,7 @@ def test_after_rejection_marnie_can_resubmit_quote(
     _bob_rejects_marnies_quote(browser)
 
     # Marnie logs into the system and navigates through to the detail page of the job
-    _sign_in_as_marie_and_navigate_to_job_details(browser)
+    _sign_in_as_marnie_and_navigate_to_job_details(browser)
 
     # He sees the link to his previously uploaded file for the quote:
     quote_link = browser.find_element(By.LINK_TEXT, "Download Quote")

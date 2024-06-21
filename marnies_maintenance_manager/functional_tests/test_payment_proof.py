@@ -73,7 +73,7 @@ def test_agent_can_submit_deposit_pop_after_accepting_marnie_quote(
     ## After this, quickly accept the quote:
     _bob_accepts_marnies_quote(browser)
 
-    # Logic, originally in this function, has been moved:
+    ## And then he can submit the Deposit Proof of Payment:
     _bob_submits_deposit_pop(browser)
 
     # After submitting the POP, he goes back to the job listing page.
