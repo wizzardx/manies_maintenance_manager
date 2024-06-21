@@ -412,3 +412,130 @@ class TestDepositPOPDownloadAccess:
             follow=True,
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestInvoiceDownloadAccess:
+    """Tests for downloading invoices."""
+
+    @staticmethod
+    def test_marnie_can_download_invoice(
+        marnie_user_client: Client,
+        bob_job_completed_by_marnie: Job,
+    ) -> None:
+        """Test that Marnie can download invoices.
+
+        Args:
+            marnie_user_client (Client): The Django test client for the Marnie user.
+            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+        """
+        job = bob_job_completed_by_marnie
+        response = marnie_user_client.get(job.invoice.url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_superuser_can_download_invoice(
+        superuser_client: Client,
+        bob_job_completed_by_marnie: Job,
+    ) -> None:
+        """Test that superusers can download invoices.
+
+        Args:
+            superuser_client (Client): The Django test client for the superuser.
+            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+        """
+        job = bob_job_completed_by_marnie
+        response = superuser_client.get(job.invoice.url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_agent_can_download_invoice(
+        bob_agent_user_client: Client,
+        bob_job_completed_by_marnie: Job,
+    ) -> None:
+        """Test that agents who created the job can download the invoice.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+        """
+        job = bob_job_completed_by_marnie
+        response = bob_agent_user_client.get(job.invoice.url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_other_agent_cannot_download_invoice(
+        alice_agent_user_client: Client,
+        bob_job_completed_by_marnie: Job,
+    ) -> None:
+        """Test that agents not creating the job cannot download invoices.
+
+        Args:
+            alice_agent_user_client (Client): The Django test client for the Alice agent
+                user.
+            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+        """
+        response = alice_agent_user_client.get(
+            bob_job_completed_by_marnie.invoice.url,
+            follow=True,
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_none_marnie_none_agent_cannot_download_invoice(
+        bob_job_completed_by_marnie: Job,
+        bob_agent_user_client: Client,
+        bob_agent_user: User,
+    ) -> None:
+        """Test that users not Marnie or agents cannot download invoices.
+
+        Args:
+            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_agent_user (User): The Bob agent user.
+        """
+        bob_agent_user.is_agent = False
+        bob_agent_user.save()
+
+        response = bob_agent_user_client.get(
+            bob_job_completed_by_marnie.invoice.url,
+            follow=True,
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_agent_cannot_download_unlinked_invoice(
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Test that agents cannot download unlinked invoices.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+        """
+        response = bob_agent_user_client.get("/media/invoices/test.pdf", follow=True)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_agent_cannot_download_multilinked_invoice(
+        bob_agent_user_client: Client,
+        bob_job_completed_by_marnie: Job,
+        job_created_by_alice: Job,
+    ) -> None:
+        """Test that agents cannot download invoices linked to multiple jobs.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+            job_created_by_alice (Job): The job created by Alice.
+        """
+        job = bob_job_completed_by_marnie
+
+        job2 = job_created_by_alice
+        job2.invoice = job.invoice
+        job2.save()
+
+        response = bob_agent_user_client.get(job.invoice.url, follow=True)
+        assert response.status_code == status.HTTP_403_FORBIDDEN

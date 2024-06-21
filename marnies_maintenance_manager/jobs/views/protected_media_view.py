@@ -106,6 +106,11 @@ def _access_allowed(request: HttpRequest, path: Path) -> bool:
         # Yes. Check if the user is allowed to access the deposit proof of payment file:
         return _access_allowed_for_deposit_proof_of_payment_file(user, path)
 
+    # Is it an Invoice?
+    if _is_invoice_file(path):
+        # Yes. Check if the user is allowed to access the invoice file:
+        return _access_allowed_for_invoice_file(user, path)
+
     # If the logic reaches this point, then access is not allowed:
     return False
 
@@ -149,23 +154,51 @@ def _is_deposit_proof_of_payment_file(path: Path) -> bool:
     return is_deposit_proofs_dir and is_pdf_file
 
 
+def _is_invoice_file(path: Path) -> bool:
+    """Check if the file is an Invoice file.
+
+    Args:
+        path (Path): The simplified relative path to the file.
+            - example value: Path("invoices/test.pdf")
+
+    Returns:
+        bool: True if the file is an Invoice file, otherwise False.
+    """
+    # Break into parts:
+    dirname, basename = path.parts
+    invoices_dirname = "invoices"
+    is_invoices_dir = dirname == invoices_dirname
+    is_pdf_file = basename.endswith(".pdf")
+
+    return is_invoices_dir and is_pdf_file
+
+
 def _access_denied() -> HttpResponse:
     return HttpResponse(status=status.HTTP_403_FORBIDDEN)
 
 
-def _access_allowed_for_quote_file(user: User, path: Path) -> bool:
-    # We don't need to check for admin user, they were already given access earlier.
+def _is_file_accessible_by_user(user: User, path: Path, field_name: str) -> bool:
+    """Check if the user has access to a specific file type.
 
-    # Marnie can access all quote files:
+    Args:
+        user (User): The user requesting access.
+        path (Path): The relative path to the file.
+        field_name (str): The field name in the Job model to check (e.g., 'quote',
+            'deposit_proof_of_payment', 'invoice').
+
+    Returns:
+        bool: True if the user is allowed to access the file, otherwise False.
+    """
+    # Marnie can access all files:
     if user.is_marnie:
         return True
 
     # If the user is an agent, then they can access the file if they created the job
     # that the file is for.
     if user.is_agent:
-        # Get the related job from the file path for the 'quote' field:
+        # Get the related job from the file path for the specified field:
         try:
-            job = Job.objects.get(quote=path)
+            job = Job.objects.get(**{field_name: path})
         except Job.DoesNotExist:
             # If a matching job is not found, then we treat this as a permission denied.
             # This is a security measure to prevent agents from accessing files.
@@ -184,33 +217,13 @@ def _access_allowed_for_quote_file(user: User, path: Path) -> bool:
     return False
 
 
+def _access_allowed_for_quote_file(user: User, path: Path) -> bool:
+    return _is_file_accessible_by_user(user, path, "quote")
+
+
 def _access_allowed_for_deposit_proof_of_payment_file(user: User, path: Path) -> bool:
-    # We don't need to check for admin user, they were already given access earlier.
+    return _is_file_accessible_by_user(user, path, "deposit_proof_of_payment")
 
-    # Marnie can access all deposit proof of payment files:
-    if user.is_marnie:
-        return True
 
-    # If the user is an agent, then they can access the deposit proof of payment file if
-    # they created the job that the deposit proof of payment is for.
-    if user.is_agent:
-        # Get the related job from the file path for the 'deposit_proof_of_payment'
-        # field:
-        try:
-            job = Job.objects.get(deposit_proof_of_payment=path)
-        except Job.DoesNotExist:
-            # If a matching job is not found, then we treat this as a permission denied.
-            # This is a security measure to prevent agents from accessing deposit proof
-            # of payment files. The file itself might actually exist on the server, but
-            # we don't want to reveal its existence to agents unnecessarily.
-            return False
-        except Job.MultipleObjectsReturned:
-            # If multiple matching jobs are found, then we treat this as a permission
-            # denied.
-            return False
-
-        # Return True if the agent created the job, otherwise False.
-        return job.agent == user
-
-    # Not Marnie or an agent, so access is not allowed:
-    return False
+def _access_allowed_for_invoice_file(user: User, path: Path) -> bool:
+    return _is_file_accessible_by_user(user, path, "invoice")
