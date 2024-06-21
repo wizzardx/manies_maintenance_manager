@@ -478,6 +478,36 @@ def test_validates_pdf_contents(
         )
 
 
+def test_marnie_cannot_access_view_after_completing_the_job(
+    bob_job_completed_by_marnie: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Ensure Marnie can't access the update view after completing the job.
+
+    Args:
+        bob_job_completed_by_marnie (Job): Job that's already been completed by Marnie.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    url = reverse("jobs:job_complete", kwargs={"pk": bob_job_completed_by_marnie.pk})
+    response = marnie_user_client.get(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_admin_cannot_access_view_after_marnie_completes_job(
+    bob_job_completed_by_marnie: Job,
+    admin_client: Client,
+) -> None:
+    """Ensure admin users can't access the update view after Marnie completes the job.
+
+    Args:
+        bob_job_completed_by_marnie (Job): Job that's already been completed by Marnie.
+        admin_client (Client): The Django test client for the admin user.
+    """
+    url = reverse("jobs:job_complete", kwargs={"pk": bob_job_completed_by_marnie.pk})
+    response = admin_client.get(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
 def test_redirects_to_job_listing_page_after_saving(
     marnie_user_client: Client,
     bob_job_with_deposit_pop: Job,
