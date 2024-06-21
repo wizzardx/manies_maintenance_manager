@@ -48,7 +48,7 @@ class QuoteUpdateForm(TypedModelForm):
             "quote",
         ]
 
-        quote = forms.FileField()
+    quote = forms.FileField()
 
     @typechecked
     def clean_quote(self) -> TypedFile:

@@ -309,3 +309,29 @@ def test_does_not_work_if_not_in_quote_rejected_state(
         )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_quote_field_is_required(
+    job_rejected_by_bob: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Test that the quote field is required.
+
+    Args:
+        job_rejected_by_bob (Job): A Job instance created by Bob, with a rejected quote.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    # The quote field is provided by default (this is technically an "UpdateView"-
+    # descended view, where - by business logic we've already ensured there is a quote.
+    # So we need to make sure we remove any already-uploaded quote from the job.
+    job_rejected_by_bob.quote.delete(save=True)
+
+    response = marnie_user_client.post(
+        reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
+        data={},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.context["form"].errors == {
+        "quote": ["This field is required."],
+    }
