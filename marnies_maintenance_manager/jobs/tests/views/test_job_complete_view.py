@@ -4,6 +4,7 @@
 
 import datetime
 
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
@@ -12,8 +13,12 @@ from django.urls import reverse
 from rest_framework import status
 from typeguard import check_type
 
+from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE
+from marnies_maintenance_manager.jobs.tests.views.utils import (
+    assert_email_contains_job_details,
+)
 from marnies_maintenance_manager.jobs.tests.views.utils import assert_no_form_errors
 from marnies_maintenance_manager.jobs.tests.views.utils import (
     check_basic_page_html_structure,
@@ -23,6 +28,7 @@ from marnies_maintenance_manager.jobs.tests.views.utils import (
 )
 from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.jobs.views.job_complete_view import JobCompleteView
+from marnies_maintenance_manager.users.models import User
 
 
 def test_anonymous_users_are_redirected_to_login_page(
@@ -531,3 +537,72 @@ def test_flash_message_displayed_after_saving(
     assert (
         str(messages[0]) == "The job has been completed. An email has been sent to bob."
     )
+
+
+def test_marnie_clicking_save_sends_an_email_to_agent(
+    marnie_user_client: Client,
+    bob_job_with_deposit_pop: Job,
+    test_pdf: SimpleUploadedFile,
+    marnie_user: User,
+    bob_agent_user: User,
+) -> None:
+    """Test that Marnie clicking 'Save' sends an email to the agent.
+
+    Args:
+        marnie_user_client (Client): The Django test client for Marnie.
+        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+        marnie_user (User): The Marnie user instance.
+        bob_agent_user (User): The Bob agent user instance.
+    """
+    mail.outbox.clear()
+
+    job = bob_job_with_deposit_pop
+    with safe_read(test_pdf):
+        response = check_type(
+            marnie_user_client.post(
+                reverse(
+                    "jobs:job_complete",
+                    kwargs={"pk": job.pk},
+                ),
+                data={
+                    "job_date": "2022-03-04",
+                    "invoice": test_pdf,
+                    "comments": "This job is now complete.",
+                },
+                follow=True,
+            ),
+            TemplateResponse,
+        )
+
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
+
+    # There should be one email in Django's outbox:
+    num_mails_sent = len(mail.outbox)
+    assert num_mails_sent == 1
+
+    # Grab the mail:
+    email = mail.outbox[0]
+
+    # Check various details of the mail here.
+
+    # Check mail metadata:
+    assert email.subject == "Marnie completed a maintenance job."
+    assert bob_agent_user.email in email.to
+    assert marnie_user.email in email.cc
+    assert constants.DEFAULT_FROM_EMAIL in email.from_email
+
+    # Check mail contents:
+    assert (
+        "Marnie completed the maintenance work on 2022-03-04 and has invoiced you. "
+        "The invoice is attached to this email." in email.body
+    )
+
+    # There should now be exactly one job in the database. Fetch it so that we can
+    # use it to check the email body.
+    attach_name, attachment = assert_email_contains_job_details(email)
+    assert attach_name.startswith("quotes/test"), attach_name
+    assert attach_name.endswith(".pdf")
+    assert attachment[1] == BASIC_TEST_PDF_FILE.read_bytes()
+    assert attachment[2] == "application/pdf"
