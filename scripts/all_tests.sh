@@ -120,7 +120,11 @@ pylint --django-settings-module=config.settings --output-format=colorized --enab
 
 echo "Updating pre-commit references..."
 pre-commit autoupdate || handle_error
-echo "Running pre-commit checks..."
+
+echo "Running pre-commit checks 1/2... (only staged files)"
+pre-commit run || handle_error
+
+echo "Running pre-commit checks 2/2... (all files)"
 pre-commit run --all-files || handle_error
 
 echo "darglint2..."
