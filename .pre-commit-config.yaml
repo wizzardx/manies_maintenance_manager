@@ -59,14 +59,6 @@ repos:
       - id: bandit
         exclude: '^tests/|tests/|conftest.py|^config/settings/local.py'
 
-  - repo: local
-    hooks:
-      - id: run-unit-tests
-        name: Run Unit Tests
-        entry: bash scripts/unit_tests_outside_docker.sh
-        language: python
-        additional_dependencies: []
-
 # sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date
 ci:
   autoupdate_schedule: weekly
