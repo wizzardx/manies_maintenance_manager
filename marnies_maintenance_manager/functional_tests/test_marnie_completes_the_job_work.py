@@ -34,13 +34,7 @@ Note:
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from marnies_maintenance_manager.functional_tests.utils import (
-    _bob_accepts_marnies_quote,
-)
-from marnies_maintenance_manager.functional_tests.utils import _bob_submits_deposit_pop
-from marnies_maintenance_manager.functional_tests.utils import _create_new_job
-from marnies_maintenance_manager.functional_tests.utils import _marnie_completes_the_job
-from marnies_maintenance_manager.functional_tests.utils import (
-    _update_job_with_inspection_date_and_quote,
+    _workflow_from_new_job_to_completed_by_marnie,
 )
 from marnies_maintenance_manager.users.models import User
 
@@ -59,20 +53,7 @@ def test_marnie_completes_the_job(
         marnie_user (User): The user instance for Marnie.
         bob_agent_user (User): The user instance for Bob, who is an agent.
     """
-    # Let's run through the previous steps first, to get to the point where Marnie
-    # can complete the job:
-
-    ## First, quickly run through the steps of an Agent creating a new Job.
-    _create_new_job(browser, live_server_url)
-
-    ## Next, Marnie does an inspection, and updates the inspection date and quote.
-    _update_job_with_inspection_date_and_quote(browser)
-
-    ## After this, quickly accept the quote:
-    _bob_accepts_marnies_quote(browser)
-
-    # And then, Bob submits the Deposit Proof of Payment:
-    _bob_submits_deposit_pop(browser)
-
-    ## The next part has been moved over to a shared function:
-    _marnie_completes_the_job(browser)
+    ## Run through our shared workflow that starts with a new job and then
+    ## takes it all the way through to Marnie having done the work and assigned
+    ## an invoice.
+    _workflow_from_new_job_to_completed_by_marnie(browser, live_server_url)

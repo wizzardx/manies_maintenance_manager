@@ -1,29 +1,20 @@
 """Test user story: Agent uploads final payment proof of payment."""
 
-# pylint: disable=magic-value-comparison,unused-argument
+# pylint: disable=magic-value-comparison,unused-argument,disable=too-many-locals
 
 import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from marnies_maintenance_manager.functional_tests.utils import (
-    _bob_accepts_marnies_quote,
-)
-from marnies_maintenance_manager.functional_tests.utils import _bob_submits_deposit_pop
-from marnies_maintenance_manager.functional_tests.utils import (
-    _check_job_row_and_click_on_number,
-)
-from marnies_maintenance_manager.functional_tests.utils import (
     _check_maintenance_jobs_page_table_after_final_pop_submission,
 )
-from marnies_maintenance_manager.functional_tests.utils import _create_new_job
-from marnies_maintenance_manager.functional_tests.utils import _marnie_completes_the_job
 from marnies_maintenance_manager.functional_tests.utils import _sign_into_website
 from marnies_maintenance_manager.functional_tests.utils import (
     _sign_out_of_website_and_clean_up,
 )
 from marnies_maintenance_manager.functional_tests.utils import (
-    _update_job_with_inspection_date_and_quote,
+    _workflow_from_new_job_to_completed_by_marnie,
 )
 from marnies_maintenance_manager.users.models import User
 
@@ -44,21 +35,7 @@ def test_agent_uploads_final_payment_pop(
     """
     # Let's run through the previous steps first, to get to the point where our agent
     # Bob can upload the final payment proof of payment:
-
-    ## First, quickly run through the steps of an Agent creating a new Job.
-    _create_new_job(browser, live_server_url)
-
-    ## Next, Marnie does an inspection, and updates the inspection date and quote.
-    _update_job_with_inspection_date_and_quote(browser)
-
-    ## After this, quickly accept the quote:
-    _bob_accepts_marnies_quote(browser)
-
-    ## And then, Bob submits the Deposit Proof of Payment:
-    _bob_submits_deposit_pop(browser)
-
-    ## After that, Marnie completes the job and uploads a final invoice.
-    _marnie_completes_the_job(browser)
+    _workflow_from_new_job_to_completed_by_marnie(browser, live_server_url)
 
     # We're all caught up now. We can start the user story now.
 
@@ -70,7 +47,38 @@ def test_agent_uploads_final_payment_pop(
     maintenance_jobs_link.click()
 
     # He sees the details of the job, and clicks on the number to view the details:
-    _check_job_row_and_click_on_number(browser)
+
+    table = browser.find_element(By.ID, "id_list_table")
+    rows = table.find_elements(By.TAG_NAME, "tr")
+
+    ## There should be exactly one row here
+    assert len(rows) == 2  # noqa: PLR2004
+
+    ## Get the row, and confirm that the details include everything submitted up until
+    ## now.
+    row = rows[1]
+    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
+    expected = [
+        "1",
+        "2021-01-01",
+        "Department of Home Affairs Bellville",
+        "GPS",
+        "Please fix the leaky faucet in the staff bathroom",
+        "2021-02-01",
+        "Download Quote",
+        "A",  # Accept or Reject A/R
+        "Download POP",  # Deposit POP
+        "2021-03-02",  # Job Date
+        "Download Invoice",  # Invoice
+        "I fixed the leaky faucet While I was in there I noticed damage in the "
+        "wall Do you want me to fix that too?",  # Comments
+        "Yes",  # Job Complete
+    ]
+    assert cell_texts == expected
+
+    # He clicks on the #1 number again:
+    number_link = browser.find_element(By.LINK_TEXT, "1")
+    number_link.click()
 
     # He sees the "Upload Final Payment POP" link, and clicks on it.
     upload_final_pop_link = browser.find_element(

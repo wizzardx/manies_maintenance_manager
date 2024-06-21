@@ -692,3 +692,31 @@ def _marnie_completes_the_job(browser: WebDriver) -> None:
 
     # Happy with this, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)
+
+
+def _workflow_from_new_job_to_completed_by_marnie(
+    browser: WebDriver,
+    live_server_url: str,
+) -> None:
+    """Run through the initial job workflow steps.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+    """
+    ## Run through our shared workflow that starts with a new job and then
+    ## takes it all the way through to Marnie having done the work and assigned
+    ## an invoice.
+    _create_new_job(browser, live_server_url)
+
+    ## Next, Marnie does an inspection, and updates the inspection date and quote.
+    _update_job_with_inspection_date_and_quote(browser)
+
+    ## After this, quickly accept the quote:
+    _bob_accepts_marnies_quote(browser)
+
+    ## And then, Bob submits the Deposit Proof of Payment:
+    _bob_submits_deposit_pop(browser)
+
+    ## After that, Marnie completes the job and uploads a final invoice.
+    _marnie_completes_the_job(browser)

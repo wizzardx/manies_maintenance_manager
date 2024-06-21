@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.core.mail import EmailMessage
 from django.http import HttpResponse
 from django.views.generic.edit import UpdateView
 from typeguard import check_type
@@ -15,7 +14,7 @@ from marnies_maintenance_manager.jobs.forms import DepositPOPUpdateForm
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.utils import generate_email_body
 from marnies_maintenance_manager.jobs.utils import get_marnie_email
-from marnies_maintenance_manager.jobs.utils import safe_read
+from marnies_maintenance_manager.jobs.views.utils import send_job_email_with_attachment
 from marnies_maintenance_manager.users.models import User
 
 if TYPE_CHECKING:  # pragma: no cover # pylint: disable=consider-ternary-expression
@@ -92,24 +91,16 @@ class DepositPOPUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateViewTy
         email_from = DEFAULT_FROM_EMAIL
         email_to = get_marnie_email()
         email_cc = instance.agent.email
-
-        email = EmailMessage(
-            subject=email_subject,
-            body=email_body,
-            from_email=email_from,
-            to=[email_to],
-            cc=[email_cc],
-        )
-
-        # Get the quote PDF file from the object instance:
         uploaded_file = instance.deposit_proof_of_payment
-        # Attach that to the email:
 
-        with safe_read(uploaded_file):
-            email.attach(uploaded_file.name, uploaded_file.read(), "application/pdf")
-
-        # Send the mail:
-        email.send()
+        send_job_email_with_attachment(
+            email_subject,
+            email_body,
+            email_from,
+            email_to,
+            email_cc,
+            uploaded_file,
+        )
 
         # Send a success flash message to the user:
         messages.success(

@@ -1,6 +1,10 @@
 """Utility functions for the "jobs" app views."""
 
+# ruff: noqa: PLR0913
+# pylint: disable=too-many-arguments
+
 from django.core.mail import EmailMessage
+from django.db.models.fields.files import FieldFile
 from django.http import HttpRequest
 
 from marnies_maintenance_manager.jobs.constants import DEFAULT_FROM_EMAIL
@@ -52,8 +56,37 @@ def prepare_and_send_email(
     email_from = DEFAULT_FROM_EMAIL
     email_to = job.agent.email
     email_cc = get_marnie_email()
+    uploaded_file = job.quote
 
     # Create the email message:
+    send_job_email_with_attachment(
+        email_subject,
+        email_body,
+        email_from,
+        email_to,
+        email_cc,
+        uploaded_file,
+    )
+
+
+def send_job_email_with_attachment(
+    email_subject: str,
+    email_body: str,
+    email_from: str,
+    email_to: str,
+    email_cc: str,
+    uploaded_file: FieldFile,
+) -> None:
+    """Prepare and send an email with an attachment for a Maintenance Job.
+
+    Args:
+        email_subject (str): The email subject.
+        email_body (str): The email body.
+        email_from (str): The email from address.
+        email_to (str): The email to address.
+        email_cc (str): The email cc address.
+        uploaded_file: The file to be attached to the email.
+    """
     email = EmailMessage(
         subject=email_subject,
         body=email_body,
@@ -62,12 +95,7 @@ def prepare_and_send_email(
         cc=[email_cc],
     )
 
-    # Get the quote PDF file from the object instance:
-    uploaded_file = job.quote
-
-    # Attach that to the email:
     with safe_read(uploaded_file):
         email.attach(uploaded_file.name, uploaded_file.read(), "application/pdf")
 
-    # Send the mail:
     email.send()
