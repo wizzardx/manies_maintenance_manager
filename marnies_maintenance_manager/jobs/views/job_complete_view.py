@@ -30,7 +30,7 @@ class JobCompleteView(
     """Complete a Maintenance Job."""
 
     model = Job
-    form_class = JobCompleteForm  # fields = ["job_date"]
+    form_class = JobCompleteForm  # fields = ["job_date", "comments"]
     template_name = "jobs/job_complete.html"
 
     def test_func(self) -> bool:

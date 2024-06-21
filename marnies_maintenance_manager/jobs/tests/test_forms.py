@@ -102,3 +102,17 @@ class TestJobCompleteForm:
     def test_has_job_date_field() -> None:
         """Test that the JobCompleteForm has a job_date field."""
         assert "job_date" in JobCompleteForm.Meta.fields
+
+    @staticmethod
+    def test_has_comments_field() -> None:
+        """Test that the JobCompleteForm has a comments field."""
+        assert "comments" in JobCompleteForm.Meta.fields
+
+    @staticmethod
+    def test_comments_field_is_required() -> None:
+        """Test that the comments field is required."""
+        data = {"comments": ""}
+        form = JobCompleteForm(data=data)
+        assert not form.is_valid()
+        assert "comments" in form.errors
+        assert "This field is required." in form.errors["comments"]

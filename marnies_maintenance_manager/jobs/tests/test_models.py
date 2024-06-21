@@ -531,3 +531,14 @@ def test_job_date_is_setup_correctly() -> None:
     assert field.blank is True
     assert field.help_text == "Date when the job was completed."
     assert field.verbose_name == "Job Date"
+
+
+def test_comments_field_is_setup_correctly() -> None:
+    """Ensure the 'comments' field is set up correctly."""
+    # pylint: disable=no-member
+    # noinspection PyUnresolvedReferences
+    field = Job.comments.field
+    assert field.default == ""
+    assert field.blank is True
+    assert field.verbose_name == "Comments"
+    assert field.help_text == "Add any comments you have about the job here."

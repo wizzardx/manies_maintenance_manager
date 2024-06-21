@@ -30,6 +30,12 @@
     background-color: #f2f2f2;
 }
 
+/* Responsive table container */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 /* Styles for the 'Create Maintenance Job' link */
 .create-link {
     margin-bottom: 10px;

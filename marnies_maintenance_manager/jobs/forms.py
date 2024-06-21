@@ -99,4 +99,7 @@ class JobCompleteForm(TypedModelForm):
         model = Job
         fields = [
             "job_date",
+            "comments",
         ]
+
+    comments = forms.CharField(widget=forms.Textarea)

@@ -134,6 +134,13 @@ class Job(UUIDModel, TimeStampedModel):
         verbose_name=_("Job Date"),
     )
 
+    comments = models.TextField(
+        default="",
+        blank=True,
+        help_text=_("Add any comments you have about the job here."),
+        verbose_name=_("Comments"),
+    )
+
     class Meta:
         """Meta options for the Job model."""
 

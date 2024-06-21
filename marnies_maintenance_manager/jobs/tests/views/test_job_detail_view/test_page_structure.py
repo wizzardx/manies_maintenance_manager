@@ -74,3 +74,5 @@ def test_job_detail_view_shows_expected_job_details(
     # Search for the Job accepted/rejected HTML:
     assert "<strong>Accepted or Rejected (A/R):</strong> A" in page
 
+    # Search for comments
+    assert job.comments in page

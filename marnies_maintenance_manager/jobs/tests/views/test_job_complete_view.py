@@ -1,5 +1,7 @@
 """Tests for the JobCompleteView view."""
 
+# pylint: disable=magic-value-comparison
+
 import datetime
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -179,3 +181,48 @@ def submit_job_completion_form_and_assert_no_errors(
     # There shouldn't be any form errors:
     assert_no_form_errors(response)
     return response
+
+
+def test_view_has_comments_field(
+    marnie_user_client: Client,
+    bob_job_with_deposit_pop: Job,
+    test_pdf: SimpleUploadedFile,
+) -> None:
+    """Ensure the view has a field for the comments.
+
+    Args:
+        marnie_user_client (Client): The Django test client for Marnie.
+        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+    """
+    with safe_read(test_pdf):
+        response = check_type(
+            marnie_user_client.post(
+                reverse(
+                    "jobs:job_complete",
+                    kwargs={"pk": bob_job_with_deposit_pop.pk},
+                ),
+                data={
+                    "comments": "This job is now complete.",
+                    "job_date": "2022-03-04",
+                    "invoice": test_pdf,
+                },
+                follow=True,
+            ),
+            TemplateResponse,
+        )
+
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
+
+    # There shouldn't be any form errors:
+    assert_no_form_errors(response)
+
+    # Check the redirect chain that leads things up to here:
+    expected_chain = [("/jobs/?agent=bob", status.HTTP_302_FOUND)]
+    assert response.redirect_chain == expected_chain  # type: ignore[attr-defined]
+
+    # Refresh the Maintenance Job from the database, and then check the updated
+    # record:
+    bob_job_with_deposit_pop.refresh_from_db()
+    assert bob_job_with_deposit_pop.comments == "This job is now complete."
