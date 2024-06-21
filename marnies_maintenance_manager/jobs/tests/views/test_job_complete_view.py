@@ -397,6 +397,7 @@ def test_updating_job_changes_status_to_completed(
     """
     # Check status before updating
     assert bob_job_with_deposit_pop.status == Job.Status.DEPOSIT_POP_UPLOADED.value
+    assert bob_job_with_deposit_pop.complete is False
 
     # Update the job
     submit_job_completion_form_and_assert_no_errors(
@@ -411,6 +412,7 @@ def test_updating_job_changes_status_to_completed(
 
     # Check the job status, after the update
     assert bob_job_with_deposit_pop.status == Job.Status.MARNIE_COMPLETED.value
+    assert bob_job_with_deposit_pop.complete is True
 
 
 def test_should_not_allow_txt_extension_file_for_invoice(

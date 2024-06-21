@@ -27,6 +27,7 @@
           <th>Job Date</th>
           <th>Invoice</th>
           <th>Comments on the job</th>
+          <th>Job Complete</th>
         </tr>
       </thead>
       <tbody>
@@ -56,6 +57,7 @@
               {% if job.invoice %}<a href="{{ job.invoice.url }}">Download Invoice</a>{% endif %}
             </td>
             <td>{{ job.comments }}</td>
+            <td>{{ job.complete|yesno:"Yes,No" }}</td>
           </tr>
         {% endfor %}
       </tbody>

@@ -114,6 +114,7 @@ def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) ->
         "",  # Job Date
         "",  # Invoice
         "",  # Comments
+        "No",  # Job Complete
     ], cell_texts
 
 
@@ -136,6 +137,7 @@ def _check_maintenance_jobs_page_table_after_job_completion(browser: WebDriver) 
         "Download Invoice",  # Invoice
         "I fixed the leaky faucet While I was in there I noticed damage in the wall "
         "Do you want me to fix that too?",
+        "Yes",  # Job Complete
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 
@@ -175,6 +177,7 @@ def _check_maintenance_jobs_table(browser: WebDriver) -> list[str]:
         "Job Date",
         "Invoice",
         "Comments on the job",
+        "Job Complete",
     ], header_cell_texts
 
     ## The second row is the new job
@@ -296,6 +299,7 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
         "",  # Job Date
         "",  # Invoice
         "",  # Comments
+        "No",  # Job Complete
     ], cell_texts
 
     # He clicks on the #1 number again:
@@ -470,6 +474,7 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
         "",  # Job Date
         "",  # Invoice
         "",  # Comments
+        "No",  # Job Complete
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 

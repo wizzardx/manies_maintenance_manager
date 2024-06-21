@@ -67,6 +67,7 @@ class JobCompleteView(
         # Update the Job's state to completed (Marnie completed the Job)
         job = form.save(commit=False)
         job.status = Job.Status.MARNIE_COMPLETED.value
+        job.complete = True
         job.save()
 
         # Call validations/etc on parent classes

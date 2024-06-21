@@ -46,6 +46,7 @@ def _check_maintenance_jobs_page_table_after_pop_submission(browser: WebDriver) 
         "",  # Invoice
         "",  # Job Date
         "",  # Comments on the job
+        "No",  # Job Complete
     ]
 
 

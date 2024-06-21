@@ -556,3 +556,24 @@ def test_comments_field_is_setup_correctly() -> None:
     assert field.blank is True
     assert field.verbose_name == "Comments"
     assert field.help_text == "Add any comments you have about the job here."
+
+
+class TestCompleteField:
+    """Tests for the 'complete' field of the Job model."""
+
+    @staticmethod
+    def test_has_complete_field() -> None:
+        """Ensure the Job model has a 'complete' field."""
+        assert hasattr(Job, "complete")
+
+    @staticmethod
+    def test_complete_field_is_setup_correctly() -> None:
+        """Ensure the 'complete' field is set up correctly."""
+        # pylint: disable=no-member
+        # noinspection PyUnresolvedReferences
+        field = Job.complete.field
+        assert field.default is False
+        assert field.verbose_name == "Job Complete"
+        assert field.help_text == "Has the job been completed?"
+        assert field.null is False
+        assert field.blank is False

@@ -152,6 +152,12 @@ class Job(UUIDModel, TimeStampedModel):
         verbose_name=_("Comments"),
     )
 
+    complete = models.BooleanField(
+        default=False,
+        verbose_name=_("Job Complete"),
+        help_text=_("Has the job been completed?"),
+    )
+
     class Meta:
         """Meta options for the Job model."""
 
