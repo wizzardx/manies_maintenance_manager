@@ -6,18 +6,14 @@ success URLs after form submissions in job-related views.
 
 # pylint: disable=too-few-public-methods
 
-from typing import TYPE_CHECKING
 from typing import Protocol
 
+from django.http import HttpRequest
 from django.urls import reverse
 from typeguard import check_type
 
+from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
-
-if TYPE_CHECKING:
-    from django.http import HttpRequest  # pragma: no cover
-
-    from marnies_maintenance_manager.jobs.models import Job  # pragma: no cover
 
 
 class ViewProtocol(Protocol):
@@ -30,9 +26,9 @@ class ViewProtocol(Protocol):
         get_object() -> Job: Method to retrieve the Job object associated with the view.
     """
 
-    request: "HttpRequest"
+    request: HttpRequest
 
-    def get_object(self) -> "Job":
+    def get_object(self) -> Job:
         """Retrieve the Job object associated with the view."""
 
 
