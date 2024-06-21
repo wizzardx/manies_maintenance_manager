@@ -198,11 +198,24 @@ def bob_job_completed_by_marnie(
         Job: The job where Marnie has completed the job.
     """
     job = bob_job_with_deposit_pop
+
+    # Check that the Job is in the correct initial state:
+    assert job.status == Job.Status.DEPOSIT_POP_UPLOADED.value
+    assert job.job_date is None
+    assert job.comments == ""
+    assert job.complete is False
+    assert job.invoice.name == ""
+
+    # Update job to the completed state:
     job.status = Job.Status.MARNIE_COMPLETED.value
+    job.job_date = datetime.date(2022, 1, 1)
     job.comments = "Job completed successfully"
+    job.complete = True
     job.invoice = test_pdf
+
+    # Save to db.
     with safe_read(test_pdf):
-        # I haven't been able to find out where in job.save(), the invoice field
-        # is read from but not reset back to position 0.
         job.save()
+
+    # Return the updated job:
     return job

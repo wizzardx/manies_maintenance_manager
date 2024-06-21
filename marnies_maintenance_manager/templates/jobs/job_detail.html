@@ -77,4 +77,19 @@
   {% if update_link_2_present %}
     <a href="{% url 'jobs:job_complete' pk=job.pk %}">Update</a>
   {% endif %}
+  <!-- Some things to show, only if the job is complete -->
+  {% if job.complete %}
+    <p>
+      <strong>Job Date:</strong> <span class="job-date">{{ job.job_date|date:"Y-m-d" }}</span>
+    </p>
+    <p>
+      <strong>Invoice:</strong>  <a href="{{ job.invoice.url }}">Download Invoice</a>
+    </p>
+    <p>
+      <strong>Comments:</strong> <span class="comments">{{ job.comments }}</span>
+    </p>
+    <p>
+      <strong>Job complete:</strong> {{ job.complete|yesno:"Yes,No" }}
+    </p>
+  {% endif %}
 {% endblock content %}

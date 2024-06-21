@@ -76,3 +76,71 @@ def test_job_detail_view_shows_expected_job_details(
 
     # Search for comments
     assert job.comments in page
+
+
+def test_fields_only_shown_when_job_complete(
+    bob_job_completed_by_marnie: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Ensure that the "completed"-exclusive fields are shown when the job is complete.
+
+    Args:
+        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
+            Marnie that was also accepted by Bob, and marked as complete.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    job = bob_job_completed_by_marnie
+
+    response = marnie_user_client.get(
+        reverse("jobs:job_detail", kwargs={"pk": job.pk}),
+    )
+    page = response.content.decode("utf-8")
+
+    # Make sure that job date is in the page
+    assert '<span class="job-date">2022-01-01</span>' in page
+
+    # Make sure that the invoice is in the page:
+    assert job.invoice.url in page
+
+    # Make sure that job comments are in the page:
+    assert job.comments in page
+
+    # Make sure that the "Job complete" flag is in the page:
+    assert "<strong>Job complete:</strong> Yes" in page
+
+
+def test_complete_only_fields_not_shown_when_not_complete(
+    bob_job_completed_by_marnie: Job,
+    marnie_user_client: Client,
+) -> None:
+    """Ensure "completed"-exclusive fields are not shown when the job is not complete.
+
+    Args:
+        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
+            Marnie that was also accepted by Bob, and marked as complete.
+        marnie_user_client (Client): The Django test client for Marnie.
+    """
+    job = bob_job_completed_by_marnie
+
+    # Reset the "complete" flag so that the job is not complete, and the
+    # "completed"-exclusive fields should not be shown.
+    job.complete = False
+    job.save()
+
+    # Get the page.
+    response = marnie_user_client.get(
+        reverse("jobs:job_detail", kwargs={"pk": job.pk}),
+    )
+    page = response.content.decode("utf-8")
+
+    # Make sure that job date is not in the page
+    assert '<span class="job-date">2022-01-01</span>' not in page
+
+    # Make sure that the invoice is in the page:
+    assert job.invoice.url not in page
+
+    # Make sure that job comments are in the page:
+    assert job.comments not in page
+
+    # Make sure that the "Job complete" flag is in the page:
+    assert "<strong>Job complete:</strong> Yes" not in page
