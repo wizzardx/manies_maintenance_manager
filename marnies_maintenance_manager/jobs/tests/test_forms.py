@@ -2,6 +2,7 @@
 
 # pylint: disable=magic-value-comparison
 
+from django import forms
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from marnies_maintenance_manager.jobs.forms import JobCompleteForm
@@ -112,6 +113,20 @@ class TestJobCompleteForm:
     def test_has_comments_field() -> None:
         """Test that the JobCompleteForm has a comments field."""
         assert "comments" in JobCompleteForm.Meta.fields
+
+    @staticmethod
+    def test_job_date_field_is_setup_correctly() -> None:
+        """Test that the job_date field is required."""
+        data = {"job_date": ""}
+        form = JobCompleteForm(data=data)
+        assert not form.is_valid()
+        assert "job_date" in form.errors
+        assert "This field is required." in form.errors["job_date"]
+
+        # Make sure that the Job Date field will render correctly as a date input
+        widget = form.fields["job_date"].widget
+        assert isinstance(widget, forms.DateInput)
+        assert widget.input_type == "date"
 
     @staticmethod
     def test_invoice_field_is_required() -> None:

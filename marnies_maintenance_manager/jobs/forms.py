@@ -103,5 +103,8 @@ class JobCompleteForm(TypedModelForm):
             "comments",
         ]
 
+    job_date = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
     invoice = forms.FileField()
     comments = forms.CharField(widget=forms.Textarea)
