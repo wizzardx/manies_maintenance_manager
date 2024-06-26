@@ -217,6 +217,7 @@ class TestMakeTestUser:
             "test",
             is_agent=True,
             is_superuser=True,
+            is_staff=True,
             is_marnie=True,
             email_verified=False,
             email_primary=False,
@@ -226,6 +227,7 @@ class TestMakeTestUser:
         user = User.objects.get(username="test")
         assert user.is_agent is True
         assert user.is_superuser is True
+        assert user.is_staff is True
         assert user.is_marnie is True
         assert user.email == "test@example.com"
 

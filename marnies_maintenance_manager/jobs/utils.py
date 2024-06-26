@@ -192,6 +192,7 @@ def make_test_user(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     *,
     is_agent: bool = False,
     is_superuser: bool = False,
+    is_staff: bool = False,
     is_marnie: bool = False,
     email_verified: bool = True,
     email_primary: bool = True,
@@ -207,6 +208,8 @@ def make_test_user(  # noqa: PLR0913  # pylint: disable=too-many-arguments
         username (str): The username for the new user.
         is_agent (bool): Flag to indicate if the user is an agent.
         is_superuser (bool): Flag to indicate if the user is a superuser.
+        is_staff (bool): Flag to indicate if the user is a staff member, and can
+            access the Django admin interface.
         is_marnie (bool): Flag to indicate if the user is Marnie.
         email_verified (bool): Flag to indicate if the email is verified.
         email_primary (bool): Flag to indicate if the email is the primary email.
@@ -219,6 +222,7 @@ def make_test_user(  # noqa: PLR0913  # pylint: disable=too-many-arguments
         password=get_test_user_password(),
         is_agent=is_agent,
         is_superuser=is_superuser,
+        is_staff=is_staff,
         is_marnie=is_marnie,
         email=f"{username}@example.com",
     )

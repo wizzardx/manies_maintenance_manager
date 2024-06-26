@@ -28,7 +28,7 @@ class Command(BaseCommand):
     def create_admin_user(self) -> None:
         """Create an admin user if it does not exist."""
         if not _user_exists("david"):
-            make_test_user(User, "david", is_superuser=True)
+            make_test_user(User, "david", is_superuser=True, is_staff=True)
             self.stdout.write(
                 self.style.SUCCESS("Successfully created admin user david"),
             )
