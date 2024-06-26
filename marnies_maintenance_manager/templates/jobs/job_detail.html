@@ -7,7 +7,7 @@
 {% endblock title %}
 {% block content %}
   <h1>Maintenance Job Details</h1>
-  <!-- Show the initial fields that always get displayed -->
+  {# Show the initial fields that always get displayed #}
   <p>
     <strong>Number:</strong> {{ job.number }}
   </p>
@@ -23,46 +23,46 @@
   <p>
     <strong>Quote Request Details:</strong> {{ job.quote_request_details }}
   </p>
-  <!-- Show the "Date of Inspection" field if it exists -->
+  {# Show the "Date of Inspection" field if it exists #}
   {% if job.date_of_inspection %}
     <p>
       <strong>Date of Inspection:</strong> {{ job.date_of_inspection|date:"Y-m-d" }}
     </p>
   {% endif %}
-  <!-- Show the "Download Quote" link if a quote exists -->
+  {# Show the "Download Quote" link if a quote exists #}
   {% if job.quote %}
     <p>
       <strong>Quote:</strong> <a href="{{ job.quote.url }}">Download Quote</a>
     </p>
   {% endif %}
-  <!-- Show the "Accepted" or "Rejected" (quote) state if it's been set -->
+  {# Show the "Accepted" or "Rejected" (quote) state if it's been set #}
   {% if job.accepted_or_rejected %}
     <p>
       <strong>Accepted or Rejected (A/R):</strong> {{ job.accepted_or_rejected|to_char }}
     </p>
   {% endif %}
-  <!-- Show the "Deposit Proof of Payment" link if it exists -->
+  {# Show the "Deposit Proof of Payment" link if it exists #}
   {% if job.deposit_proof_of_payment %}
     <p>
       <strong>Deposit POP:</strong> <a href="{{ job.deposit_proof_of_payment.url }}">Download Deposit POP</a>
     </p>
   {% endif %}
-  <!-- Display the "Update" link if our backend wants it -->
+  {# Display the "Update" link if our backend wants it #}
   {% if update_link_present %}
     <a class="btn btn-primary"
        href="{% url 'jobs:job_update' pk=job.pk %}"
        role="button">Complete Inspection</a>
   {% endif %}
-  <!-- The div below is so that we can show the "Accept Quote" and "Reject Quote" buttons side-by-side with CSS styling -->
+  {# The div below is so that we can show the "Accept Quote" and "Reject Quote" buttons side-by-side with CSS styling #}
   <div class="button-container">
-    <!-- Display the "Accept Quote" button if our backend wants it -->
+    {# Display the "Accept Quote" button if our backend wants it #}
     {% if accept_quote_button_present %}
       <form action="{% url 'jobs:quote_accept' pk=job.pk %}" method="post">
         {% csrf_token %}
         <button class="btn btn-primary" type="submit">Accept Quote</button>
       </form>
     {% endif %}
-    <!-- Display the "Reject Quote" button if our backend wants it -->
+    {# Display the "Reject Quote" button if our backend wants it #}
     {% if reject_quote_button_present %}
       <form action="{% url 'jobs:quote_reject' pk=job.pk %}" method="post">
         {% csrf_token %}
@@ -70,25 +70,25 @@
       </form>
     {% endif %}
   </div>
-  <!-- Display the "Update Quote" link if our backend wants it -->
+  {# Display the "Update Quote" link if our backend wants it #}
   {% if update_quote_link_present %}
     <a class="btn btn-primary"
        href="{% url 'jobs:quote_update' pk=job.pk %}"
        role="button">Upload new Quote</a>
   {% endif %}
-  <!-- Display the "Submit Deposit Proof of Payment" link if our backend wants it -->
+  {# Display the "Submit Deposit Proof of Payment" link if our backend wants it #}
   {% if submit_deposit_proof_of_payment_link_present %}
     <a class="btn btn-primary"
        href="{% url 'jobs:deposit_pop_update' pk=job.pk %}"
        role="button">Submit Deposit POP</a>
   {% endif %}
-  <!-- Display a (different) "Update" link if the backend wants it -->
+  {# Display a (different) "Update" link if the backend wants it #}
   {% if update_link_2_present %}
     <a class="btn btn-primary"
        href="{% url 'jobs:job_complete' pk=job.pk %}"
        role="button">Complete Job</a>
   {% endif %}
-  <!-- Some things to show, only if the job is complete -->
+  {# Some things to show, only if the job is complete #}
   {% if job.complete %}
     <p>
       <strong>Job Date:</strong> <span class="job-date">{{ job.job_date|date:"Y-m-d" }}</span>
@@ -109,7 +109,7 @@
        href="{% url 'jobs:final_payment_pop_update' pk=job.pk %}"
        role="button">Upload Final Payment POP</a>
   {% endif %}
-  <!-- Show the "Final Payment Proof of Payment" link if it exists -->
+  {# Show the "Final Payment Proof of Payment" link if it exists #}
   {% if job.final_payment_pop %}
     <p>
       <strong>Final Payment POP:</strong> <a href="{{ job.final_payment_pop.url }}">Download Final Payment POP</a>
