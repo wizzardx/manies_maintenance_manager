@@ -413,11 +413,13 @@ class TestSuperUserAccessingJobListView:
 
 def test_job_list_view_contains_basic_usage_advice(
     superuser_client: Client,
+    bob_job_completed_by_marnie: Job,
 ) -> None:
     """Ensure the job list view contains basic usage advice.
 
     Args:
         superuser_client (Client): A test client with superuser permissions.
+        bob_job_completed_by_marnie (Job): A job created by Marnie.
     """
     response = superuser_client.get(reverse("jobs:job_list"))
     assert response.status_code == status.HTTP_200_OK
@@ -589,3 +591,56 @@ def test_download_link_is_not_present_when_final_payment_pop_is_not_set(
     assert bob_job_completed_by_marnie in job_list
     assert not bob_job_completed_by_marnie.final_payment_pop
     assert HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD not in response.content.decode()
+
+
+class TestTipShownForAllUsersIfThereAreAnyJobsListed:
+    """Test the message shown to all users when jobs are listed."""
+
+    TIP = "Click on the number in each row to go to the Job details."
+
+    def test_msg_shown_if_there_is_at_least_one_job(
+        self,
+        marnie_user_client: Client,
+        bob_job_completed_by_marnie: Job,
+        bob_agent_user: User,
+    ) -> None:
+        """Ensure the correct message is shown if there is at least one job.
+
+        Args:
+            marnie_user_client (Client): A test client used by Marnie.
+            bob_job_completed_by_marnie (Job): A job created by Bob and completed by
+                Marnie.
+            bob_agent_user (User): The agent user Bob.
+        """
+        response, job_list = get_job_list_response(
+            marnie_user_client,
+            bob_agent_user.username,
+        )
+        assert len(job_list) == 1
+
+        page_text = response.content.decode()
+
+        # Check that the tip is there:
+        assert self.TIP in page_text
+
+    def test_msg_not_shown_if_there_are_no_jobs(
+        self,
+        marnie_user_client: Client,
+        bob_agent_user: User,
+    ) -> None:
+        """Ensure the correct message is not shown if there are no jobs.
+
+        Args:
+            marnie_user_client (Client): A test client used by Marnie.
+            bob_agent_user (User): The agent user Bob.
+        """
+        response, job_list = get_job_list_response(
+            marnie_user_client,
+            bob_agent_user.username,
+        )
+        assert len(job_list) == 0
+
+        page_text = response.content.decode()
+
+        # Check that the tip is there:
+        assert self.TIP not in page_text
