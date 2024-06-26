@@ -8,7 +8,7 @@ log() {
 
 # Setup Python version to use for the unit tests
 log "Setting up Python version..."
-pyenv local 3.12.3
+pyenv local 3.12.4
 
 # Determine the path to the Python executable
 log "Determining Python executable path..."
