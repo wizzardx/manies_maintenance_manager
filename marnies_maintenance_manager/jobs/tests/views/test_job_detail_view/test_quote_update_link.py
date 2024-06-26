@@ -28,7 +28,7 @@ def _get_update_quote_link_or_none(
         BeautifulSoup | None: The update quote link, or None if it couldn't be found.
     """
     soup = _get_page_soup(job, user_client)
-    return soup.find("a", string="Update Quote")
+    return soup.find("a", string="Upload new Quote")
 
 
 class TestUpdateQuoteLinkVisibility:

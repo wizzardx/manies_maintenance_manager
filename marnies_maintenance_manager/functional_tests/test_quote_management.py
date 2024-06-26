@@ -111,8 +111,8 @@ def test_after_rejection_marnie_can_resubmit_quote(
     quote_link = browser.find_element(By.LINK_TEXT, "Download Quote")
     assert quote_link is not None
 
-    # He sees an "Update Quote" link, and clicks on it.
-    update_quote_link = browser.find_element(By.LINK_TEXT, "Update Quote")
+    # He sees an "Upload new Quote" link, and clicks on it.
+    update_quote_link = browser.find_element(By.LINK_TEXT, "Upload new Quote")
     update_quote_link.click()
 
     # He sees the "Update Quote" page, with the title and header mentioning the same.

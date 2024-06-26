@@ -34,20 +34,6 @@ def _get_page_soup(job: Job, user_client: Client) -> BeautifulSoup:
     return BeautifulSoup(page, "html.parser")
 
 
-def _get_update_link_or_none(job: Job, user_client: Client) -> BeautifulSoup | None:
-    """Get the link to the job update view, or None if it couldn't be found.
-
-    Args:
-        job (Job): The job to get the update link for.
-        user_client (Client): The Django test client for the user.
-
-    Returns:
-        BeautifulSoup | None: The link to the job update view, or None if it couldn't
-    """
-    soup = _get_page_soup(job, user_client)
-    return soup.find("a", string="Update")
-
-
 def fetch_job_detail_view_response(user: User, job: Job) -> BeautifulSoup:
     """Fetch the job detail view response for a given user and job.
 

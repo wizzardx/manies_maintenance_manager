@@ -8,7 +8,9 @@
 {% block content %}
   <h1>{{ title }}</h1>
   {% if request.user.is_agent %}
-    <a href="{% url 'jobs:job_create' %}" class="create-link">Create Maintenance Job</a>
+    <a href="{% url 'jobs:job_create' %}"
+       class="btn btn-primary"
+       role="button">Create Maintenance Job</a>
   {% endif %}
   <p>Click on the number in each row to go to the Job details.</p>
   <div class="table-responsive">

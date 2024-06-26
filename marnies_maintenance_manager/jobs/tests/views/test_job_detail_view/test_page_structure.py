@@ -151,21 +151,6 @@ def test_complete_only_fields_not_shown_when_not_complete(
     assert "<strong>Job complete:</strong> Yes" not in page
 
 
-def _get_html_for_final_payment_pop_update_link(job: Job) -> str:
-    """Get the HTML for the link to update the Final Payment Proof of Payment.
-
-    Args:
-        job (Job): The job to get the link for.
-
-    Returns:
-        str: The HTML for the link to update the Final Payment Proof of Payment.
-    """
-    return (
-        f'<a href="{job.get_absolute_url()}final-payment-pop/update/"'
-        ">Upload Final Payment POP</a>"
-    )
-
-
 def test_final_payment_pop_upload_link_missing_when_agent_submitted_final_pop(
     bob_job_with_final_payment_pop: Job,
     bob_agent_user_client: Client,
@@ -181,8 +166,7 @@ def test_final_payment_pop_upload_link_missing_when_agent_submitted_final_pop(
     page = get_job_detail_page(bob_agent_user_client, job)
 
     # Make sure that the link to update the Final Payment POP is not in the page:
-    expected_html = _get_html_for_final_payment_pop_update_link(job)
-    assert expected_html not in page
+    assert "Upload Final Payment POP" not in page
 
 
 def get_job_detail_page(client: Client, job: Job) -> str:
@@ -214,8 +198,7 @@ def test_final_payment_pop_upload_link_present_when_marnie_completed_job(
     page = get_job_detail_page(bob_agent_user_client, job)
 
     # Make sure that the link to update the Final Payment POP is in the page:
-    expected_html = _get_html_for_final_payment_pop_update_link(job)
-    assert expected_html in page
+    assert "Upload Final Payment POP" in page
 
 
 def test_final_payment_pop_download_link_present_when_agent_submitted_final_pop(

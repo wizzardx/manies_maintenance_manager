@@ -49,33 +49,44 @@
   {% endif %}
   <!-- Display the "Update" link if our backend wants it -->
   {% if update_link_present %}
-    <a href="{% url 'jobs:job_update' pk=job.pk %}">Update</a>
+    <a class="btn btn-primary"
+       href="{% url 'jobs:job_update' pk=job.pk %}"
+       role="button">Complete Inspection</a>
   {% endif %}
-  <!-- Display the "Reject Quote" button if our backend wants it -->
-  {% if reject_quote_button_present %}
-    <form action="{% url 'jobs:quote_reject' pk=job.pk %}" method="post">
-      {% csrf_token %}
-      <button type="submit">Reject Quote</button>
-    </form>
-  {% endif %}
-  <!-- Display the "Accept Quote" button if our backend wants it -->
-  {% if accept_quote_button_present %}
-    <form action="{% url 'jobs:quote_accept' pk=job.pk %}" method="post">
-      {% csrf_token %}
-      <button type="submit">Accept Quote</button>
-    </form>
-  {% endif %}
+  <!-- The div below is so that we can show the "Accept Quote" and "Reject Quote" buttons side-by-side with CSS styling -->
+  <div class="button-container">
+    <!-- Display the "Accept Quote" button if our backend wants it -->
+    {% if accept_quote_button_present %}
+      <form action="{% url 'jobs:quote_accept' pk=job.pk %}" method="post">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit">Accept Quote</button>
+      </form>
+    {% endif %}
+    <!-- Display the "Reject Quote" button if our backend wants it -->
+    {% if reject_quote_button_present %}
+      <form action="{% url 'jobs:quote_reject' pk=job.pk %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Reject Quote</button>
+      </form>
+    {% endif %}
+  </div>
   <!-- Display the "Update Quote" link if our backend wants it -->
   {% if update_quote_link_present %}
-    <a href="{% url 'jobs:quote_update' pk=job.pk %}">Update Quote</a>
+    <a class="btn btn-primary"
+       href="{% url 'jobs:quote_update' pk=job.pk %}"
+       role="button">Upload new Quote</a>
   {% endif %}
   <!-- Display the "Submit Deposit Proof of Payment" link if our backend wants it -->
   {% if submit_deposit_proof_of_payment_link_present %}
-    <a href="{% url 'jobs:deposit_pop_update' pk=job.pk %}">Submit Deposit Proof of Payment</a>
+    <a class="btn btn-primary"
+       href="{% url 'jobs:deposit_pop_update' pk=job.pk %}"
+       role="button">Submit Deposit POP</a>
   {% endif %}
   <!-- Display a (different) "Update" link if the backend wants it -->
   {% if update_link_2_present %}
-    <a href="{% url 'jobs:job_complete' pk=job.pk %}">Update</a>
+    <a class="btn btn-primary"
+       href="{% url 'jobs:job_complete' pk=job.pk %}"
+       role="button">Complete Job</a>
   {% endif %}
   <!-- Some things to show, only if the job is complete -->
   {% if job.complete %}
@@ -94,7 +105,9 @@
   {% endif %}
   {# Display the "Upload Final Payment POP" link if our backend wants it #}
   {% if upload_final_payment_pop_link_present %}
-    <a href="{% url 'jobs:final_payment_pop_update' pk=job.pk %}">Upload Final Payment POP</a>
+    <a class="btn btn-primary"
+       href="{% url 'jobs:final_payment_pop_update' pk=job.pk %}"
+       role="button">Upload Final Payment POP</a>
   {% endif %}
   <!-- Show the "Final Payment Proof of Payment" link if it exists -->
   {% if job.final_payment_pop %}

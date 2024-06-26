@@ -371,8 +371,8 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
     # Marnie logs into the system and navigates through to the detail page of the job
     _sign_in_as_marnie_and_navigate_to_job_details(browser)
 
-    # Just below the existing details, he sees an "Update" link.
-    update_link = browser.find_element(By.LINK_TEXT, "Update")
+    # Just below the existing details, he sees a "Complete Inspection" link.
+    update_link = browser.find_element(By.LINK_TEXT, "Complete Inspection")
 
     # He clicks on the Edit link
     update_link.click()
@@ -574,7 +574,7 @@ def _bob_submits_deposit_pop(browser: WebDriver) -> None:
     # He sees a "Submit Deposit POP" link, and clicks on it.
     submit_pop_link = browser.find_element(
         By.LINK_TEXT,
-        "Submit Deposit Proof of Payment",
+        "Submit Deposit POP",
     )
     submit_pop_link.click()
 
@@ -619,10 +619,10 @@ def _marnie_completes_the_job(browser: WebDriver) -> None:
     # Marnie logs in and goes to the job details.
     _sign_in_as_marnie_and_navigate_to_job_details(browser)
 
-    # He can see an "Update" link at the bottom of the page.
-    update_link = browser.find_element(By.LINK_TEXT, "Update")
+    # He can see a "Complete Job" link at the bottom of the page.
+    update_link = browser.find_element(By.PARTIAL_LINK_TEXT, "Complete Job")
 
-    # He clicks on the "Update" link.
+    # He clicks on the "Complete Job" link.
     update_link.click()
 
     # He is taken to a "Complete the Job" page. He can see that title both

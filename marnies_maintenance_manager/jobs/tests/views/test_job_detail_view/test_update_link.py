@@ -11,7 +11,7 @@ from rest_framework import status
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests.views.test_job_detail_view.utils import (
-    _get_update_link_or_none,
+    _get_page_soup,
 )
 
 
@@ -29,7 +29,8 @@ class TestUpdateLinkVisibility:
             job_created_by_bob (Job): The job created by Bob.
             marnie_user_client (Client): The Django test client for Marnie.
         """
-        link = _get_update_link_or_none(job_created_by_bob, marnie_user_client)
+        soup = _get_page_soup(job_created_by_bob, marnie_user_client)
+        link = soup.find("a", string="Complete Inspection")
         assert link is not None
 
         # Confirm that the link goes to the correct URL.
@@ -47,7 +48,8 @@ class TestUpdateLinkVisibility:
             job_created_by_bob (Job): The job created by Bob.
             admin_client (Client): The Django test client for the admin user.
         """
-        link = _get_update_link_or_none(job_created_by_bob, admin_client)
+        soup = _get_page_soup(job_created_by_bob, admin_client)
+        link = soup.find("a", string="Complete Inspection")
         assert link is not None
 
     @staticmethod
