@@ -39,7 +39,7 @@ def check_outdated_packages(ignore_list: list[str]) -> int:
     for line in lines[2:]:  # Skip the header lines
         parts = line.split()
         if len(parts) > 0 and parts[0] not in ignore_list:
-            outdated_packages.append(parts[0])
+            outdated_packages.append((parts[0], parts[1], parts[2]))
         elif len(parts) > 0 and parts[0] in ignore_list:
             print(f"An upgrade for {parts[0]} is being ignored")  # noqa: T201
 
@@ -49,7 +49,7 @@ def check_outdated_packages(ignore_list: list[str]) -> int:
     ]
 
     if ignored_but_not_outdated:
-        print(  # noqa: T201p
+        print(  # noqa: T201
             "\nWarning: The following ignored packages are not out of date:",
         )
         for pkg in ignored_but_not_outdated:
@@ -59,8 +59,8 @@ def check_outdated_packages(ignore_list: list[str]) -> int:
     # Print remaining packages that need an upgrade
     if outdated_packages:
         print("\nPackages that need an upgrade:")  # noqa: T201
-        for pkg in outdated_packages:
-            print(pkg)  # noqa: T201
+        for pkg, current_version, latest_version in outdated_packages:
+            print(f"{pkg} ({current_version} -> {latest_version})")  # noqa: T201
         return 1
     return 0
 
