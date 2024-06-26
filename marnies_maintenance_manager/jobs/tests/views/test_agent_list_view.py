@@ -141,6 +141,6 @@ def test_agents_are_listed_in_alphanumeric_order_by_username(
     list_items = _get_agent_list_items(marnie_user_client)
     agent_usernames = [li.a.string for li in list_items]
 
-    # Bob should come before Steve, since "bob" comes before "steve" in
+    # Bob should come after Alice, since "bob" comes after "alice" in
     # alphanumeric order.
     assert agent_usernames == sorted(agent_usernames)

@@ -42,7 +42,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("Successfully created user marnie"))
 
         # Make 2 Agent users.
-        for name in "bob", "steve":
+        for name in "bob", "alice":
             if not _user_exists(name):
                 make_test_user(User, name, is_agent=True)
                 self.stdout.write(
