@@ -5,6 +5,7 @@
 from django import forms
 from django.core.files.uploadedfile import SimpleUploadedFile
 
+from marnies_maintenance_manager.jobs.forms import FinalPaymentPOPUpdateForm
 from marnies_maintenance_manager.jobs.forms import JobCompleteForm
 from marnies_maintenance_manager.jobs.forms import JobUpdateForm
 from marnies_maintenance_manager.jobs.forms import QuoteUpdateForm
@@ -145,3 +146,26 @@ class TestJobCompleteForm:
         assert not form.is_valid()
         assert "comments" in form.errors
         assert "This field is required." in form.errors["comments"]
+
+
+class TestFinalPaymentPOPUpdateForm:
+    """Tests for the FinalPaymentPOPUpdateForm form."""
+
+    @staticmethod
+    def test_model_class_is_job() -> None:
+        """Test that the FinalPaymentPOPUpdateForm is for the Job model."""
+        assert FinalPaymentPOPUpdateForm.Meta.model == Job
+
+    @staticmethod
+    def test_has_final_payment_proof_of_payment_field() -> None:
+        """Test that the FinalPaymentPOPUpdateForm has a final_payment_pop field."""
+        assert "final_payment_pop" in FinalPaymentPOPUpdateForm.Meta.fields
+
+    @staticmethod
+    def test_final_payment_pop_field_is_required() -> None:
+        """Test that the final_payment_pop  field is required."""
+        data = {"final_payment_pop": ""}
+        form = FinalPaymentPOPUpdateForm(data=data)
+        assert not form.is_valid()
+        assert "final_payment_pop" in form.errors
+        assert "This field is required." in form.errors["final_payment_pop"]

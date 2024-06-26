@@ -1,15 +1,24 @@
 """Unit tests for the Job list view."""
 
-# pylint: disable=no-self-use, magic-value-comparison, unused-argument
+from typing import cast
 
+# pylint: disable=no-self-use, magic-value-comparison, unused-argument
 import pytest
 from bs4 import BeautifulSoup
+from django.db.models import QuerySet
+from django.http import HttpResponse
+from django.template.response import TemplateResponse
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
+
+HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD = (
+    '<a href="/media/final_payment_pops/test.pdf">Download Final Payment POP</a>'
+)
 
 
 @pytest.mark.django_db()
@@ -25,7 +34,7 @@ class TestOnlySomeUsersCanAccessJobListView:
         Args:
             bob_agent_user_client (Client): A test client for agent user Bob.
         """
-        response = bob_agent_user_client.get(reverse("jobs:job_list"))
+        response, _ = get_job_list_response(bob_agent_user_client, "bob")
         assert response.status_code == status.HTTP_200_OK
 
     def test_alice_agent_user_can_access_job_list_view(
@@ -38,7 +47,7 @@ class TestOnlySomeUsersCanAccessJobListView:
             alice_agent_user_client (Client): A test client for agent user Alice.
 
         """
-        response = alice_agent_user_client.get(reverse("jobs:job_list"))
+        response, _ = get_job_list_response(alice_agent_user_client, "alice")
         assert response.status_code == status.HTTP_200_OK
 
     def test_anonymous_user_cannot_access_job_list_view(self, client: Client) -> None:
@@ -76,9 +85,9 @@ class TestAgentsAccessingJobListViewCanOnlySeeJobsThatTheyCreated:
             job_created_by_bob (Job): A job instance created for Bob.
         """
         # Get page containing a list of jobs
-        response = bob_agent_user_client.get(reverse("jobs:job_list"))
+        _, job_list = get_job_list_response(bob_agent_user_client, "bob")
         # Check that the job created by Bob is in the list
-        assert job_created_by_bob in response.context["job_list"]
+        assert job_created_by_bob in job_list
 
     def test_bob_agent_cannot_see_jobs_created_by_alice_agent(
         self,
@@ -96,9 +105,37 @@ class TestAgentsAccessingJobListViewCanOnlySeeJobsThatTheyCreated:
                                         to Bob.
         """
         # Get page containing a list of jobs
-        response = bob_agent_user_client.get(reverse("jobs:job_list"))
+        _, job_list = get_job_list_response(bob_agent_user_client, "bob")
         # Check that the job created by Alice is not in the list
-        assert job_created_by_alice not in response.context["job_list"]
+        assert job_created_by_alice not in job_list
+
+
+def check_response_status_and_get_title(
+    response: HttpResponse,
+    expected_title: str,
+) -> BeautifulSoup:
+    """Check response status and get the page title using BeautifulSoup.
+
+    Args:
+        response (HttpResponse): The response object from the client request.
+        expected_title (str): The expected title of the page.
+
+    Returns:
+        BeautifulSoup: The BeautifulSoup object for the page.
+    """
+    assert response.status_code == status.HTTP_200_OK
+
+    page_text = response.content.decode()
+
+    # Use BeautifulSoup to get the title:
+    soup = BeautifulSoup(page_text, "html.parser")
+    title = soup.find("title")
+    assert title is not None
+
+    # Check that the title is as expected
+    assert title.text.strip() == expected_title
+
+    return soup
 
 
 class TestMarnieAccessingJobListView:
@@ -118,11 +155,11 @@ class TestMarnieAccessingJobListView:
             marnie_user_client (Client): A test client used by Marnie to view the job
                                          list.
         """
-        response = marnie_user_client.get(
-            reverse("jobs:job_list") + f"?agent={bob_agent_user.username}",
+        _, job_list = get_job_list_response(
+            marnie_user_client,
+            bob_agent_user.username,
         )
-        assert response.status_code == status.HTTP_200_OK
-        assert job_created_by_bob in response.context["job_list"]
+        assert job_created_by_bob in job_list
 
     def test_without_agent_username_url_param_returns_bad_request_response(
         self,
@@ -165,28 +202,23 @@ class TestMarnieAccessingJobListView:
             bob_agent_user (User): The agent user Bob whose jobs are to be filtered.
             marnie_user_client (Client): A test client used by Marnie.
         """
-        response = marnie_user_client.get(
-            reverse("jobs:job_list") + f"?agent={bob_agent_user.username}",
+        response = check_type(
+            marnie_user_client.get(
+                reverse("jobs:job_list") + f"?agent={bob_agent_user.username}",
+            ),
+            HttpResponse,
         )
-        assert response.status_code == status.HTTP_200_OK
-
-        page_text = response.content.decode()
-
-        # Use beautifulsoup to get the title:
-        soup = BeautifulSoup(page_text, "html.parser")
-        title = soup.find("title")
-        assert title is not None
-
-        # Check that its updated correctly for the agent:
-        expected_title = f"Maintenance Jobs for {bob_agent_user.username}"
-        assert title.text.strip() == expected_title
+        soup = check_response_status_and_get_title(
+            response,
+            f"Maintenance Jobs for {bob_agent_user.username}",
+        )
 
         # Get the header text:
         header = soup.find("h1")
         assert header is not None
 
         # Check that its updated correctly for the agent:
-        assert header.text == expected_title
+        assert header.text == f"Maintenance Jobs for {bob_agent_user.username}"
 
     def test_without_agent_username_url_does_not_include_username_in_title_and_header(
         self,
@@ -195,21 +227,13 @@ class TestMarnieAccessingJobListView:
         """Ensure the title, header, do not include an agent username when not filtered.
 
         Args:
-            bob_agent_user_client (Client):
-                A test client configured for Bob, an agent
+            bob_agent_user_client (Client): A test client configured for Bob, an agent.
         """
-        response = bob_agent_user_client.get(reverse("jobs:job_list"))
-        assert response.status_code == status.HTTP_200_OK
-
-        page_text = response.content.decode()
-
-        # Use beautifulsoup to get the title:
-        soup = BeautifulSoup(page_text, "html.parser")
-        title = soup.find("title")
-        assert title is not None
-
-        # Check that its updated correctly for the agent:
-        assert title.text.strip() == "Maintenance Jobs"
+        response = check_type(
+            bob_agent_user_client.get(reverse("jobs:job_list")),
+            HttpResponse,
+        )
+        soup = check_response_status_and_get_title(response, "Maintenance Jobs")
 
         # Get the header text:
         header = soup.find("h1")
@@ -290,6 +314,7 @@ class TestMarnieAccessingJobListView:
             "Invoice",
             "Comments on the job",
             "Job Complete",
+            "Final Payment POP",
         ]
 
         # Grab the first row, it contains our Job details:
@@ -313,6 +338,7 @@ class TestMarnieAccessingJobListView:
             "",  # Invoice
             "",  # Comments
             "No",  # Job Complete
+            "",  # Final Payment POP
         ]
         assert first_row_text_list == expected_row_text_list
 
@@ -499,3 +525,67 @@ class TestTipShownForMarnieIfThereAreNoJobsListed:
             agent_username,
         )
         assert msg in page_text
+
+
+def test_download_link_is_present_when_final_payment_pop_is_set(
+    marnie_user_client: Client,
+    bob_job_with_final_payment_pop: Job,
+    bob_agent_user: User,
+) -> None:
+    """Ensure download link is present with final payment proof.
+
+    Args:
+        marnie_user_client (Client): A test client used by Marnie.
+        bob_job_with_final_payment_pop (Job): A job created by Bob with the final
+            payment proof of payment set.
+        bob_agent_user (User): The agent user Bob.
+    """
+    response, _ = get_job_list_response(
+        marnie_user_client,
+        bob_agent_user.username,
+    )
+    assert bob_job_with_final_payment_pop.final_payment_pop
+    assert HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD in response.content.decode()
+
+
+def get_job_list_response(
+    client: Client,
+    agent_username: str,
+) -> tuple[TemplateResponse, QuerySet[Job]]:
+    """Get the job list response for an agent.
+
+    Args:
+        client (Client): The test client used to make the request.
+        agent_username (str): The username of the agent whose job list is requested.
+
+    Returns:
+        tuple[TemplateResponse, QuerySet[Job]]: The response object and the job list
+            from the response context.
+    """
+    response = client.get(reverse("jobs:job_list") + f"?agent={agent_username}")
+    assert response.status_code == status.HTTP_200_OK
+    job_list = response.context["job_list"]
+    retval = (response, job_list)
+    return cast(tuple[TemplateResponse, QuerySet[Job]], retval)
+
+
+def test_download_link_is_not_present_when_final_payment_pop_is_not_set(
+    marnie_user_client: Client,
+    bob_job_completed_by_marnie: Job,
+    bob_agent_user: User,
+) -> None:
+    """Ensure no download link without final payment proof.
+
+    Args:
+        marnie_user_client (Client): A test client used by Marnie.
+        bob_job_completed_by_marnie (Job): A job created by Bob with the final payment
+            proof of payment not set.
+        bob_agent_user (User): The agent user Bob.
+    """
+    response, job_list = get_job_list_response(
+        marnie_user_client,
+        bob_agent_user.username,
+    )
+    assert bob_job_completed_by_marnie in job_list
+    assert not bob_job_completed_by_marnie.final_payment_pop
+    assert HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD not in response.content.decode()

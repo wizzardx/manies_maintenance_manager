@@ -28,6 +28,7 @@
           <th>Invoice</th>
           <th>Comments on the job</th>
           <th>Job Complete</th>
+          <th>Final Payment POP</th>
         </tr>
       </thead>
       <tbody>
@@ -58,6 +59,9 @@
             </td>
             <td>{{ job.comments }}</td>
             <td>{{ job.complete|yesno:"Yes,No" }}</td>
+            <td>
+              {% if job.final_payment_pop %}<a href="{{ job.final_payment_pop.url }}">Download Final Payment POP</a>{% endif %}
+            </td>
           </tr>
         {% endfor %}
       </tbody>

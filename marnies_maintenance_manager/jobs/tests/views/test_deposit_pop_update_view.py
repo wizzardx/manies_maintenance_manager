@@ -81,12 +81,7 @@ def test_marnie_user_cannot_access_the_view(
         job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
         marnie_user (User): Marnie's user account.
     """
-    pk = job_accepted_by_bob.pk
-    url = reverse("jobs:deposit_pop_update", kwargs={"pk": pk})
-    request = RequestFactory().get(url)
-    request.user = marnie_user
-    with pytest.raises(PermissionDenied):
-        DepositPOPUpdateView.as_view()(request, pk=pk)
+    access_view_and_assert_permission_denied(marnie_user, job_accepted_by_bob)
 
 
 def test_agent_who_did_not_create_the_job_cannot_access_the_view(
@@ -99,12 +94,7 @@ def test_agent_who_did_not_create_the_job_cannot_access_the_view(
         job_accepted_by_bob (Job): Job instance created by Bob, with an accepted quote.
         alice_agent_user (User): Alice's user account.
     """
-    pk = job_accepted_by_bob.pk
-    url = reverse("jobs:deposit_pop_update", kwargs={"pk": pk})
-    request = RequestFactory().get(url)
-    request.user = alice_agent_user
-    with pytest.raises(PermissionDenied):
-        DepositPOPUpdateView.as_view()(request, pk=pk)
+    access_view_and_assert_permission_denied(alice_agent_user, job_accepted_by_bob)
 
 
 def test_agent_who_created_the_job_can_access_the_view(
@@ -133,6 +123,21 @@ def access_view_and_assert_status(user: User, job: Job) -> None:
     request.user = user
     response = DepositPOPUpdateView.as_view()(request, pk=pk)
     assert response.status_code == status.HTTP_200_OK
+
+
+def access_view_and_assert_permission_denied(user: User, job: Job) -> None:
+    """Access the "Deposit POP Update" view and assert PermissionDenied is raised.
+
+    Args:
+        user (User): The user accessing the view.
+        job (Job): The job instance.
+    """
+    pk = job.pk
+    url = reverse("jobs:deposit_pop_update", kwargs={"pk": pk})
+    request = RequestFactory().get(url)
+    request.user = user
+    with pytest.raises(PermissionDenied):
+        DepositPOPUpdateView.as_view()(request, pk=pk)
 
 
 def test_admin_user_can_access_the_view(
@@ -402,6 +407,32 @@ def test_sends_an_email(
     assert attachment[2] == "application/pdf"
 
 
+def post_deposit_pop_update(
+    client: Client,
+    job: Job,
+    test_pdf: SimpleUploadedFile,
+) -> TemplateResponse:
+    """Post the Deposit POP Update form and return the response.
+
+    Args:
+        client (Client): The Django test client.
+        job (Job): The job instance.
+        test_pdf (SimpleUploadedFile): The test PDF file to be uploaded.
+
+    Returns:
+        TemplateResponse: The response from the view.
+    """
+    # Submit the form:
+    with safe_read(test_pdf):
+        response = client.post(
+            reverse("jobs:deposit_pop_update", kwargs={"pk": job.pk}),
+            data={"deposit_proof_of_payment": test_pdf},
+            follow=True,
+        )
+    assert response.status_code == status.HTTP_200_OK
+    return check_type(response, TemplateResponse)
+
+
 def test_sends_a_success_flash_message(
     job_accepted_by_bob: Job,
     bob_agent_user_client: Client,
@@ -414,14 +445,11 @@ def test_sends_a_success_flash_message(
         bob_agent_user_client (Client): The Django test client for Bob.
         test_pdf (SimpleUploadedFile): A test PDF file.
     """
-    # Submit the form:
-    with safe_read(test_pdf):
-        response = bob_agent_user_client.post(
-            reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
-            data={"deposit_proof_of_payment": test_pdf},
-            follow=True,
-        )
-    assert response.status_code == status.HTTP_200_OK
+    response = post_deposit_pop_update(
+        bob_agent_user_client,
+        job_accepted_by_bob,
+        test_pdf,
+    )
 
     messages = response.context["messages"]
     assert len(messages) == 1
@@ -447,14 +475,11 @@ def test_changes_job_state_to_deposit_pop_uploaded(
     """
     # Submit the form:
     job = job_accepted_by_bob
-    with safe_read(test_pdf):
-        response = bob_agent_user_client.post(
-            reverse("jobs:deposit_pop_update", kwargs={"pk": job.pk}),
-            data={"deposit_proof_of_payment": test_pdf},
-            follow=True,
-        )
-
-    assert response.status_code == status.HTTP_200_OK
+    post_deposit_pop_update(
+        bob_agent_user_client,
+        job,
+        test_pdf,
+    )
 
     # Fetch the job from the database:
     job.refresh_from_db()

@@ -854,20 +854,7 @@ def test_agents_link_is_visible_for_marnie_user(
         client (Client): Django's test client instance used for making requests.
         marnie_user (User): User instance representing Marnie, who is not an agent.
     """
-    # Log in as Marnie
-    logged_in = client.login(username="marnie", password=get_test_user_password())
-    assert logged_in
-
-    # Get the response text for visiting the home page:
-    response = client.get(reverse("home"))
-    response_text = response.content.decode()
-
-    # Use BeautifulSoup to fetch the link with the text "Agents" in it:
-    soup = BeautifulSoup(response_text, "html.parser")
-    agents_link = soup.find("a", string="Agents")
-
-    # It is None if not found, otherwise the link was found.
-    assert agents_link is not None
+    assert _login_and_check_agents_link(client, "marnie")
 
 
 def test_agents_link_is_not_visible_for_none_marnie_users(
@@ -880,20 +867,7 @@ def test_agents_link_is_not_visible_for_none_marnie_users(
         client (Client): Django's test client instance used for making requests.
         bob_agent_user (User): User instance representing Bob, an agent user.
     """
-    # Log in as Bob
-    logged_in = client.login(username="bob", password=get_test_user_password())
-    assert logged_in
-
-    # Get the response text for visiting the home page:
-    response = client.get(reverse("home"))
-    response_text = response.content.decode()
-
-    # Use BeautifulSoup to fetch the link with the text "Agents" in it:
-    soup = BeautifulSoup(response_text, "html.parser")
-    agents_link = soup.find("a", string="Agents")
-
-    # It is None if not found, otherwise the link was found.
-    assert agents_link is None
+    assert not _login_and_check_agents_link(client, "bob")
 
 
 def test_agents_link_points_to_agents_page(
@@ -932,3 +906,20 @@ def _maintenance_jobs_link_in_navbar_is_present(client: Client) -> bool:
 
     # It is None if not found, otherwise the link was found.
     return maintenance_jobs_link is not None
+
+
+def _login_and_check_agents_link(client: Client, username: str) -> bool:
+    # Log in as the specified user
+    logged_in = client.login(username=username, password=get_test_user_password())
+    assert logged_in
+
+    # Get the response text for visiting the home page:
+    response = client.get(reverse("home"))
+    response_text = response.content.decode()
+
+    # Use BeautifulSoup to fetch the link with the text "Agents" in it:
+    soup = BeautifulSoup(response_text, "html.parser")
+    agents_link = soup.find("a", string="Agents")
+
+    # It is None if not found, otherwise the link was found.
+    return agents_link is not None

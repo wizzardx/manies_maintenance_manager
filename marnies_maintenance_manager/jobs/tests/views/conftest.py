@@ -219,3 +219,27 @@ def bob_job_completed_by_marnie(
 
     # Return the updated job:
     return job
+
+
+@pytest.fixture()
+def bob_job_with_final_payment_pop(
+    bob_job_completed_by_marnie: Job,
+    test_pdf: SimpleUploadedFile,
+) -> Job:
+    """Return a job where Bob has uploaded the final payment proof of payment.
+
+    Args:
+        bob_job_completed_by_marnie (Job): The job where Marnie has completed the job.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+
+    Returns:
+        Job: The job where Bob has uploaded the final payment proof of payment.
+    """
+    job = bob_job_completed_by_marnie
+    job.final_payment_pop = test_pdf
+    job.status = Job.Status.FINAL_PAYMENT_POP_UPLOADED.value
+
+    with safe_read(test_pdf):
+        job.save()
+
+    return job

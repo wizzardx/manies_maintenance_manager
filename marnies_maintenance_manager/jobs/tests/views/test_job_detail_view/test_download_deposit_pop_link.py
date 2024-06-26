@@ -4,17 +4,19 @@
 
 import pytest
 from bs4 import BeautifulSoup
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseRedirect
-from django.template.response import TemplateResponse
-from django.test import RequestFactory
-from django.urls import reverse
 from rest_framework import status
-from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
-from marnies_maintenance_manager.jobs.views.job_detail_view import JobDetailView
+from marnies_maintenance_manager.jobs.tests.views.test_job_detail_view.utils import (
+    create_job_detail_request,
+)
+from marnies_maintenance_manager.jobs.tests.views.test_job_detail_view.utils import (
+    fetch_job_detail_view_response,
+)
+from marnies_maintenance_manager.jobs.tests.views.test_job_detail_view.utils import (
+    get_job_detail_view_response_for_anonymous_user,
+)
 from marnies_maintenance_manager.users.models import User
 
 
@@ -27,15 +29,9 @@ def test_anonymous_user_cannot_reach_page_to_see_link(
         bob_job_with_deposit_pop (Job): The job created by Bob with the deposit
             uploaded.
     """
-    request = RequestFactory().get(
-        reverse("jobs:job_detail", kwargs={"pk": bob_job_with_deposit_pop.pk}),
-    )
-    request.user = AnonymousUser()
-    response = check_type(
-        JobDetailView.as_view()(request, pk=bob_job_with_deposit_pop.pk),
-        HttpResponseRedirect,
-    )
-    assert response.url == f"/accounts/login/?next=/jobs/{bob_job_with_deposit_pop.pk}/"
+    job = bob_job_with_deposit_pop
+    response = get_job_detail_view_response_for_anonymous_user(job)
+    assert response.url == f"/accounts/login/?next={job.get_absolute_url()}"
     assert response.status_code == status.HTTP_302_FOUND
 
 
@@ -63,15 +59,7 @@ def get_deposit_pop_link(user: User, job: Job) -> BeautifulSoup:
     Returns:
         BeautifulSoup: The BeautifulSoup object representing the link.
     """
-    request = RequestFactory().get(reverse("jobs:job_detail", kwargs={"pk": job.pk}))
-    request.user = user
-    response = check_type(
-        JobDetailView.as_view()(request, pk=job.pk),
-        TemplateResponse,
-    )
-    assert response.status_code == status.HTTP_200_OK
-    # Use BeautifulSoup to parse the response content and retrieve the link.
-    soup = BeautifulSoup(response.render().content, "html.parser")
+    soup = fetch_job_detail_view_response(user, job)
     return soup.find("a", string="Download Deposit POP")
 
 
@@ -86,11 +74,12 @@ def test_agent_who_created_job_can_see_link(
             uploaded.
         bob_agent_user (User): The Bob user.
     """
-    link = get_deposit_pop_link(bob_agent_user, bob_job_with_deposit_pop)
+    job = bob_job_with_deposit_pop
+    link = get_deposit_pop_link(bob_agent_user, job)
     assert link is not None
 
     # Also check the URL itself.
-    assert link.get("href") == "/media/deposit_pops/test.pdf"
+    assert link.get("href") == job.deposit_proof_of_payment.url
 
 
 def test_agent_who_did_not_create_job_cannot_reach_page_to_see_link(
@@ -104,12 +93,9 @@ def test_agent_who_did_not_create_job_cannot_reach_page_to_see_link(
             uploaded.
         alice_agent_user (User): The Alice user.
     """
-    request = RequestFactory().get(
-        reverse("jobs:job_detail", kwargs={"pk": bob_job_with_deposit_pop.pk}),
-    )
-    request.user = alice_agent_user
+    job = bob_job_with_deposit_pop
     with pytest.raises(PermissionDenied):
-        JobDetailView.as_view()(request, pk=bob_job_with_deposit_pop.pk)
+        create_job_detail_request(alice_agent_user, job)
 
 
 # Marnie can see the link.
@@ -121,11 +107,12 @@ def test_marnie_can_see_link(bob_job_with_deposit_pop: Job, marnie_user: User) -
             uploaded.
         marnie_user (User): The Marnie user.
     """
-    link = get_deposit_pop_link(marnie_user, bob_job_with_deposit_pop)
+    job = bob_job_with_deposit_pop
+    link = get_deposit_pop_link(marnie_user, job)
     assert link is not None
 
     # Also check the URL itself.
-    assert link.get("href") == "/media/deposit_pops/test.pdf"
+    assert link["href"] == job.deposit_proof_of_payment.url
 
 
 # Admins can see the link.
@@ -137,8 +124,9 @@ def test_admin_can_see_link(bob_job_with_deposit_pop: Job, admin_user: User) -> 
             uploaded.
         admin_user (User): The admin user.
     """
-    link = get_deposit_pop_link(admin_user, bob_job_with_deposit_pop)
+    job = bob_job_with_deposit_pop
+    link = get_deposit_pop_link(admin_user, job)
     assert link is not None
 
     # Also check the URL itself.
-    assert link.get("href") == "/media/deposit_pops/test.pdf"
+    assert link["href"] == job.deposit_proof_of_payment.url

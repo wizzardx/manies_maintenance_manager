@@ -77,6 +77,7 @@ class Job(UUIDModel, TimeStampedModel):
         QUOTE_ACCEPTED_BY_AGENT = "quote_accepted_by_agent"
         DEPOSIT_POP_UPLOADED = "deposit_pop_uploaded"
         MARNIE_COMPLETED = "marnie_completed"
+        FINAL_PAYMENT_POP_UPLOADED = "final_payment_pop_uploaded"
 
     # STATUS is populated from the values seen in the Status Enum above.
     STATUS = Choices(  # type: ignore[no-untyped-call]
@@ -86,6 +87,10 @@ class Job(UUIDModel, TimeStampedModel):
         (Status.QUOTE_ACCEPTED_BY_AGENT.value, _("Quote Accepted By Agent")),
         (Status.DEPOSIT_POP_UPLOADED.value, _("Deposit POP Uploaded")),
         (Status.MARNIE_COMPLETED.value, _("Marnie has completed the job")),
+        (
+            Status.FINAL_PAYMENT_POP_UPLOADED.value,
+            _("Agent uploaded the final payment POP"),
+        ),
     )
     status = StatusField()  # type: ignore[no-untyped-call]
 
@@ -156,6 +161,15 @@ class Job(UUIDModel, TimeStampedModel):
         default=False,
         verbose_name=_("Job Complete"),
         help_text=_("Has the job been completed?"),
+    )
+
+    final_payment_pop = models.FileField(
+        upload_to="final_payment_pops/",
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(["pdf"]), validate_pdf_contents],
+        help_text=_("Upload the final payment proof of payment here."),
+        verbose_name=_("Final Payment Proof of Payment"),
     )
 
     class Meta:

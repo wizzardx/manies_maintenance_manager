@@ -277,3 +277,26 @@ def post_update_request_and_check_errors(
     form_errors = response.context["form"].errors
     assert field_name in form_errors
     assert form_errors == {field_name: [expected_error]}
+
+
+def verify_email_attachment(
+    email: EmailMessage,
+    expected_prefix: str,
+    expected_suffix: str,
+    expected_content: bytes,
+    expected_mime_type: str,
+) -> None:
+    """Verify the details of an email attachment.
+
+    Args:
+        email: The email object containing the attachment.
+        expected_prefix (str): The expected prefix of the attachment filename.
+        expected_suffix (str): The expected suffix of the attachment filename.
+        expected_content (bytes): The expected content of the attachment file.
+        expected_mime_type (str): The expected MIME type of the attachment file.
+    """
+    attach_name, attachment = assert_email_contains_job_details(email)
+    assert attach_name.startswith(expected_prefix), attach_name
+    assert attach_name.endswith(expected_suffix)
+    assert attachment[1] == expected_content
+    assert attachment[2] == expected_mime_type

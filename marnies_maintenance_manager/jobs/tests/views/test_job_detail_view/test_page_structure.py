@@ -16,6 +16,11 @@ from marnies_maintenance_manager.jobs.tests.views.utils import (
     check_basic_page_html_structure,
 )
 
+HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD = (
+    '<strong>Final Payment POP:</strong> <a href="/media/final_payment_pops/test.pdf">'
+    "Download Final Payment POP</a>"
+)
+
 
 def test_job_detail_view_has_correct_basic_structure(
     job_created_by_bob: Job,
@@ -144,3 +149,106 @@ def test_complete_only_fields_not_shown_when_not_complete(
 
     # Make sure that the "Job complete" flag is in the page:
     assert "<strong>Job complete:</strong> Yes" not in page
+
+
+def _get_html_for_final_payment_pop_update_link(job: Job) -> str:
+    """Get the HTML for the link to update the Final Payment Proof of Payment.
+
+    Args:
+        job (Job): The job to get the link for.
+
+    Returns:
+        str: The HTML for the link to update the Final Payment Proof of Payment.
+    """
+    return (
+        f'<a href="{job.get_absolute_url()}final-payment-pop/update/"'
+        ">Upload Final Payment POP</a>"
+    )
+
+
+def test_final_payment_pop_upload_link_missing_when_agent_submitted_final_pop(
+    bob_job_with_final_payment_pop: Job,
+    bob_agent_user_client: Client,
+) -> None:
+    """Ensure the link to update the Final Payment Proof of Payment is not visible.
+
+    Args:
+        bob_job_with_final_payment_pop (Job): The job created by Bob with the final
+            payment pop uploaded.
+        bob_agent_user_client (Client): The Django test client for Bob.
+    """
+    job = bob_job_with_final_payment_pop
+    page = get_job_detail_page(bob_agent_user_client, job)
+
+    # Make sure that the link to update the Final Payment POP is not in the page:
+    expected_html = _get_html_for_final_payment_pop_update_link(job)
+    assert expected_html not in page
+
+
+def get_job_detail_page(client: Client, job: Job) -> str:
+    """Get the job detail page HTML content.
+
+    Args:
+        client (Client): The Django test client.
+        job (Job): The job instance.
+
+    Returns:
+        str: The HTML content of the job detail page.
+    """
+    response = client.get(reverse("jobs:job_detail", kwargs={"pk": job.pk}))
+    return response.content.decode("utf-8")
+
+
+def test_final_payment_pop_upload_link_present_when_marnie_completed_job(
+    bob_job_completed_by_marnie: Job,
+    bob_agent_user_client: Client,
+) -> None:
+    """Ensure the link to update the Final Payment Proof of Payment is visible.
+
+    Args:
+        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
+            Marnie that was also accepted by Bob, and marked as complete.
+        bob_agent_user_client (Client): The Django test client for Bob.
+    """
+    job = bob_job_completed_by_marnie
+    page = get_job_detail_page(bob_agent_user_client, job)
+
+    # Make sure that the link to update the Final Payment POP is in the page:
+    expected_html = _get_html_for_final_payment_pop_update_link(job)
+    assert expected_html in page
+
+
+def test_final_payment_pop_download_link_present_when_agent_submitted_final_pop(
+    bob_job_with_final_payment_pop: Job,
+    bob_agent_user_client: Client,
+) -> None:
+    """Ensure the link to download the Final Payment Proof of Payment is visible.
+
+    Args:
+        bob_job_with_final_payment_pop (Job): The job created by Bob with the final
+            payment pop uploaded.
+        bob_agent_user_client (Client): The Django test client for Bob.
+    """
+    job = bob_job_with_final_payment_pop
+    page = get_job_detail_page(bob_agent_user_client, job)
+
+    # Make sure that the link to update the Final Payment POP is in the page:
+    assert HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD in page
+
+
+def test_final_payment_pop_download_link_missing_when_not_yet_submitted(
+    bob_job_completed_by_marnie: Job,
+    bob_agent_user_client: Client,
+) -> None:
+    """Ensure the link to download the Final Payment Proof of Payment is not visible.
+
+    Args:
+        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
+            Marnie that was also accepted by Bob, and marked as complete.
+        bob_agent_user_client (Client): The Django test client for Bob.
+    """
+    job = bob_job_completed_by_marnie
+    page = get_job_detail_page(bob_agent_user_client, job)
+
+    # Make sure that the link to update the Final Payment POP is not in the page:
+    assert HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD not in page

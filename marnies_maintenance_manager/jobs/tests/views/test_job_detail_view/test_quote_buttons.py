@@ -4,39 +4,13 @@ This module contains tests to ensure that the reject quote and other quote-relat
 buttons are visible to the correct users in the job detail view.
 """
 
-from bs4 import BeautifulSoup
-from django.http import HttpResponseRedirect
 from django.test import Client
-from django.urls import reverse
-from rest_framework import status
-from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 
-
-def _get_reject_quote_button_or_none(
-    job: Job,
-    user_client: Client,
-) -> BeautifulSoup | None:
-    """Get the reject quote button, or None if it couldn't be found.
-
-    Args:
-        job (Job): The job to get the reject quote button for.
-        user_client (Client): The Django test client for the user.
-
-    Returns:
-        BeautifulSoup | None: The reject quote button, or None if it couldn't be found.
-    """
-    response = user_client.get(
-        reverse("jobs:job_detail", kwargs={"pk": job.pk}),
-    )
-    assert response.status_code == status.HTTP_200_OK
-    page = response.content.decode("utf-8")
-
-    # Use Python BeautifulSoup to parse the HTML and find the button
-    # to reject the quote.
-    soup = BeautifulSoup(page, "html.parser")
-    return soup.find("button", string="Reject Quote")
+from .utils import _get_reject_quote_button_or_none
+from .utils import assert_agent_cannot_access_job_detail
+from .utils import assert_anonymous_user_redirected_to_login
 
 
 class TestRejectQuoteButtonVisibility:
@@ -107,13 +81,10 @@ class TestRejectQuoteButtonVisibility:
                 the initial inspection done by Marnie.
             alice_agent_user_client (Client): The Django test client for Alice.
         """
-        response = alice_agent_user_client.get(
-            reverse(
-                "jobs:job_detail",
-                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-            ),
+        assert_agent_cannot_access_job_detail(
+            alice_agent_user_client,
+            bob_job_with_initial_marnie_inspection,
         )
-        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @staticmethod
     def test_admin_can_see_reject_quote_button(
@@ -145,19 +116,9 @@ class TestRejectQuoteButtonVisibility:
                 the initial inspection done by Marnie.
             client (Client): The Django test client.
         """
-        response = client.get(
-            reverse(
-                "jobs:job_detail",
-                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-            ),
-        )
-        assert response.status_code == status.HTTP_302_FOUND
-
-        # Check that the user is redirected to the login page.
-        response2 = check_type(response, HttpResponseRedirect)
-        assert (
-            response2.url == "/accounts/login/?next=/jobs/"
-            f"{bob_job_with_initial_marnie_inspection.pk}/"
+        assert_anonymous_user_redirected_to_login(
+            bob_job_with_initial_marnie_inspection,
+            client,
         )
 
     @staticmethod

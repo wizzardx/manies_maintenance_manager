@@ -74,6 +74,32 @@ def test_error_returned_for_none_get_request(admin_client: Client) -> None:
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
+def trigger_multilinked_error(
+    client: Client,
+    job1: Job,
+    job2: Job,
+    file_attr: str,
+    expected_status: int = status.HTTP_403_FORBIDDEN,
+) -> None:
+    """Trigger the multilinked error condition.
+
+    Args:
+        client (Client): The Django test client.
+        job1 (Job): The first job instance.
+        job2 (Job): The second job instance to link the same file.
+        file_attr (str): The file attribute to link (e.g., 'quote', 'invoice').
+        expected_status (int): The expected HTTP status code. Defaults to 403.
+    """
+    # Update another job to have the same file as the first job, so that we
+    # can trigger the error condition and get the wanted status error.
+    setattr(job2, file_attr, getattr(job1, file_attr))
+    job2.save()
+
+    file_url = getattr(job1, file_attr).url
+    response = client.get(file_url, follow=True)
+    assert response.status_code == expected_status
+
+
 class TestQuoteDownloadAccess:
     """Tests for downloading quotes."""
 
@@ -198,16 +224,12 @@ class TestQuoteDownloadAccess:
                 inspection.
             job_created_by_alice (Job): The job created by Alice.
         """
-        job = bob_job_with_initial_marnie_inspection
-
-        # Update another job to have the same quote as the first job, so that we
-        # can trigger the error condition and get the wanted 403 error.
-        job2 = job_created_by_alice
-        job2.quote = job.quote
-        job2.save()
-
-        response = bob_agent_user_client.get(job.quote.url, follow=True)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        trigger_multilinked_error(
+            bob_agent_user_client,
+            bob_job_with_initial_marnie_inspection,
+            job_created_by_alice,
+            "quote",
+        )
 
     # Agents who did not originally create the job cannot download the quote
 
@@ -357,19 +379,12 @@ class TestDepositPOPDownloadAccess:
             bob_job_with_deposit_pop (Job): The job with a deposit proof of payment.
             job_created_by_alice (Job): The job created by Alice.
         """
-        job = bob_job_with_deposit_pop
-
-        # Update another job to have the same deposit proof of payment as the first
-        # job, so that we can trigger the error condition and get the wanted 403 error.
-        job2 = job_created_by_alice
-        job2.deposit_proof_of_payment = job.deposit_proof_of_payment
-        job2.save()
-
-        response = bob_agent_user_client.get(
-            job.deposit_proof_of_payment.url,
-            follow=True,
+        trigger_multilinked_error(
+            bob_agent_user_client,
+            bob_job_with_deposit_pop,
+            job_created_by_alice,
+            "deposit_proof_of_payment",
         )
-        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @staticmethod
     def test_other_agent_cannot_download_deposit_proof_of_payment(
@@ -531,11 +546,137 @@ class TestInvoiceDownloadAccess:
             bob_job_completed_by_marnie (Job): The job completed by Marnie.
             job_created_by_alice (Job): The job created by Alice.
         """
-        job = bob_job_completed_by_marnie
+        trigger_multilinked_error(
+            bob_agent_user_client,
+            bob_job_completed_by_marnie,
+            job_created_by_alice,
+            "invoice",
+        )
 
-        job2 = job_created_by_alice
-        job2.invoice = job.invoice
-        job2.save()
 
-        response = bob_agent_user_client.get(job.invoice.url, follow=True)
+class TestFinalPaymentPOPDownloadAccess:
+    """Tests for downloading Final Payment POPs."""
+
+    @staticmethod
+    def test_marnie_can_download(
+        bob_job_with_final_payment_pop: Job,
+        marnie_user_client: Client,
+    ) -> None:
+        """Test that Marnie can download Final Payment POPs.
+
+        Args:
+            bob_job_with_final_payment_pop (Job): The job with a Final Payment POP.
+            marnie_user_client (Client): The Django test client for the Marnie user.
+        """
+        job = bob_job_with_final_payment_pop
+        response = marnie_user_client.get(job.final_payment_pop.url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_superuser_can_download(
+        bob_job_with_final_payment_pop: Job,
+        superuser_client: Client,
+    ) -> None:
+        """Test that superusers can download Final Payment POPs.
+
+        Args:
+            bob_job_with_final_payment_pop (Job): The job with a Final Payment POP.
+            superuser_client (Client): The Django test client for the superuser.
+        """
+        job = bob_job_with_final_payment_pop
+        response = superuser_client.get(job.final_payment_pop.url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_agent_can_download(
+        bob_agent_user_client: Client,
+        bob_job_with_final_payment_pop: Job,
+    ) -> None:
+        """Test that agents who created the job can download the Final Payment POP.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_job_with_final_payment_pop (Job): The job with a Final Payment POP.
+        """
+        job = bob_job_with_final_payment_pop
+        response = bob_agent_user_client.get(job.final_payment_pop.url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_other_agent_cannot_download(
+        alice_agent_user_client: Client,
+        bob_job_with_final_payment_pop: Job,
+    ) -> None:
+        """Test that agents not creating the job cannot download Final Payment POPs.
+
+        Args:
+            alice_agent_user_client (Client): The Django test client for the Alice agent
+                user.
+            bob_job_with_final_payment_pop (Job): The job with a Final Payment POP.
+        """
+        response = alice_agent_user_client.get(
+            bob_job_with_final_payment_pop.final_payment_pop.url,
+            follow=True,
+        )
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_none_marnie_none_agent_cannot_download_invoice(
+        bob_job_with_final_payment_pop: Job,
+        bob_agent_user_client: Client,
+        bob_agent_user: User,
+    ) -> None:
+        """Test that users not Marnie or agents cannot download Final Payment POPs.
+
+        Args:
+            bob_job_with_final_payment_pop (Job): The job with a Final Payment POP.
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_agent_user (User): The Bob agent user.
+        """
+        bob_agent_user.is_agent = False
+        bob_agent_user.save()
+
+        response = bob_agent_user_client.get(
+            bob_job_with_final_payment_pop.final_payment_pop.url,
+            follow=True,
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_agent_cannot_download_unlinked_file(
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Test that agents cannot download unlinked Final Payment POPs.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+        """
+        response = bob_agent_user_client.get(
+            "/media/final_payment_pops/test.pdf",
+            follow=True,
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_agent_cannot_download_multilinked_file(
+        bob_agent_user_client: Client,
+        bob_job_with_final_payment_pop: Job,
+        job_created_by_alice: Job,
+    ) -> None:
+        """Test that agents cannot download Final Payment POPs linked to multiple jobs.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_job_with_final_payment_pop (Job): The job with a Final Payment POP.
+            job_created_by_alice (Job): The job created by Alice.
+        """
+        trigger_multilinked_error(
+            bob_agent_user_client,
+            bob_job_with_final_payment_pop,
+            job_created_by_alice,
+            "final_payment_pop",
+        )

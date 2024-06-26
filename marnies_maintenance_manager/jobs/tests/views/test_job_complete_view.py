@@ -16,9 +16,6 @@ from typeguard import check_type
 from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE
-from marnies_maintenance_manager.jobs.tests.views.utils import (
-    assert_email_contains_job_details,
-)
 from marnies_maintenance_manager.jobs.tests.views.utils import assert_no_form_errors
 from marnies_maintenance_manager.jobs.tests.views.utils import (
     check_basic_page_html_structure,
@@ -26,6 +23,7 @@ from marnies_maintenance_manager.jobs.tests.views.utils import (
 from marnies_maintenance_manager.jobs.tests.views.utils import (
     post_update_request_and_check_errors,
 )
+from marnies_maintenance_manager.jobs.tests.views.utils import verify_email_attachment
 from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.jobs.views.job_complete_view import JobCompleteView
 from marnies_maintenance_manager.users.models import User
@@ -663,8 +661,10 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
 
     # There should now be exactly one job in the database. Fetch it so that we can
     # use it to check the email body.
-    attach_name, attachment = assert_email_contains_job_details(email)
-    assert attach_name.startswith("quotes/test"), attach_name
-    assert attach_name.endswith(".pdf")
-    assert attachment[1] == BASIC_TEST_PDF_FILE.read_bytes()
-    assert attachment[2] == "application/pdf"
+    verify_email_attachment(
+        email,
+        expected_prefix="quotes/test",
+        expected_suffix=".pdf",
+        expected_content=BASIC_TEST_PDF_FILE.read_bytes(),
+        expected_mime_type="application/pdf",
+    )

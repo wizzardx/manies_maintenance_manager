@@ -111,6 +111,11 @@ def _access_allowed(request: HttpRequest, path: Path) -> bool:
         # Yes. Check if the user is allowed to access the invoice file:
         return _access_allowed_for_invoice_file(user, path)
 
+    # Is it a final payment POP?
+    if _is_final_payment_pop_file(path):
+        # Yes. Check if the user is allowed to access the final payment POP file:
+        return _access_allowed_for_final_payment_pop_file(user, path)
+
     # If the logic reaches this point, then access is not allowed:
     return False
 
@@ -173,6 +178,26 @@ def _is_invoice_file(path: Path) -> bool:
     return is_invoices_dir and is_pdf_file
 
 
+def _is_final_payment_pop_file(path: Path) -> bool:
+    """Check if the file is a Final Payment Proof of Payment file.
+
+    Args:
+        path (Path): The simplified relative path to the file.
+            - example value: Path("final_payment_pops/test.pdf")
+
+    Returns:
+        bool: True if the file is a Final Payment Proof of Payment file, otherwise
+            False.
+    """
+    # Break into parts:
+    dirname, basename = path.parts
+    final_payment_proofs_dirname = "final_payment_pops"
+    is_final_payment_proofs_dir = dirname == final_payment_proofs_dirname
+    is_pdf_file = basename.endswith(".pdf")
+
+    return is_final_payment_proofs_dir and is_pdf_file
+
+
 def _access_denied() -> HttpResponse:
     return HttpResponse(status=status.HTTP_403_FORBIDDEN)
 
@@ -227,3 +252,7 @@ def _access_allowed_for_deposit_proof_of_payment_file(user: User, path: Path) ->
 
 def _access_allowed_for_invoice_file(user: User, path: Path) -> bool:
     return _is_file_accessible_by_user(user, path, "invoice")
+
+
+def _access_allowed_for_final_payment_pop_file(user: User, path: Path) -> bool:
+    return _is_file_accessible_by_user(user, path, "final_payment_pop")

@@ -18,7 +18,9 @@ from marnies_maintenance_manager.functional_tests.utils import (
     _check_maintenance_jobs_table,
 )
 from marnies_maintenance_manager.functional_tests.utils import _create_new_job
-from marnies_maintenance_manager.functional_tests.utils import _sign_into_website
+from marnies_maintenance_manager.functional_tests.utils import (
+    _marnie_logs_in_and_navigates_to_bob_jobs,
+)
 from marnies_maintenance_manager.functional_tests.utils import (
     _sign_out_of_website_and_clean_up,
 )
@@ -47,6 +49,7 @@ def _check_maintenance_jobs_page_table_after_pop_submission(browser: WebDriver) 
         "",  # Job Date
         "",  # Comments on the job
         "No",  # Job Complete
+        "",  # Final Payment POP
     ]
 
 
@@ -121,16 +124,8 @@ def test_marnie_can_see_deposit_pop_after_bob_submits_it(
     # Bob logs out
     _sign_out_of_website_and_clean_up(browser)
 
-    # Marnie logs in
-    _sign_into_website(browser, "marnie")
-
-    # Then he looks for the "Agents" link and clicks on it:
-    agents_link = browser.find_element(By.LINK_TEXT, "Agents")
-    agents_link.click()
-
-    # He sees a list of agents, and clicks on Bob's username:
-    bob_link = browser.find_element(By.LINK_TEXT, "bob")
-    bob_link.click()
+    # Marnie logs in, and navigates to Bob's jobs page
+    _marnie_logs_in_and_navigates_to_bob_jobs(browser)
 
     # He sees the title for the Bobs jobs page:
     assert "Maintenance Jobs for bob" in browser.title

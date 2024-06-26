@@ -92,4 +92,14 @@
       <strong>Job complete:</strong> {{ job.complete|yesno:"Yes,No" }}
     </p>
   {% endif %}
+  {# Display the "Upload Final Payment POP" link if our backend wants it #}
+  {% if upload_final_payment_pop_link_present %}
+    <a href="{% url 'jobs:final_payment_pop_update' pk=job.pk %}">Upload Final Payment POP</a>
+  {% endif %}
+  <!-- Show the "Final Payment Proof of Payment" link if it exists -->
+  {% if job.final_payment_pop %}
+    <p>
+      <strong>Final Payment POP:</strong> <a href="{{ job.final_payment_pop.url }}">Download Final Payment POP</a>
+    </p>
+  {% endif %}
 {% endblock content %}

@@ -237,21 +237,7 @@ def test_job_model_ordered_by_db_insertion_time(bob_agent_user: User) -> None:
     Args:
         bob_agent_user (User): The agent user Bob used to create Job instances.
     """
-    job1 = Job.objects.create(
-        agent=bob_agent_user,
-        date="2022-01-01",
-        address_details="1234 Main St, Springfield, IL",
-        gps_link="https://www.google.com/maps",
-        quote_request_details="Replace the kitchen sink",
-    )
-
-    job2 = Job.objects.create(
-        agent=bob_agent_user,
-        date="2022-01-02",
-        address_details="1235 Main St, Springfield, IL",
-        gps_link="https://www.google.com/maps",
-        quote_request_details="Replace the bathroom sink",
-    )
+    job1, job2 = _create_two_test_jobs(bob_agent_user)
 
     job3 = Job.objects.create(
         agent=bob_agent_user,
@@ -273,12 +259,17 @@ def test_job_model_ordered_by_db_insertion_time(bob_agent_user: User) -> None:
     assert jobs[2].date == datetime.date(2022, 1, 3)
 
 
-def _create_three_test_jobs(
-    bob_agent_user: User,
-    alice_agent_user: User,
-) -> tuple[Job, Job, Job]:
+def _create_two_test_jobs(agent_user: User) -> tuple[Job, Job]:
+    """Create two job instances for testing.
+
+    Args:
+        agent_user (User): The agent user used to create Job instances.
+
+    Returns:
+        tuple[Job, Job]: The created job instances.
+    """
     job1 = Job.objects.create(
-        agent=bob_agent_user,
+        agent=agent_user,
         date="2022-01-01",
         address_details="1234 Main St, Springfield, IL",
         gps_link="https://www.google.com/maps",
@@ -286,12 +277,21 @@ def _create_three_test_jobs(
     )
 
     job2 = Job.objects.create(
-        agent=bob_agent_user,
+        agent=agent_user,
         date="2022-01-02",
         address_details="1235 Main St, Springfield, IL",
         gps_link="https://www.google.com/maps",
         quote_request_details="Replace the bathroom sink",
     )
+
+    return job1, job2
+
+
+def _create_three_test_jobs(
+    bob_agent_user: User,
+    alice_agent_user: User,
+) -> tuple[Job, Job, Job]:
+    job1, job2 = _create_two_test_jobs(bob_agent_user)
 
     job3 = Job.objects.create(
         agent=alice_agent_user,
@@ -577,3 +577,24 @@ class TestCompleteField:
         assert field.help_text == "Has the job been completed?"
         assert field.null is False
         assert field.blank is False
+
+
+class TestFinalPaymentPOPField:
+    """Tests for the 'final_payment_pop' field of the Job model."""
+
+    def test_has_final_payment_pop_field(self) -> None:
+        """Ensure the Job model has a 'final_payment_pop' field."""
+        assert hasattr(Job, "final_payment_pop")
+
+    def test_final_payment_pop_field_is_setup_correctly(self) -> None:
+        """Ensure the 'final_payment_pop' field is set up correctly."""
+        field = Job.final_payment_pop.field
+        assert field.null is True
+        assert field.blank is True
+        assert field.upload_to == "final_payment_pops/"
+        assert field.storage is not None
+        assert field.verbose_name == "Final Payment Proof of Payment"
+        assert field.help_text == "Upload the final payment proof of payment here."
+
+        # Only the .pdf file extension is allowed and the PDF contents must be valid:
+        assert_pdf_field_validators(field)

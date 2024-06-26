@@ -84,6 +84,11 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
             or user.is_superuser
         )
 
+        upload_final_payment_pop_link_present = (
+            job.status == Job.Status.MARNIE_COMPLETED.value
+            and (user.is_superuser or (user.is_agent and user == job.agent))
+        )
+
         context = super().get_context_data(**kwargs)
         context["update_link_present"] = update_link_present
         context["reject_quote_button_present"] = reject_quote_button_present
@@ -93,4 +98,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
             submit_deposit_proof_of_payment_link_present
         )
         context["update_link_2_present"] = update_link_2_present
+        context["upload_final_payment_pop_link_present"] = (
+            upload_final_payment_pop_link_present
+        )
         return context

@@ -108,3 +108,15 @@ class JobCompleteForm(TypedModelForm):
     )
     invoice = forms.FileField()
     comments = forms.CharField(widget=forms.Textarea)
+
+
+class FinalPaymentPOPUpdateForm(TypedModelForm):
+    """Provide a form for the final payment proof of payment update view."""
+
+    class Meta:
+        """Metaclass for the FinalPaymentPOPUpdateForm."""
+
+        model = Job
+        fields = ["final_payment_pop"]
+
+    final_payment_pop = forms.FileField()

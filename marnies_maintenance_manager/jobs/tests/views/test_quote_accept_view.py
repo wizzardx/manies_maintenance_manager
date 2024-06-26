@@ -1,6 +1,6 @@
 """Tests for the accept_quote view."""
 
-# pylint: disable=magic-value-comparison
+# pylint: disable=magic-value-comparison,too-many-arguments
 
 from uuid import UUID
 
@@ -76,16 +76,35 @@ def test_does_not_work_for_marnie(
         bob_job_with_initial_marnie_inspection (Job): The job with the initial
             inspection done by Marnie.
     """
+    perform_post_request_and_check_response(
+        marnie_user,
+        bob_job_with_initial_marnie_inspection,
+        status.HTTP_403_FORBIDDEN,
+    )
+
+
+def perform_post_request_and_check_response(
+    user: User,
+    job: Job,
+    expected_status: int,
+) -> None:
+    """Perform a POST request and check the response.
+
+    Args:
+        user (User): The user making the request.
+        job (Job): The job instance related to the request.
+        expected_status (int): The expected HTTP status code of the response.
+    """
     # Arrange
-    job_id = bob_job_with_initial_marnie_inspection.id
+    job_id = job.id
     request = RequestFactory().post(f"/jobs/{job_id}/quote/accept/")
-    request.user = marnie_user
+    request.user = user
 
     # Act
     response = quote_accept(request, job_id)
 
     # Assert
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == expected_status
 
 
 def test_fails_for_nonexistent_job(bob_agent_user: User) -> None:
@@ -107,13 +126,13 @@ def test_fails_for_nonexistent_job(bob_agent_user: User) -> None:
     # Assert - the fact that the view raises a 404 exception is the assertion.
 
 
-# Next: fails for jobs in incorrect states.
-def test_fails_for_jobs_in_incorrect_states(
+def test_fails_for_jobs_in_incorrect_states(  # noqa: PLR0913
     bob_agent_user: User,
     job_created_by_bob: Job,
     job_accepted_by_bob: Job,
     bob_job_with_deposit_pop: Job,
     bob_job_completed_by_marnie: Job,
+    bob_job_with_final_payment_pop: Job,
 ) -> None:
     """Test that the view fails for jobs in incorrect states.
 
@@ -123,6 +142,8 @@ def test_fails_for_jobs_in_incorrect_states(
         job_accepted_by_bob (Job): The job accepted by Bob.
         bob_job_with_deposit_pop (Job): The job with the deposit pop uploaded by Bob.
         bob_job_completed_by_marnie (Job): The job completed by Marnie.
+        bob_job_with_final_payment_pop (Job): The job with the final payment pop
+            uploaded
 
     Raises:
         LogicalError: If an unknown state is encountered.
@@ -145,6 +166,8 @@ def test_fails_for_jobs_in_incorrect_states(
                 job = bob_job_with_deposit_pop
             case Job.Status.MARNIE_COMPLETED:
                 job = bob_job_completed_by_marnie
+            case Job.Status.FINAL_PAYMENT_POP_UPLOADED:
+                job = bob_job_with_final_payment_pop
             case _:  # pragma: no cover
                 # This logic should never be reached, as we are looping through all the
                 # known states.
@@ -177,16 +200,11 @@ def test_does_not_work_for_agent_who_did_not_create_the_job(
         bob_job_with_initial_marnie_inspection (Job): The job with the initial
             inspection done by Marnie.
     """
-    # Arrange
-    job_id = bob_job_with_initial_marnie_inspection.id
-    request = RequestFactory().post(f"/jobs/{job_id}/quote/accept/")
-    request.user = alice_agent_user
-
-    # Act
-    response = quote_accept(request, job_id)
-
-    # Assert
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    perform_post_request_and_check_response(
+        alice_agent_user,
+        bob_job_with_initial_marnie_inspection,
+        status.HTTP_403_FORBIDDEN,
+    )
 
 
 def assert_quote_accept_redirects_to_job_details(client: Client, job: Job) -> None:

@@ -116,6 +116,7 @@ def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) ->
         "",  # Invoice
         "",  # Comments
         "No",  # Job Complete
+        "",  # Final Payment POP
     ], cell_texts
 
 
@@ -139,11 +140,12 @@ def _check_maintenance_jobs_page_table_after_job_completion(browser: WebDriver) 
         "I fixed the leaky faucet While I was in there I noticed damage in the wall "
         "Do you want me to fix that too?",
         "Yes",  # Job Complete
+        "",  # Final Payment POP
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 
 
-def _check_maintenance_jobs_page_table_after_final_pop_submission(
+def _check_maintenance_jobs_page_table_after_final_payment_pop_submission(
     browser: WebDriver,
 ) -> None:
     cell_texts = _check_maintenance_jobs_table(browser)
@@ -162,9 +164,9 @@ def _check_maintenance_jobs_page_table_after_final_pop_submission(
         "2021-03-02",  # Job Date
         "Download Invoice",  # Invoice
         "I fixed the leaky faucet While I was in there I noticed damage in the wall "
-        "Do you want me to fix that too?",
+        "Do you want me to fix that too?",  # Comments on the job
         "Yes",  # Job Complete
-        "Download Final POP",  # Final POP
+        "Download Final Payment POP",  # Final Payment POP
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 
@@ -205,6 +207,7 @@ def _check_maintenance_jobs_table(browser: WebDriver) -> list[str]:
         "Invoice",
         "Comments on the job",
         "Job Complete",
+        "Final Payment POP",
     ], header_cell_texts
 
     ## The second row is the new job
@@ -327,6 +330,7 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
         "",  # Invoice
         "",  # Comments
         "No",  # Job Complete
+        "",  # Final Payment POP
     ], cell_texts
 
     # He clicks on the #1 number again:
@@ -334,16 +338,27 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
     number_link.click()
 
 
-def _sign_in_as_marnie_and_navigate_to_job_details(browser: WebDriver) -> None:
+def _marnie_logs_in_and_navigates_to_bob_jobs(browser: WebDriver) -> None:
+    """Simulate Marnie to logging in and navigating to Bob's jobs page.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+    """
+    # Marnie logs in
     _sign_into_website(browser, "marnie")
 
-    # He clicks on the Agents link
+    # Then he looks for the "Agents" link and clicks on it:
     agents_link = browser.find_element(By.LINK_TEXT, "Agents")
     agents_link.click()
 
-    # He clicks on the link for Bob.
-    bob_agent_link = browser.find_element(By.LINK_TEXT, "bob")
-    bob_agent_link.click()
+    # He sees a list of agents, and clicks on Bob's username:
+    bob_link = browser.find_element(By.LINK_TEXT, "bob")
+    bob_link.click()
+
+
+def _sign_in_as_marnie_and_navigate_to_job_details(browser: WebDriver) -> None:
+    # Marnie logs in, and navigates to Bob's jobs page
+    _marnie_logs_in_and_navigates_to_bob_jobs(browser)
 
     # This takes him to the Maintenance Jobs page for Bob the Agent.
 
@@ -502,6 +517,7 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
         "",  # Invoice
         "",  # Comments
         "No",  # Job Complete
+        "",  # Final Payment POP
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 

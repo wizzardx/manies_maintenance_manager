@@ -202,6 +202,29 @@ def submit_quote_update_and_check_redirect(
     )
 
 
+def submit_quote_update(
+    client: Client,
+    job: Job,
+    attachment: SimpleUploadedFile,
+    expected_status_code: int,
+) -> None:
+    """Submit a quote update and assert the response status code.
+
+    Args:
+        client (Client): A Django test client.
+        job (Job): A Job instance.
+        attachment (SimpleUploadedFile): A test PDF file.
+        expected_status_code (int): The expected HTTP status code.
+    """
+    with safe_read(attachment):
+        response = client.post(
+            reverse("jobs:quote_update", kwargs={"pk": job.pk}),
+            data={"quote": attachment},
+        )
+
+    assert response.status_code == expected_status_code
+
+
 def test_on_success_sends_an_email_to_the_agent(
     job_rejected_by_bob: Job,
     marnie_user_client: Client,
@@ -222,13 +245,12 @@ def test_on_success_sends_an_email_to_the_agent(
     mail.outbox.clear()
 
     # As Marnie, upload a new quote.
-    with safe_read(test_pdf_2):
-        response = marnie_user_client.post(
-            reverse("jobs:quote_update", kwargs={"pk": job_rejected_by_bob.pk}),
-            data={"quote": test_pdf_2},
-        )
-
-    assert response.status_code == status.HTTP_302_FOUND
+    submit_quote_update(
+        marnie_user_client,
+        job_rejected_by_bob,
+        test_pdf_2,
+        status.HTTP_302_FOUND,
+    )
 
     # Check that the appropriate email was sent:
     assert len(mail.outbox) == 1
@@ -299,16 +321,12 @@ def test_does_not_work_if_not_in_quote_rejected_state(
         marnie_user_client (Client): The Django test client for Marnie.
         test_pdf_2 (SimpleUploadedFile): A test PDF file.
     """
-    with safe_read(test_pdf_2):
-        response = marnie_user_client.post(
-            reverse(
-                "jobs:quote_update",
-                kwargs={"pk": bob_job_with_initial_marnie_inspection.pk},
-            ),
-            data={"quote": test_pdf_2},
-        )
-
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    submit_quote_update(
+        marnie_user_client,
+        bob_job_with_initial_marnie_inspection,
+        test_pdf_2,
+        status.HTTP_403_FORBIDDEN,
+    )
 
 
 def test_quote_field_is_required(
@@ -322,7 +340,7 @@ def test_quote_field_is_required(
         marnie_user_client (Client): The Django test client for Marnie.
     """
     # The quote field is provided by default (this is technically an "UpdateView"-
-    # descended view, where - by business logic we've already ensured there is a quote.
+    # descended view, where - by business logic we've already ensured there is a quote).
     # So we need to make sure we remove any already-uploaded quote from the job.
     job_rejected_by_bob.quote.delete(save=True)
 
