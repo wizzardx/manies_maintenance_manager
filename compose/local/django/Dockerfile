@@ -1,8 +1,8 @@
 # define an alias for the specific python version used in this file.
-FROM docker.io/python:3.12.3-slim-bookworm as python
+FROM docker.io/python:3.12.4-slim-bookworm AS python
 
 # Python build stage
-FROM python as python-build-stage
+FROM python AS python-build-stage
 
 ARG BUILD_ENVIRONMENT=local
 
@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 
 # Python 'run' stage
-FROM python as python-run-stage
+FROM python AS python-run-stage
 
 ARG BUILD_ENVIRONMENT=local
 ARG APP_HOME=/app
