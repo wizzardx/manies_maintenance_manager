@@ -191,7 +191,7 @@ class TestUserDetailView:
         assert response.status_code == HTTPStatus.FOUND
         assert response.url == f"{login_url}?next=/fake-url/"
 
-    agent_tip = "Click on the 'Maintenance Jobs' link to create a new job."
+    agent_tip = "Click on the 'Maintenance Jobs' link above to create a new job."
 
     def test_agent_user_sees_agent_tip(self, bob_agent_user_client: Client) -> None:
         """Ensure that agent users see the agent tip on their profile page.

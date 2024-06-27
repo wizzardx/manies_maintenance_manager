@@ -3,13 +3,18 @@
 {% load crispy_forms_filters %}
 
 {% block title %}
-  Submit Deposit POP
+  Upload Deposit POP
 {% endblock title %}
 {% block content %}
-  <h1>Submit Deposit POP</h1>
-  <form method="post" enctype="multipart/form-data">
+  <h1>Upload Deposit POP</h1>
+  <form method="post" enctype="multipart/form-data" id="submitPOPForm">
     {% csrf_token %}
     {{ form|crispy }}
-    <button class="btn btn-primary" type="submit">Submit</button>
+    <button class="btn btn-primary" type="submit" id="submitButton">Upload Deposit POP</button>
   </form>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      handleFormSubmission('submitPOPForm', 'submitButton');
+    });
+  </script>
 {% endblock content %}

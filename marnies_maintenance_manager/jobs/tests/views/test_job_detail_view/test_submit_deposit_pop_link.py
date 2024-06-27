@@ -35,7 +35,7 @@ def _get_submit_deposit_pop_link_or_none(
     # Use Python BeautifulSoup to parse the HTML and find the link
     # to submit the deposit proof of payment.
     soup = BeautifulSoup(page, "html.parser")
-    return soup.find("a", string="Submit Deposit POP")
+    return soup.find("a", string="Upload Deposit POP")
 
 
 class TestSubmitDepositPOPLinkVisibility:

@@ -3,13 +3,18 @@
 {% load crispy_forms_tags %}
 
 {% block title %}
-  Update Maintenance Job
+  Complete Inspection
 {% endblock title %}
 {% block content %}
-  <h1>Update Maintenance Job</h1>
-  <form method="post" enctype="multipart/form-data">
+  <h1>Complete Inspection</h1>
+  <form method="post" enctype="multipart/form-data" id="maintenanceForm">
     {% csrf_token %}
     {{ form|crispy }}
-    <button class="btn btn-primary" type="submit">Save changes</button>
+    <button class="btn btn-primary" type="submit" id="submitButton">Complete Inspection</button>
   </form>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      handleFormSubmission('maintenanceForm', 'submitButton');
+    });
+  </script>
 {% endblock content %}

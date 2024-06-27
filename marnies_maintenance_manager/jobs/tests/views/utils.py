@@ -14,7 +14,7 @@ To execute these tests, run the following command:
     marnies_maintenance_manager/jobs/tests/utils.py`
 """
 
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument,too-many-locals
 
 from typing import Any
 
@@ -74,13 +74,15 @@ def check_basic_page_html_structure(  # noqa: PLR0913
     # Check the title tag
     title_tag = soup.find("title")
     assert title_tag, "Title tag should exist in the HTML"
-    assert title_tag.get_text(strip=True) == expected_title
+    title_tag_text = title_tag.get_text(strip=True)
+    assert title_tag_text == expected_title
 
     # Check a h1 tag
     if expected_h1_text is not None:
         h1_tag = soup.find("h1")
         assert h1_tag, "H1 tag should exist in the HTML"
-        assert h1_tag.get_text(strip=True) == expected_h1_text
+        h1_text = h1_tag.get_text(strip=True)
+        assert h1_text == expected_h1_text
 
     # Check additional expected HTML strings:
     assert '<html lang="en">' in response_text

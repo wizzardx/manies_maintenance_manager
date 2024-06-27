@@ -46,7 +46,9 @@ def test_marnie_can_view_agents_job(
 
     # He sees some text on the current page that informs him that he can see the
     # per-agent "spreadsheets" over under the "Agents" link.
-    expected_msg = "Click on the 'Agents' link to view each Agents Maintenance Jobs."
+    expected_msg = (
+        "Click on the 'Agents' link above to view each Agents Maintenance Jobs."
+    )
     assert expected_msg in browser.page_source
 
     # He also notices an "Agents" links in the navbar.

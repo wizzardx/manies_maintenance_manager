@@ -108,9 +108,9 @@ def test_page_has_basic_correct_structure(
     check_basic_page_html_structure(
         client=marnie_user_client,
         url=bob_job_update_url,
-        expected_title="Update Maintenance Job",
+        expected_title="Complete Inspection",
         expected_template_name="jobs/job_update.html",
-        expected_h1_text="Update Maintenance Job",
+        expected_h1_text="Complete Inspection",
         expected_func_name="view",
         expected_url_name="job_update",
         expected_view_class=JobUpdateView,

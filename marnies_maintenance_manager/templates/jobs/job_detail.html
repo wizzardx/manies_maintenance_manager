@@ -57,17 +57,31 @@
   <div class="button-container">
     {# Display the "Accept Quote" button if our backend wants it #}
     {% if accept_quote_button_present %}
-      <form action="{% url 'jobs:quote_accept' pk=job.pk %}" method="post">
+      <form action="{% url 'jobs:quote_accept' pk=job.pk %}"
+            method="post"
+            id="acceptQuoteForm">
         {% csrf_token %}
-        <button class="btn btn-primary" type="submit">Accept Quote</button>
+        <button class="btn btn-primary" type="submit" id="acceptQuoteButton">Accept Quote</button>
       </form>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          handleFormSubmission('acceptQuoteForm', 'acceptQuoteButton');
+        });
+      </script>
     {% endif %}
     {# Display the "Reject Quote" button if our backend wants it #}
     {% if reject_quote_button_present %}
-      <form action="{% url 'jobs:quote_reject' pk=job.pk %}" method="post">
+      <form action="{% url 'jobs:quote_reject' pk=job.pk %}"
+            method="post"
+            id="rejectQuoteForm">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Reject Quote</button>
+        <button type="submit" class="btn btn-danger" id="rejectQuoteButton">Reject Quote</button>
       </form>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          handleFormSubmission('rejectQuoteForm', 'rejectQuoteButton');
+        });
+      </script>
     {% endif %}
   </div>
   {# Display the "Update Quote" link if our backend wants it #}
@@ -80,7 +94,7 @@
   {% if submit_deposit_proof_of_payment_link_present %}
     <a class="btn btn-primary"
        href="{% url 'jobs:deposit_pop_update' pk=job.pk %}"
-       role="button">Submit Deposit POP</a>
+       role="button">Upload Deposit POP</a>
   {% endif %}
   {# Display a (different) "Update" link if the backend wants it #}
   {% if update_link_2_present %}

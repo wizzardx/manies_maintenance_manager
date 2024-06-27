@@ -67,7 +67,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
             user.is_marnie or user.is_superuser
         ) and job.status == Job.Status.QUOTE_REJECTED_BY_AGENT.value
 
-        # The "Submit Deposit POP link" is only visible if the quote has been accepted
+        # The "Upload Deposit POP link" is only visible if the quote has been accepted
         # by the agent. It is visible to superusers (admins) and to the agent who
         # originally created the job.
         submit_deposit_proof_of_payment_link_present = (

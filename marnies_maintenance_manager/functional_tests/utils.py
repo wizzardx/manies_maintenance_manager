@@ -233,7 +233,7 @@ def _create_new_job(
 
     # He sees some basic instructions on this page that tell him the next step that
     # he should click on the "Maintenance Jobs" link next.
-    expected_msg = "Click on the 'Maintenance Jobs' link to create a new job."
+    expected_msg = "Click on the 'Maintenance Jobs' link above to create a new job."
     assert expected_msg in browser.page_source
 
     # He sees the "Maintenance Jobs" link in the navbar
@@ -379,8 +379,8 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
 
     # On the next page, he sees that the page title and header mention "Update
     # Maintenance Job"
-    assert "Update Maintenance Job" in browser.title
-    assert "Update Maintenance Job" in browser.find_element(By.TAG_NAME, "h1").text
+    assert "Complete Inspection" in browser.title, browser.title
+    assert "Complete Inspection" in browser.find_element(By.TAG_NAME, "h1").text
 
     # He also sees on this page, that he can edit (only) these fields:
     # - Date of Inspection
@@ -571,17 +571,17 @@ def _bob_submits_deposit_pop(browser: WebDriver) -> None:
     assert "Maintenance Job Details" in browser.title
     assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
 
-    # He sees a "Submit Deposit POP" link, and clicks on it.
+    # He sees an "Upload Deposit POP" link, and clicks on it.
     submit_pop_link = browser.find_element(
         By.LINK_TEXT,
-        "Submit Deposit POP",
+        "Upload Deposit POP",
     )
     submit_pop_link.click()
 
-    # He sees the "Submit Deposit POP" page, with the title and header mentioning the
+    # He sees the "Upload Deposit POP" page, with the title and header mentioning the
     # same.
-    assert "Submit Deposit POP" in browser.title
-    assert "Submit Deposit POP" in browser.find_element(By.TAG_NAME, "h1").text
+    assert "Upload Deposit POP" in browser.title
+    assert "Upload Deposit POP" in browser.find_element(By.TAG_NAME, "h1").text
 
     # He sees the "Proof of Payment" field, and a "Submit" button.
     pop_field = browser.find_element(By.ID, "id_deposit_proof_of_payment")

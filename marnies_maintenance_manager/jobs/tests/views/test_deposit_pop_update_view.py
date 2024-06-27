@@ -44,9 +44,9 @@ def test_view_has_correct_basic_structure(
     check_basic_page_html_structure(
         client=bob_agent_user_client,
         url=reverse("jobs:deposit_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
-        expected_title="Submit Deposit POP",
+        expected_title="Upload Deposit POP",
         expected_template_name="jobs/deposit_pop_update.html",
-        expected_h1_text="Submit Deposit POP",
+        expected_h1_text="Upload Deposit POP",
         expected_func_name="view",
         expected_url_name="deposit_pop_update",
         expected_view_class=DepositPOPUpdateView,
@@ -204,7 +204,7 @@ def test_view_has_form_html(
     assert "<button" in form_html
     assert 'type="submit"' in form_html
     assert 'class="btn btn-primary"' in form_html
-    assert "Submit" in form_html
+    assert "Upload" in form_html
 
 
 def test_posting_without_a_file_fails(

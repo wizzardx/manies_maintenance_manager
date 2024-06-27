@@ -7,9 +7,14 @@
 {% endblock title %}
 {% block content %}
   <h1>Upload Final Payment Proof of Payment</h1>
-  <form method="post" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data" id="uploadForm">
     {% csrf_token %}
     {{ form|crispy }}
-    <button class="btn btn-primary" type="submit">Submit</button>
+    <button class="btn btn-primary" type="submit" id="uploadButton">Upload</button>
   </form>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      handleFormSubmission('uploadForm', 'uploadButton');
+    });
+  </script>
 {% endblock content %}

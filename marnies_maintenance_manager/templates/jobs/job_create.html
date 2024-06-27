@@ -7,9 +7,14 @@
 {% endblock title %}
 {% block content %}
   <h1>Create Maintenance Job</h1>
-  <form method="post">
+  <form method="post" id="maintenanceForm">
     {% csrf_token %}
     {{ form|crispy }}
-    <button class="btn btn-primary">Submit</button>
+    <button class="btn btn-primary" id="submitButton">Submit</button>
   </form>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      handleFormSubmission('maintenanceForm', 'submitButton');
+    });
+  </script>
 {% endblock content %}
