@@ -57,7 +57,7 @@ function handle_error() {
 
 # Run unit tests first, to get useful things setup under .venv.
 echo "Fast unit tests (using sqlite mem, outside of docker)..."
-scripts/unit_tests_outside_docker.sh -s || handle_error
+scripts/unit_tests.sh -s || handle_error
 
 # Do the helper script checks over here, because it wants to check the .venv file
 # logic (but the .venv might not exist if the previous line has not yet run)
