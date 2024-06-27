@@ -6,6 +6,18 @@ log() {
     echo "[INFO] $1"
 }
 
+# Check for --stop-on-first-error or -s argument
+STOP_ON_FIRST_ERROR="no"
+for arg in "$@";
+do
+    if [ "$arg" == "--stop-on-first-error" ] || [ "$arg" == "-s" ]; then
+        STOP_ON_FIRST_ERROR="yes"
+    else
+        echo "Unknown argument: $arg"
+        exit 1
+    fi
+done
+
 # Setup Python version to use for the unit tests
 log "Setting up Python version..."
 pyenv local 3.12.4
@@ -65,10 +77,14 @@ CMD=(
     pytest
         marnies_maintenance_manager/jobs
         marnies_maintenance_manager/users
-        --maxfail=1
         --doctest-modules
         --reuse-db
 )
+
+# If STOP_ON_FIRST_ERROR is set, then fail after the first error:
+if [ "$STOP_ON_FIRST_ERROR" == "yes" ]; then
+    CMD+=("--maxfail=1")
+fi
 
 # If there are no recently-failed tests, then we use the extra parallelizations to
 # help run things super fast. (When there are recently-failed tests, then we
