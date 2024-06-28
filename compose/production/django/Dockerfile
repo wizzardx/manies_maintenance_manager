@@ -77,10 +77,11 @@ RUN chown -R django:django ${APP_HOME}
 # Switch to root user to compile messages
 USER root
 
-# Compile translations using production settings
-RUN DATABASE_URL="" \
-  DJANGO_SETTINGS_MODULE="config.settings.production" \
-  python manage.py compilemessages
+# Temporarily set environment variables to compile translations
+RUN DJANGO_SECRET_KEY=temporary_secret_key \
+    DJANGO_SETTINGS_MODULE="config.settings.production" \
+    DATABASE_URL="" \
+    python manage.py compilemessages
 
 # Switch back to django user
 USER django
