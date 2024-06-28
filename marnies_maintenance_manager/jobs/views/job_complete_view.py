@@ -64,7 +64,7 @@ class JobCompleteView(
         # for doing things before and after performing the actual save of the form.
         # (to the database).
 
-        # Update the Job's state to completed (Marnie completed the Job)
+        # Update the Job's state to "marnie completed"
         job = form.save(commit=False)
         job.status = Job.Status.MARNIE_COMPLETED.value
         job.complete = True
