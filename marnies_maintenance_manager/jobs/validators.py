@@ -1,11 +1,11 @@
 """Custom validators for the "jobs" app."""
 
+import magic
 from django.core.exceptions import ValidationError
 from django.db.models.fields.files import FieldFile
-from pypdf import PdfReader
-from pypdf.errors import PdfReadError
 
 MAX_PDF_SIZE = 5 * 1024 * 1024  # 5 MB
+PDF_MIME_TYPE = "application/pdf"
 
 
 def validate_pdf_contents(file: FieldFile, max_size: int = MAX_PDF_SIZE) -> None:
@@ -27,11 +27,15 @@ def validate_pdf_contents(file: FieldFile, max_size: int = MAX_PDF_SIZE) -> None
         msg = f"File size should not exceed {max_size / (1024 * 1024)} MB."
         raise ValidationError(msg)
 
+    # Use python-magic to check the file type
+    mime = magic.Magic(mime=True)
+    # Read the first 1024 bytes to get the MIME type
+    file_mime_type = mime.from_buffer(file.read(1024))
+
     try:  # pylint: disable=too-many-try-statements
-        # Create a PdfReader object, to validate for invalid file contents
-        PdfReader(file)
-    except PdfReadError as err:
-        msg = "This is not a valid PDF file"
-        raise ValidationError(msg) from err
+        if file_mime_type != PDF_MIME_TYPE:
+            msg = "This is not a valid PDF file"
+            raise ValidationError(msg)
     finally:
-        file.seek(0)  # Reset the file pointer to the beginning
+        # Regardless of what happens, reset the file pointer to the beginning
+        file.seek(0)
