@@ -7,6 +7,7 @@ hiredis==2.3.2  # https://github.com/redis/hiredis-py
 py==1.11.0  # https://github.com/pytest-dev/py
 pip==24.1.1  # https://github.com/pypa/pip
 python-magic==0.4.27  # https://github.com/ahupp/python-magic
+djangorestframework==3.15.2  # https://github.com/encode/django-rest-framework
 
 # Django
 # ------------------------------------------------------------------------------
