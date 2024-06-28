@@ -2,6 +2,7 @@ volumes:
   production_postgres_data: {}
   production_postgres_data_backups: {}
   production_traefik: {}
+  production_django_media: {}
 
 services:
   django:
@@ -10,6 +11,8 @@ services:
       dockerfile: ./compose/production/django/Dockerfile
 
     image: marnies_maintenance_manager_production_django
+    volumes:
+      - production_django_media:/app/marnies_maintenance_manager/media
     depends_on:
       - postgres
       - redis
@@ -45,11 +48,12 @@ services:
   redis:
     image: docker.io/redis:6
 
-  awscli:
+  nginx:
     build:
       context: .
-      dockerfile: ./compose/production/aws/Dockerfile
-    env_file:
-      - ./.envs/.production/.django
+      dockerfile: ./compose/production/nginx/Dockerfile
+    image: marnies_maintenance_manager_production_nginx
+    depends_on:
+      - django
     volumes:
-      - production_postgres_data_backups:/backups:z
+      - production_django_media:/usr/share/nginx/media:ro
