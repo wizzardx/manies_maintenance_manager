@@ -9,6 +9,9 @@ of those files, to help me grab and merge in the latest upstream changes to the
 cookiecutter.
 """
 
+# pylint: disable=line-too-long,invalid-name
+# ruff: noqa: E501, ERA001, T201
+
 import logging
 import os
 import shutil
@@ -141,13 +144,54 @@ for name in changed_files:
 
     current_file = Path(str(current_file).replace("manie", "marnie"))
 
+    skip = False
+
     if not original_file.is_file():
-        sys.exit("File (1) not found: " + str(original_file))
+        skip = True
+        # print(f"File missing: {original_file}")
+        if current_file.is_file():
+            # print(f"File present: {current_file}")
+
+            # eg output by this point:
+            # File missing: /tmp/new_template_project_ip22jq5s/manies_maintenance_manager/Procfile
+            # File present: /home/david/dev/misc/marnies_maintenance_manager_project/Procfile
+
+            # This means that in the just-generated cookiecutter output, a file was not generated,
+            # But that same file was present in our git history. In this case, it can mean that
+            # we previously had "use_heroku": "y", and have changed that to "n". In this case it
+            # means that we're probably not interested in the Heroku config setup at the moment.
+            print(f"Suggestion: Remove file {current_file}")
 
     if not current_file.is_file():
-        sys.exit("File (2) not found: " + str(current_file))
+        skip = True
+        # print(f"File missing: {current_file}")
+        if original_file.is_file():
+            # print(f"File present: {original_file}")
 
-    if md5sum_end_stripped(original_file) == md5sum_end_stripped(current_file):
+            # eg output by this point:
+            # File missing: /home/david/dev/misc/marnies_maintenance_manager_project/config/api_router.py
+            # File present: /tmp/new_template_project_xl708yjv/manies_maintenance_manager/config/api_router.py
+
+            # This means that in the just-generated cookiecutter output, a file was generated,
+            # but that same file was not present in our git history. In that case, it can mean that
+            # it's a new file that was added either upstream, or because of changed options in our replay settings
+            print(f"Suggestion: Copy {original_file} to new file {current_file}")
+            shutil.copy2(original_file, current_file)
+
+    # original_file is the temporary version, eg:
+    # /tmp/new_template_project_eru33bhi/manies_maintenance_manager/.devcontainer/devcontainer.json
+
+    if not skip:
+        # Replace instances of "manie" with "marnie" in it, to help remove false positives:
+        run_command(["sed", "-i", "s/manie/marnie/g", str(original_file)])
+        run_command(["sed", "-i", "s/Manie/Marnie/g", str(original_file)])
+        run_command(["sed", "-i", "s/Marnies/Marnie's/g", str(original_file)])
+
+        # If after this, the files contain the same content, then need to meld.
+        if md5sum_end_stripped(original_file) == md5sum_end_stripped(current_file):
+            skip = True
+
+    if skip:
         continue
 
     run_command(["meld", str(original_file), str(current_file)])
