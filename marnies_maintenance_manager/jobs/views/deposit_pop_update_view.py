@@ -48,9 +48,7 @@ class DepositPOPUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateViewTy
             return False
 
         # Only superuser or the agent who created the job can update the deposit POP
-        if not (user.is_superuser or (user.is_agent and user == job.agent)):
-            return False
-        return True
+        return user.is_superuser or (user.is_agent and user == job.agent)
 
     def form_valid(self, form: DepositPOPUpdateForm) -> HttpResponse:
         """Save the form.
