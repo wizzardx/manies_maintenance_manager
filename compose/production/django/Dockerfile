@@ -1,4 +1,3 @@
-
 # define an alias for the specific python version used in this file.
 FROM docker.io/python:3.12.4-slim-bookworm AS python
 
@@ -75,10 +74,15 @@ COPY --chown=django:django . ${APP_HOME}
 # make django owner of the WORKDIR directory as well.
 RUN chown -R django:django ${APP_HOME}
 
-USER django
+# Switch to root user to compile messages
+USER root
 
+# Compile translations using production settings
 RUN DATABASE_URL="" \
-  DJANGO_SETTINGS_MODULE="config.settings.test" \
+  DJANGO_SETTINGS_MODULE="config.settings.production" \
   python manage.py compilemessages
+
+# Switch back to django user
+USER django
 
 ENTRYPOINT ["/entrypoint"]
