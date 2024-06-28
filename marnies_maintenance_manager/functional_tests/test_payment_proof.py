@@ -37,6 +37,7 @@ def _check_maintenance_jobs_page_table_after_pop_submission(browser: WebDriver) 
     ## Make sure the cell text contents match the expected values.
     assert cell_texts == [
         "1",  # This is for the row number, automatically added by the system.
+        "Marnie needs to complete the job and then upload a quote",  # Next Actions
         "2021-01-01",
         "Department of Home Affairs Bellville",
         "GPS",  # This is the displayed text, on-screen it's a link

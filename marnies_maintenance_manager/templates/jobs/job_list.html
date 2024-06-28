@@ -18,6 +18,7 @@
       <thead>
         <tr>
           <th>Number</th>
+          <th>Next Actions</th>
           <th>Date</th>
           <th>Address Details</th>
           <th>GPS Link</th>
@@ -39,6 +40,7 @@
             <td>
               <a href="{{ job.get_absolute_url }}">{{ job.number }}</a>
             </td>
+            <td>{{ job.get_next_actions_str }}</td>
             <td>{{ job.date|date:"Y-m-d" }}</td>
             <td>{{ job.address_details }}</td>
             <td>

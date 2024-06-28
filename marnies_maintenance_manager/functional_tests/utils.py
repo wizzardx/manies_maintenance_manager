@@ -104,6 +104,7 @@ def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) ->
     ## Make sure the cell text contents match the expected values.
     assert cell_texts == [
         "1",  # Job Number
+        "Marnie needs to inspect the site and then upload a quote",  # Next Actions
         "2021-01-01",  # Date (assigned by Agent)
         "Department of Home Affairs Bellville",
         "GPS",  # This is the displayed text, on-screen it's a link
@@ -127,6 +128,10 @@ def _check_maintenance_jobs_page_table_after_job_completion(browser: WebDriver) 
 
     expected = [
         "1",  # This is for the row number, automatically added by the system.
+        (
+            "The agent needs to make the final payment and then upload the proof of "
+            "payment"
+        ),  # Next Actions
         "2021-01-01",
         "Department of Home Affairs Bellville",
         "GPS",  # This is the displayed text, on-screen it's a link
@@ -153,6 +158,7 @@ def _check_maintenance_jobs_page_table_after_final_payment_pop_submission(
     ## Make sure the cell text contents match the expected values.
     expected = [
         "1",  # This is for the row number, automatically added by the system.
+        "Nothing further is required",  # Next Actions
         "2021-01-01",
         "Department of Home Affairs Bellville",
         "GPS",  # This is the displayed text, on-screen it's a link
@@ -195,6 +201,7 @@ def _check_maintenance_jobs_table(browser: WebDriver) -> list[str]:
 
     assert header_cell_texts == [
         "Number",
+        "Next Actions",
         "Date",
         "Address Details",
         "GPS Link",
@@ -318,6 +325,7 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
     assert cell_texts == [
         "1",
+        "The agent needs to Accept or Reject Marnie's quote",  # Next Actions
         "2021-01-01",
         "Department of Home Affairs Bellville",
         "GPS",
@@ -505,6 +513,10 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
     expected = [
         "1",
+        (
+            "Marnie and the Agent need to discuss the quote outside of this app. "
+            "To go ahead inside this app, Marnie can upload a new quote."
+        ),  # Next Actions
         "2021-01-01",
         "Department of Home Affairs Bellville",
         "GPS",

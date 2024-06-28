@@ -434,6 +434,7 @@ def test_maintenance_jobs_page_returns_correct_html(
     assert headers, "Table headers should exist in the HTML"
     assert [header.get_text(strip=True) for header in headers] == [
         "Number",
+        "Next Actions",
         "Date",
         "Address Details",
         "GPS Link",
