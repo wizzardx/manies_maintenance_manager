@@ -82,6 +82,16 @@ RUN DJANGO_SECRET_KEY=temporary_secret_key \
     REDIS_URL=redis://redis:6379/0 \
     DJANGO_SETTINGS_MODULE="config.settings.production" \
     DATABASE_URL="" \
+    DJANGO_AWS_ACCESS_KEY_ID=dummy_key \
+    DJANGO_AWS_SECRET_ACCESS_KEY=dummy_secret \
+    DJANGO_AWS_STORAGE_BUCKET_NAME=dummy_bucket \
+    DJANGO_ADMIN_URL=dummy_admin_url \
+    DJANGO_SERVER_EMAIL=dummy_server_email \
+    MAILGUN_API_KEY=dummy_mailgun_api_key \
+    MAILGUN_DOMAIN=dummy_mailgun_domain \
+    DJANGO_ACCOUNT_ALLOW_REGISTRATION=true \
+    SENTRY_DSN=http://public_key@localhost/123 \
+    WEB_CONCURRENCY=4 \
     python manage.py compilemessages
 
 # Switch back to django user
