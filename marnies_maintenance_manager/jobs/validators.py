@@ -24,7 +24,10 @@ def validate_pdf_contents(file: FieldFile, max_size: int = MAX_PDF_SIZE) -> None
 
     # Limit the file size:
     if file.size > max_size:
-        msg = f"File size should not exceed {max_size / (1024 * 1024)} MB."
+        msg = (
+            f"File size should not exceed {max_size / (1024 * 1024):.1f} MB. "
+            f"Your file, {file.name}, is {file.size / (1024 * 1024):.1f} MB."
+        )
         raise ValidationError(msg)
 
     # Use python-magic to check the file type
