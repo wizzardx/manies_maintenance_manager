@@ -21,8 +21,8 @@ def check_outdated_packages(ignore_list: list[str]) -> int:
         # Using sys.executable for the full path to Python interpreter
         # This subprocess call is considered safe in this context as we're
         # invoking a known and trusted command
-        result = subprocess.run(
-            [sys.executable, "-m", "pip", "list", "--outdated"],  # nosec  # noqa: S603
+        result = subprocess.run(  # nosec # noqa: S603
+            [sys.executable, "-m", "pip", "list", "--outdated"],
             capture_output=True,
             text=True,
             check=True,

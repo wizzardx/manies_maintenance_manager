@@ -38,8 +38,8 @@ def run_command(
     Returns:
         subprocess.CompletedProcess[str]: The result of the command execution.
     """
-    result2 = subprocess.run(  # nosec
-        command,  # noqa: S603
+    result2 = subprocess.run(  # nosec # noqa: S603
+        command,
         check=False,
         text=True,
         capture_output=True,
