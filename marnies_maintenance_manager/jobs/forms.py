@@ -107,7 +107,6 @@ class JobCompleteForm(TypedModelForm):
         widget=forms.DateInput(attrs={"type": "date"}),
     )
     invoice = forms.FileField()
-    comments = forms.CharField(widget=forms.Textarea)
 
 
 class FinalPaymentPOPUpdateForm(TypedModelForm):

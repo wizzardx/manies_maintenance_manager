@@ -346,12 +346,12 @@ def test_invoice_field_is_required(
     assert response.context["form"].errors == {"invoice": ["This field is required."]}
 
 
-def test_comments_field_is_required(
+def test_comments_field_is_not_required(
     marnie_user_client: Client,
     bob_job_with_deposit_pop: Job,
     test_pdf: SimpleUploadedFile,
 ) -> None:
-    """Ensure the comments field is required.
+    """Ensure the "comments" field is not required.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
@@ -377,8 +377,8 @@ def test_comments_field_is_required(
     # Assert the response status code is 200
     assert response.status_code == status.HTTP_200_OK
 
-    # There should be form errors:
-    assert response.context["form"].errors == {"comments": ["This field is required."]}
+    # There should be no form errors:
+    assert "form" not in response.context
 
 
 def test_updating_job_changes_status_to_completed(

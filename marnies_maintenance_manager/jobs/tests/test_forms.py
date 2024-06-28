@@ -139,13 +139,12 @@ class TestJobCompleteForm:
         assert "This field is required." in form.errors["invoice"]
 
     @staticmethod
-    def test_comments_field_is_required() -> None:
-        """Test that the comments field is required."""
+    def test_comments_field_is_not_required() -> None:
+        """Test that the "comments" field is not required."""
         data = {"comments": ""}
         form = JobCompleteForm(data=data)
         assert not form.is_valid()
-        assert "comments" in form.errors
-        assert "This field is required." in form.errors["comments"]
+        assert "comments" not in form.errors
 
 
 class TestFinalPaymentPOPUpdateForm:
