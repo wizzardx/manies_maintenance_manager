@@ -19,7 +19,7 @@ paplay /usr/share/sounds/sound-icons/message
 show_message() {
     local message="$1"
     echo "$message"
-    yad --text="$message" --button=gtk-ok --on-top --width=300 --height=100 --center
+    yad --text="$message" --button=yad-ok --on-top --width=300 --height=100 --center
 }
 
 if [ "$RETCODE" == "0" ]; then
