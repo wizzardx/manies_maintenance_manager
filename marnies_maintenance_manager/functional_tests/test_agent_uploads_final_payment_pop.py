@@ -2,6 +2,9 @@
 
 # pylint: disable=magic-value-comparison,unused-argument,disable=too-many-locals
 
+from pathlib import Path
+
+import environ
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
@@ -16,6 +19,10 @@ from marnies_maintenance_manager.functional_tests.utils import (
     _workflow_from_new_job_to_completed_by_marnie,
 )
 from marnies_maintenance_manager.users.models import User
+
+env = environ.Env()
+
+FUNCTIONAL_TESTS_DATA_DIR = Path(__file__).resolve().parent
 
 
 def test_agent_uploads_final_payment_pop(
@@ -101,11 +108,9 @@ def test_agent_uploads_final_payment_pop(
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
 
     # He uploads the final payment proof of payment.
-    file_input.send_keys(
-        "/app/marnies_maintenance_manager/functional_tests/test.pdf",
-    )
+    file_input.send_keys(str(FUNCTIONAL_TESTS_DATA_DIR / "test.pdf"))
 
-    # He clicks the submit button.
+    # He clicks the "submit" button.
     submit_button.click()
 
     # This takes him back to the Job Details page.

@@ -4,6 +4,7 @@
 # pylint: disable=unused-argument
 
 import re
+import warnings
 from unittest import mock
 
 import pytest
@@ -15,6 +16,7 @@ from django.http import HttpRequest
 from marnies_maintenance_manager.jobs import exceptions
 from marnies_maintenance_manager.jobs import utils
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.tests import utils as test_utils
 from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.jobs.views.utils import send_quote_update_email
 from marnies_maintenance_manager.users.models import User
@@ -195,7 +197,7 @@ class TestMakeTestUser:
     @staticmethod
     def test_without_optional_flags() -> None:
         """Test creating a user without any optional flags set."""
-        utils.make_test_user(User, "test")
+        test_utils.make_test_user(User, "test")
 
         # Check that the user was created, with all the flags set as expected
         user = User.objects.get(username="test")
@@ -212,7 +214,7 @@ class TestMakeTestUser:
     @staticmethod
     def test_with_all_optional_flags_set_to_none_default_values() -> None:
         """Test creating a user with all optional flags set to none-default values."""
-        utils.make_test_user(
+        test_utils.make_test_user(
             User,
             "test",
             is_agent=True,
@@ -235,6 +237,31 @@ class TestMakeTestUser:
         assert email.email == "test@example.com"
         assert email.primary is False
         assert email.verified is False
+
+    @staticmethod
+    def test_user_should_already_exist() -> None:
+        """Test that a user is returned if it already exists."""
+        username = "test"
+        user = User.objects.create_user(
+            username=username,
+            password="password",  # noqa: S106
+            is_agent=True,
+            is_superuser=True,
+            is_staff=True,
+            is_marnie=True,
+            email=f"{username}@example.com",
+        )
+        user.emailaddress_set.create(  # type: ignore[attr-defined]
+            email=f"{username}@example.com",
+            primary=True,
+            verified=True,
+        )
+        returned_user = test_utils.make_test_user(
+            User,
+            username,
+            user_should_already_exist=True,
+        )
+        assert returned_user == user
 
 
 @pytest.fixture()
@@ -377,3 +404,31 @@ class TestSafeRead:
         # This code should not raise:
         with safe_read(file_like):
             pass
+
+
+class TestSuppressFastdevStrictIfDeprecationWarning:
+    """Tests for the suppress_fastdev_strict_if_deprecation_warning context manager."""
+
+    def test_suppress_deprecation_warning_expected(self) -> None:
+        """Test that the deprecation warning is suppressed when expected."""
+        with test_utils.suppress_fastdev_strict_if_deprecation_warning():
+            warnings.warn(
+                "set FASTDEV_STRICT_IF in settings, and use {% ifexists %} "
+                "instead of {% if %}",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+    def test_no_deprecation_warning_suppression(self) -> None:
+        """Test that the context manager does not suppress warnings when unnecessary."""
+        with test_utils.suppress_fastdev_strict_if_deprecation_warning(
+            deprecation_warnings_expected=False,
+        ):
+            with pytest.warns(DeprecationWarning) as record:
+                warnings.warn(
+                    "set FASTDEV_STRICT_IF in settings, and use {% ifexists %}"
+                    " instead of {% if %}",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            assert len(record) == 1

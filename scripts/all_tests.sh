@@ -62,7 +62,7 @@ scripts/unit_tests.sh -s || handle_error
 # Do the helper script checks over here, because it wants to check the .venv file
 # logic (but the .venv might not exist if the previous line has not yet run)
 echo "Check helper scripts..."
-shellcheck -x scripts/*.sh
+shellcheck -x scripts/*.sh || handle_error
 
 # Activate the .venv just setup, to get the correct versions of various testing utils
 # available.

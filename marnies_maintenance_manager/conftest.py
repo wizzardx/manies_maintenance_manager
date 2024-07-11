@@ -12,8 +12,8 @@ import pytest
 import pytest_django.fixtures
 from django.test import Client
 
+from marnies_maintenance_manager.jobs.tests.utils import make_test_user
 from marnies_maintenance_manager.jobs.utils import get_test_user_password
-from marnies_maintenance_manager.jobs.utils import make_test_user
 from marnies_maintenance_manager.users.models import User
 from marnies_maintenance_manager.users.tests.factories import UserFactory
 

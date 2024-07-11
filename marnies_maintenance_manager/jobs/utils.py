@@ -8,6 +8,7 @@ from typing import Protocol
 from typing import TypeVar
 from uuid import UUID
 
+import environ
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import EmailMessage
@@ -31,6 +32,7 @@ from .exceptions import MarnieUserNotFoundError
 from .exceptions import MultipleMarnieUsersError
 from .exceptions import NoSystemAdministratorUserError
 
+env = environ.Env()
 logger = logging.getLogger(__name__)
 
 
@@ -184,54 +186,6 @@ def get_test_user_password(key: str = "TEST_USER_PASSWORD") -> str:
     except KeyError as err:
         msg = f"{key} environment variable not set"
         raise EnvironmentVariableNotSetError(msg) from err
-
-
-def make_test_user(  # noqa: PLR0913  # pylint: disable=too-many-arguments
-    django_user_model: type[User],
-    username: str,
-    *,
-    is_agent: bool = False,
-    is_superuser: bool = False,
-    is_staff: bool = False,
-    is_marnie: bool = False,
-    email_verified: bool = True,
-    email_primary: bool = True,
-) -> User:
-    """Create and return a new user with optional agent and superuser status.
-
-    This function helps in creating a user instance with additional properties
-    like being an agent or a superuser. It sets the username and password,
-    marks the email as verified, and assigns the role based on the parameters.
-
-    Args:
-        django_user_model (type[User]): The User model used to create new users.
-        username (str): The username for the new user.
-        is_agent (bool): Flag to indicate if the user is an agent.
-        is_superuser (bool): Flag to indicate if the user is a superuser.
-        is_staff (bool): Flag to indicate if the user is a staff member, and can
-            access the Django admin interface.
-        is_marnie (bool): Flag to indicate if the user is Marnie.
-        email_verified (bool): Flag to indicate if the email is verified.
-        email_primary (bool): Flag to indicate if the email is the primary email.
-
-    Returns:
-        User: The newly created user instance.
-    """
-    user_ = django_user_model.objects.create_user(
-        username=username,
-        password=get_test_user_password(),
-        is_agent=is_agent,
-        is_superuser=is_superuser,
-        is_staff=is_staff,
-        is_marnie=is_marnie,
-        email=f"{username}@example.com",
-    )
-    user_.emailaddress_set.create(  # type: ignore[attr-defined]
-        email=f"{username}@example.com",
-        primary=email_primary,
-        verified=email_verified,
-    )
-    return user_
 
 
 def quote_accept_or_reject(

@@ -9,10 +9,15 @@ job entries.
 
 # pylint: disable=unused-argument, magic-value-comparison
 
+import datetime
+import re
+import subprocess
 import time
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
+import environ
 import pytest
 from selenium.common import ElementClickInterceptedException
 from selenium.common import NoSuchElementException
@@ -25,7 +30,70 @@ from marnies_maintenance_manager.jobs.tests.utils import (
 )
 from marnies_maintenance_manager.jobs.utils import get_test_user_password
 
+env = environ.Env()
+
 MAX_WAIT = 5  # Maximum time to wait during retries, before failing the test
+
+FUNCTIONAL_TESTS_DATA_DIR = Path(__file__).resolve().parent
+
+
+def get_date_format_from_locale() -> str:
+    """Get the date format from the system locale settings.
+
+    Returns:
+        str: The date format string.
+
+    Raises:
+        RuntimeError: If an error occurs while running the locale command.
+        ValueError: If the date format cannot be determined from the locale settings.
+    """
+    # Run the `locale -k LC_TIME` command
+    result = subprocess.run(  # noqa: S603
+        ["locale", "-k", "LC_TIME"],  # noqa: S607
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    # Check for errors
+    if result.returncode != 0:
+        msg = f"Error running locale command: {result.stderr}"
+        raise RuntimeError(msg)
+
+    # Parse the output to find the date format
+    output = result.stdout
+    date_format = None
+
+    # Look for the d_fmt line which specifies the date format
+
+    # pylint: disable=consider-using-assignment-expr
+    match = re.search(r'd_fmt="([^"]+)"', output)
+    if match:
+        date_format = match.group(1)
+
+    if not date_format:
+        msg = "Unable to determine date format from locale settings"
+        raise ValueError(msg)
+
+    return date_format
+
+
+def get_crispy_forms_date_input_format() -> str:
+    """Get the date input format used by Crispy Forms.
+
+    Returns:
+        str: The date input format string.
+    """
+    # pylint: disable=consider-using-assignment-expr
+    fmt = get_date_format_from_locale().replace("/", "")
+    if fmt == "%d%m%Y":
+        return "%d%m%Y"
+
+    assert fmt == "%m%d%y"
+    return "%m%d%Y"
+
+
+CRISPY_FORMS_DATE_INPUT_FORMAT = get_crispy_forms_date_input_format()
 
 
 def wait_until(fn: Callable[[], Any]) -> Any:
@@ -413,12 +481,12 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
         browser.find_element(By.ID, "id_quote_request_details")
 
     # He inputs a date into the inspection date field.
-    inspection_date_field.send_keys("02012021")
+    input_date = datetime.date(2021, 2, 1)
+    keys = input_date.strftime(CRISPY_FORMS_DATE_INPUT_FORMAT)
+    inspection_date_field.send_keys(keys)
 
     # He uploads a Quote invoice.
-    quote_invoice_field.send_keys(
-        "/app/marnies_maintenance_manager/functional_tests/test.pdf",
-    )
+    quote_invoice_field.send_keys(str(FUNCTIONAL_TESTS_DATA_DIR / "test.pdf"))
 
     # He clicks the "submit" button.
     submit_button.click()
@@ -600,9 +668,7 @@ def _bob_submits_deposit_pop(browser: WebDriver) -> None:
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
 
     # He uploads a Proof of Payment.
-    pop_field.send_keys(
-        "/app/marnies_maintenance_manager/functional_tests/test.pdf",
-    )
+    pop_field.send_keys(str(FUNCTIONAL_TESTS_DATA_DIR / "test.pdf"))
 
     # He clicks the "submit" button.
     submit_button.click()
@@ -648,7 +714,9 @@ def _marnie_completes_the_job(browser: WebDriver) -> None:
     assert job_date_input is not None
 
     # He enters the job completion date:
-    job_date_input.send_keys("03022021")
+    input_date = datetime.date(2021, 3, 2)
+    keys = input_date.strftime(CRISPY_FORMS_DATE_INPUT_FORMAT)
+    job_date_input.send_keys(keys)
 
     # He sees a field where he can input comments on the job.
     comments_input = browser.find_element(By.NAME, "comments")
@@ -666,9 +734,7 @@ def _marnie_completes_the_job(browser: WebDriver) -> None:
     assert invoice_input is not None
 
     # He uploads the invoice file:
-    invoice_input.send_keys(
-        "/app/marnies_maintenance_manager/functional_tests/test.pdf",
-    )
+    invoice_input.send_keys(str(FUNCTIONAL_TESTS_DATA_DIR / "test.pdf"))
 
     # He sees a "Submit" button and clicks it:
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")

@@ -18,7 +18,7 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
     browser: WebDriver,
     live_server_url: str,
     bob_agent_user: User,
-    marnie_user_client: User,
+    marnie_user: User,
 ) -> None:
     """Ensure a user can log in, create a job, and log out.
 
@@ -29,7 +29,7 @@ def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logo
         browser (WebDriver): The Selenium WebDriver.
         live_server_url (str): The URL of the live server.
         bob_agent_user (User): The user instance for Bob, who is an agent.
-        marnie_user_client (User): The user instance for Marnie, included for context.
+        marnie_user (User): The user instance for Marnie, included for context.
     """
     # The body of our logic is moved to a helper function, because we're going
     # to be re-using this logic a lot of times for other functional tests.

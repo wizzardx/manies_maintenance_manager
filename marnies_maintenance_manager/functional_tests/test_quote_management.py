@@ -7,6 +7,9 @@ perspective in the Marnie's Maintenance Manager application.
 
 # pylint: disable=unused-argument, magic-value-comparison
 
+from pathlib import Path
+
+import environ
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
@@ -27,6 +30,10 @@ from marnies_maintenance_manager.functional_tests.utils import (
     _update_job_with_inspection_date_and_quote,
 )
 from marnies_maintenance_manager.users.models import User
+
+FUNCTIONAL_TESTS_DATA_DIR = Path(__file__).resolve().parent
+
+env = environ.Env()
 
 
 def test_bob_can_reject_marnies_quote(
@@ -124,9 +131,7 @@ def test_after_rejection_marnie_can_resubmit_quote(
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
 
     # He uploads a new Quote invoice.
-    quote_invoice_field.send_keys(
-        "/app/marnies_maintenance_manager/functional_tests/test_2.pdf",
-    )
+    quote_invoice_field.send_keys(str(FUNCTIONAL_TESTS_DATA_DIR / "test_2.pdf"))
 
     # He clicks the "submit" button.
     submit_button.click()

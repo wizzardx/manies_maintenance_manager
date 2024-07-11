@@ -6,7 +6,7 @@ from typing import Any
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from marnies_maintenance_manager.jobs.utils import make_test_user
+from marnies_maintenance_manager.jobs.tests.utils import make_test_user
 from marnies_maintenance_manager.users.models import User
 
 logger = logging.getLogger(__name__)
