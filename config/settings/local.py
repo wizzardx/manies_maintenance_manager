@@ -1,6 +1,6 @@
-# ruff: noqa: E501
 """Django local development settings for Marnie's Maintenance Manager project."""
 
+# ruff: noqa: E501
 # pylint: disable=wildcard-import, unused-wildcard-import
 
 from typing import Any
