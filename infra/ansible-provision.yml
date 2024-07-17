@@ -1,0 +1,213 @@
+---
+- name: Perform local operations
+  hosts: localhost
+  vars:
+    images:
+      - name: marnies_maintenance_manager_{{ deploy_env }}_django
+        dockerfile: ./compose/{{ deploy_env }}/django/Dockerfile
+      - name: marnies_maintenance_manager_{{ deploy_env }}_postgres
+        dockerfile: ./compose/{{ deploy_env }}/postgres/Dockerfile
+      - name: marnies_maintenance_manager_{{ deploy_env }}_traefik
+        dockerfile: ./compose/{{ deploy_env }}/traefik/Dockerfile
+      - name: marnies_maintenance_manager_{{ deploy_env }}_nginx
+        dockerfile: ./compose/{{ deploy_env }}/nginx/Dockerfile
+
+  tasks:
+    - name: Build all Docker images using Docker Compose
+      ansible.builtin.command:
+        cmd: docker compose -f ../docker-compose.{{ deploy_env }}.yml build
+      delegate_to: localhost
+      register: build_images_result
+      changed_when: "'docker build' in build_images_result.stdout"
+
+    - name: Check if image ID file exists
+      stat:
+        path: "/tmp/{{ item.name }}-image-id.txt"
+      register: image_id_file
+      loop: "{{ images }}"
+      loop_control:
+        index_var: idx
+
+    - name: Get current image ID
+      ansible.builtin.command:
+        cmd: "docker inspect --format='{{ '{{' }} .Id {{ '}}' }}' {{ item.name }}"
+      register: image_id
+      loop: "{{ images }}"
+      delegate_to: localhost
+      loop_control:
+        index_var: idx
+
+    - name: Set default value for saved image ID if file does not exist
+      set_fact:
+        "saved_image_id_decoded_{{ item.name }}": ""
+      loop: "{{ images }}"
+      when: not image_id_file.results[idx].stat.exists
+      loop_control:
+        index_var: idx
+
+    - name: Initialize saved_image_id_decoded dict
+      set_fact:
+        saved_image_id_decoded: {}
+      when: image_id_file.results is defined and image_id_file.results | length > 0
+
+    - name: Read saved image ID
+      slurp:
+        src: "/tmp/{{ item.name }}-image-id.txt"
+      register: saved_image_id
+      loop: "{{ images }}"
+      when: image_id_file.results[idx].stat.exists
+      loop_control:
+        index_var: idx
+
+    - name: Decode saved image ID if file exists
+      set_fact:
+        "saved_image_id_decoded": "{{ saved_image_id_decoded | combine({item.name: (saved_image_id.results[idx].content | b64decode)}) }}"
+      loop: "{{ images }}"
+      when: image_id_file.results[idx].stat.exists
+      loop_control:
+        index_var: idx
+
+    - name: Export and compress container images locally
+      ansible.builtin.command:
+        cmd: |
+          rm -f /tmp/{{ item.name }}-img.tar.zst
+          docker save {{ item.name }} | zstd -19 -T0 -o /tmp/{{ item.name }}-img.tar.zst
+      loop: "{{ images }}"
+      when: saved_image_id_decoded[item.name] == '' or image_id.results[idx].stdout != saved_image_id_decoded[item.name]
+      delegate_to: localhost
+      loop_control:
+        index_var: idx
+      args:
+        _uses_shell: true
+
+    - name: Save current image ID to file
+      copy:
+        content: "{{ image_id.results[idx].stdout }}"
+        dest: "/tmp/{{ item.name }}-image-id.txt"
+      loop: "{{ images }}"
+      when: saved_image_id_decoded[item.name] == '' or image_id.results[idx].stdout != saved_image_id_decoded[item.name]
+      delegate_to: localhost
+      loop_control:
+        index_var: idx
+
+- name: Perform remote operations
+  hosts: "{{ deploy_env }}"
+  vars:
+    images:
+      - name: marnies_maintenance_manager_{{ deploy_env }}_django
+      - name: marnies_maintenance_manager_{{ deploy_env }}_postgres
+      - name: marnies_maintenance_manager_{{ deploy_env }}_traefik
+      - name: marnies_maintenance_manager_{{ deploy_env }}_nginx
+
+  tasks:
+    - name: Install Docker, Docker Compose, zstd, and rsync
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose
+          - zstd
+          - rsync
+        state: latest
+        update_cache: true
+      become: true
+
+    - name: Ensure /opt/docker directory exists
+      become: yes
+      become_user: root
+      file:
+        path: /opt/docker
+        state: directory
+        mode: '0755'
+
+    - name: Ensure /opt/docker/.envs/.{{ deploy_env }} directory exists
+      become: yes
+      become_user: root
+      file:
+        path: /opt/docker/.envs/.{{ deploy_env }}
+        state: directory
+        mode: '0755'
+
+    - name: Upload compressed images to server using rsync
+      ansible.builtin.synchronize:
+        src: "/tmp/{{ item.name }}-img.tar.zst"
+        dest: "/opt/docker/{{ item.name }}-img.tar.zst"
+        rsync_opts:
+          - "--compress"
+          - "--progress"
+      loop: "{{ images }}"
+      loop_control:
+        index_var: idx
+      become: yes
+      become_user: root
+
+    - name: Upload docker-compose.{{ deploy_env }}.yml to server
+      ansible.builtin.copy:
+        src: ../docker-compose.{{ deploy_env }}.yml
+        dest: /opt/docker/docker-compose.{{ deploy_env }}.yml
+      become: true
+
+    - name: Upload Django environment file
+      ansible.builtin.copy:
+        src: ../.envs/.{{ deploy_env }}/.django
+        dest: /opt/docker/.envs/.{{ deploy_env }}/.django
+      become: true
+
+    - name: Upload PostgreSQL environment file
+      ansible.builtin.copy:
+        src: ../.envs/.{{ deploy_env }}/.postgres
+        dest: /opt/docker/.envs/.{{ deploy_env }}/.postgres
+      become: true
+
+    - name: Remove existing tar files if they exist
+      ansible.builtin.command:
+        cmd: rm -f /opt/docker/{{ item.name }}-img.tar
+      loop: "{{ images }}"
+      become: true
+
+    - name: Decompress container images on server
+      ansible.builtin.command:
+        cmd: zstd -d /opt/docker/{{ item.name }}-img.tar.zst -o /opt/docker/{{ item.name }}-img.tar
+      loop: "{{ images }}"
+      become: true
+
+    - name: Load container images into Docker
+      ansible.builtin.command:
+        cmd: docker load -i /opt/docker/{{ item.name }}-img.tar
+      loop: "{{ images }}"
+      become: true
+
+    - name: Restart services using Docker Compose
+      ansible.builtin.command:
+        cmd: |
+          docker-compose -f /opt/docker/docker-compose.{{ deploy_env }}.yml down
+          docker-compose -f /opt/docker/docker-compose.{{ deploy_env }}.yml up -d
+      become: true
+      args:
+        _uses_shell: true
+
+    - name: Create systemd service for Docker Compose
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/docker-compose-app.service
+        content: |
+          [Unit]
+          Description=Docker Compose Application Service
+          Requires=docker.service
+          After=docker.service
+
+          [Service]
+          Restart=always
+          WorkingDirectory=/opt/docker
+          ExecStart=/usr/bin/docker-compose -f /opt/docker/docker-compose.{{ deploy_env }}.yml up
+          ExecStop=/usr/bin/docker-compose -f /opt/docker/docker-compose.{{ deploy_env }}.yml down
+          TimeoutStartSec=0
+
+          [Install]
+          WantedBy=multi-user.target
+      become: true
+
+    - name: Enable and start Docker Compose systemd service
+      ansible.builtin.systemd:
+        name: docker-compose-app
+        enabled: true
+        state: started
+      become: true

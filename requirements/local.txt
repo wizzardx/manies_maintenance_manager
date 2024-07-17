@@ -43,3 +43,9 @@ django-debug-toolbar==4.4.6  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==3.2.3  # https://github.com/django-extensions/django-extensions
 django-coverage-plugin==3.1.0  # https://github.com/nedbat/django_coverage_plugin
 pytest-django==4.8.0  # https://github.com/pytest-dev/pytest-django
+
+# Remote deployment via Ansible
+mitogen==0.3.7
+ansible==9.8.0
+ansible-core==2.16.9
+passlib==1.7.4

@@ -1,0 +1,61 @@
+volumes:
+  staging_postgres_data: {}
+  staging_postgres_data_backups: {}
+  staging_traefik: {}
+  staging_django_media: {}
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: ./compose/production/django/Dockerfile
+
+    image: marnies_maintenance_manager_staging_django
+    volumes:
+      - staging_django_media:/app/marnies_maintenance_manager/media
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - ./.envs/.staging/.django
+      - ./.envs/.staging/.postgres
+    environment:
+      - SENTRY_ENVIRONMENT=staging
+    command: /start
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: marnies_maintenance_manager_staging_postgres
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+      - staging_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.staging/.postgres
+
+  traefik:
+    build:
+      context: .
+      dockerfile: ./compose/staging/traefik/Dockerfile
+    image: marnies_maintenance_manager_staging_traefik
+    depends_on:
+      - django
+    volumes:
+      - staging_traefik:/etc/traefik/acme
+    ports:
+      - '0.0.0.0:80:80'
+      - '0.0.0.0:443:443'
+
+  redis:
+    image: docker.io/redis:6
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./compose/production/nginx/Dockerfile
+    image: marnies_maintenance_manager_staging_nginx
+    depends_on:
+      - django
+    volumes:
+      - staging_django_media:/usr/share/nginx/media:ro

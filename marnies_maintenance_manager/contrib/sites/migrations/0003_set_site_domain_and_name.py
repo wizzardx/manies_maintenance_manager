@@ -6,6 +6,7 @@ http://cookiecutter-django.readthedocs.io/en/latest/faq.html#why-is-there-a-djan
 
 from django.conf import settings
 from django.db import migrations
+import os
 
 
 def _update_or_create_site_with_sequence(site_model, connection, domain, name):
@@ -46,11 +47,16 @@ def _update_or_create_site_with_sequence(site_model, connection, domain, name):
 def update_site_forward(apps, schema_editor):
     """Set site domain and name."""
     Site = apps.get_model("sites", "Site")
+
+    # Fetch domain and name from environment variables or use defaults
+    domain = os.getenv("DJANGO_SITE_DOMAIN", "mmm.ar-ciel.org")
+    name = os.getenv("DJANGO_SITE_NAME", "Marnie's Maintenance Manager")
+
     _update_or_create_site_with_sequence(
         Site,
         schema_editor.connection,
-        "mmm.ar-ciel.org",
-        "Marnie's Maintenance Manager",
+        domain,
+        name,
     )
 
 
