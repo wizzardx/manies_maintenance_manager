@@ -175,6 +175,7 @@ typings/
 .idea/dictionaries
 .idea/inspectionProfiles
 .idea/codeStyles
+.idea/.name
 
 # Sensitive or high-churn files:
 .idea/**/dataSources/
