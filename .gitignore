@@ -335,3 +335,4 @@ marnies_maintenance_manager/media/
 .env
 .envs/*
 test_results.json
+build_context_files.txt
