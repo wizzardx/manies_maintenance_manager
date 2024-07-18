@@ -215,3 +215,10 @@
         enabled: true
         state: started
       become: true
+
+    - name: Run database migrations
+      ansible.builtin.command:
+        cmd: docker-compose -f /opt/docker/docker-compose.{{ deploy_env }}.yml run --rm django python manage.py migrate
+      become: true
+      args:
+        _uses_shell: true
