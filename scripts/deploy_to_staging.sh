@@ -1,23 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-while true; do
-    RETCODE=0
-    ssh -o StrictHostKeyChecking=no root@mmm-staging.ar-ciel.org whoami || RETCODE=$?
-    if [ $RETCODE -eq 0 ]; then
-        # Looks like the login test succeeded; so we can proceed further.
-        break;
-    elif [ $RETCODE -eq 255 ]; then
-        # This can occur when our known_hosts file does not match the server.
-        # This in turn can happen when we've re-created the droplet. Nuke our
-        # known_hosts entry as needed.
-        ssh-keygen -f "/home/david/.ssh/known_hosts" -R "mmm-staging.ar-ciel.org"
-    else
-        # Unknown return code
-        echo "Unknown return code $RETCODE from SSH!"
-        exit 1
-    fi
-done;
+FQDN=mmm-staging.ar-ciel.org
+ssh-keygen -f "/home/david/.ssh/known_hosts" -R "$FQDN"
+ssh -o StrictHostKeyChecking=no root@$FQDN echo ""
 
 # Setup the virtual env so that we have access to the correct versions of
 # ansible, mitogen, etc:
