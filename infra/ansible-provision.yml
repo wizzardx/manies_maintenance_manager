@@ -37,6 +37,15 @@
       loop_control:
         index_var: idx
 
+    - name: Initialize saved_image_id_decoded as an empty dictionary
+      set_fact:
+        saved_image_id_decoded: {}
+
+    - name: Initialize saved_image_id_decoded dict with default values
+      set_fact:
+        "saved_image_id_decoded": "{{ saved_image_id_decoded | combine({item.name: ''}) }}"
+      loop: "{{ images }}"
+
     - name: Set default value for saved image ID if file does not exist
       set_fact:
         "saved_image_id_decoded_{{ item.name }}": ""
@@ -44,11 +53,6 @@
       when: not image_id_file.results[idx].stat.exists
       loop_control:
         index_var: idx
-
-    - name: Initialize saved_image_id_decoded dict
-      set_fact:
-        saved_image_id_decoded: {}
-      when: image_id_file.results is defined and image_id_file.results | length > 0
 
     - name: Read saved image ID
       slurp:
