@@ -193,7 +193,7 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
             expected_logged_error,
         )
 
-    def test_error_flash_when_agent_user_has_no_email_address(  # noqa: PLR0913
+    def test_error_flash_when_agent_user_has_no_email_address(
         self,
         bob_agent_user_client: Client,
         bob_agent_user: User,
@@ -231,7 +231,7 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
             expected_logged_error,
         )
 
-    def test_error_flash_when_marnie_user_has_no_email_address(  # noqa: PLR0913
+    def test_error_flash_when_marnie_user_has_no_email_address(
         self,
         bob_agent_user_client: Client,
         bob_agent_user: User,
@@ -270,7 +270,7 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
             expected_logged_error,
         )
 
-    def test_error_flash_when_agent_user_email_address_not_verified(  # noqa: PLR0913
+    def test_error_flash_when_agent_user_email_address_not_verified(
         self,
         bob_agent_user_without_verified_email_client: Client,
         bob_agent_user_without_verified_email: User,
