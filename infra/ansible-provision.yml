@@ -104,13 +104,15 @@
       - name: marnies_maintenance_manager_{{ deploy_env }}_nginx
 
   tasks:
-    - name: Install Docker, Docker Compose, zstd, and rsync
+    - name: Install Docker, Docker Compose, zstd, rsync, rsyslog, and logrotate
       ansible.builtin.apt:
         name:
           - docker.io
           - docker-compose
           - zstd
           - rsync
+          - rsyslog
+          - logrotate
         state: latest
         update_cache: true
       become: true
@@ -160,6 +162,12 @@
       ansible.builtin.copy:
         src: ../.envs/.{{ deploy_env }}/.postgres
         dest: /opt/docker/.envs/.{{ deploy_env }}/.postgres
+      become: true
+
+    - name: Upload Testing environment file
+      ansible.builtin.copy:
+        src: ../.envs/.{{ deploy_env }}/.testing
+        dest: /opt/docker/.envs/.{{ deploy_env }}/.testing
       become: true
 
     - name: Remove existing tar files if they exist
@@ -222,3 +230,38 @@
       become: true
       args:
         _uses_shell: true
+
+    - name: Ensure cron job for database backups is present
+      cron:
+        name: "Daily Docker Compose Postgres Backup"
+        user: root
+        job: "docker-compose -f /opt/docker/docker-compose.{{ deploy_env }}.yml exec -T postgres backup"
+        minute: "0"
+        hour: "2"
+        state: present
+
+    - name: Ensure rsyslog service is running
+      ansible.builtin.service:
+        name: rsyslog
+        state: started
+        enabled: true
+      become: true
+
+    - name: Configure logrotate for traditional log files
+      ansible.builtin.copy:
+        dest: /etc/logrotate.d/custom_logs
+        content: |
+          /var/log/*.log {
+              daily
+              rotate 14
+              compress
+              delaycompress
+              missingok
+              notifempty
+              create 0640 root utmp
+              sharedscripts
+              postrotate
+                  /usr/lib/rsyslog/rsyslog-rotate
+              endscript
+          }
+      become: true
