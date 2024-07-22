@@ -8,7 +8,6 @@ from collections.abc import Generator
 from contextlib import contextmanager
 
 import environ
-import pytest
 
 from marnies_maintenance_manager.jobs.utils import get_test_user_password
 from marnies_maintenance_manager.users.models import User
@@ -52,6 +51,8 @@ def suppress_fastdev_strict_if_deprecation_warning(
          None: The context manager does not return anything.
     """
     if deprecation_warnings_expected:
+        import pytest  # pylint: disable=import-outside-toplevel
+
         with pytest.warns(
             DeprecationWarning,
             match="set FASTDEV_STRICT_IF in settings, and use {% ifexists %} "
