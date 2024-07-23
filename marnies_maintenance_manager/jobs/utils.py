@@ -33,6 +33,7 @@ from .exceptions import MultipleMarnieUsersError
 from .exceptions import NoSystemAdministratorUserError
 
 env = environ.Env()
+
 logger = logging.getLogger(__name__)
 
 
