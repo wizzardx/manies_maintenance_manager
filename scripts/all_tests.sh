@@ -169,6 +169,9 @@ fi
 if [ $NUM_ERRORS -eq 0 ]; then
     echo "There were no previous errors. Deploying to staging...."
     scripts/deploy_to_staging.sh || handle_error
+
+    echo "Running headless functional tests against staging..."
+    scripts/functional_tests_against_staging_environment.sh
 else
     echo "There were errors earlier. Not deploying to staging"
 fi
