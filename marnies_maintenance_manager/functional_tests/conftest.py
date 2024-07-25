@@ -44,7 +44,9 @@ def _get_full_window_chrome_browser() -> WebDriver:
     Returns:
         WebDriver: A WebDriver instance for use in tests.
     """
-    driver = webdriver.Chrome()
+    options = Options()
+    options.add_argument("--headless=new")
+    driver = webdriver.Chrome(options=options)
 
     # Get the screen resolution
 
