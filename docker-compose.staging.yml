@@ -35,6 +35,8 @@ services:
       - staging_postgres_data_backups:/backups
     env_file:
       - ./.envs/.staging/.postgres
+    ports:
+      - '0.0.0.0:5432:5432'
 
   traefik:
     build:

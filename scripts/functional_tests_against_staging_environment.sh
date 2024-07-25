@@ -40,7 +40,7 @@ VENV_DIR=$(scripts/print_venv_dir.sh)
 source "$VENV_DIR/bin/activate"
 
 echo "Preparing pytest command..."
-export TEST_SERVER=localhost:8000
+export TEST_SERVER=mmm-staging.ar-ciel.org:80
 
 TEST_USER_PASSWORD=$(grep ^TEST_USER_PASSWORD ./.envs/.test/.testing | awk -F '=' '{print $2}')
 export TEST_USER_PASSWORD
@@ -58,7 +58,7 @@ if [ "$STOP_ON_FIRST_ERROR" == "yes" ]; then
     CMD+=("--maxfail=1")
 fi
 
-DATABASE_URL=$(grep ^DATABASE_URL ./.envs/.staging/.postgres | awk -F '=' '{print $2}')
+DATABASE_URL=$(grep ^REMOTE_DATABASE_URL ./.envs/.staging/.postgres | awk -F '=' '{print $2}')
 export DATABASE_URL
 
 export DATABASE_IS_EXISTING_EXTERNAL=True
