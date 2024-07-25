@@ -32,12 +32,17 @@ LOCAL_ALREADY_INSTALLED_MARKER_FILE="$VENV_DIR/.local_already_installed_${LOCAL_
 BASE_TXT_MD5=$(md5sum requirements/base.txt | awk '{print $1}')
 BASE_ALREADY_INSTALLED_MARKER_FILE="$VENV_DIR/.base_already_installed_${BASE_TXT_MD5}"
 
-# Only run Pip to install software if this is a new venv (the marker file does not
-# exist), or the user made changes to the "local.txt" or "base.txt" file (the marker
-# file md5sum markers are now out of date).
-if [[ ! -f "$LOCAL_ALREADY_INSTALLED_MARKER_FILE" || ! -f "$BASE_ALREADY_INSTALLED_MARKER_FILE" ]]; then
+# Do the same for the requirements/production.txt file:
+PRODUCTION_TXT_MD5=$(md5sum requirements/production.txt | awk '{print $1}')
+PRODUCTION_ALREADY_INSTALLED_MARKER_FILE="$VENV_DIR/.production_already_installed_${PRODUCTION_TXT_MD5}"
+
+# Only run Pip to install software if this is a new venv (the marker file does
+# not exist), or the user made changes to the "local.txt", "base.txt", or
+# "production.txt" file (the marker file md5sum markers are now out of date).
+if [[ ! -f "$LOCAL_ALREADY_INSTALLED_MARKER_FILE" || ! -f "$BASE_ALREADY_INSTALLED_MARKER_FILE"  || ! -f "$PRODUCTION_ALREADY_INSTALLED_MARKER_FILE" ]]; then
     log "Installing dependencies..."
     python -m pip install -r requirements/local.txt
     touch "$LOCAL_ALREADY_INSTALLED_MARKER_FILE"
     touch "$BASE_ALREADY_INSTALLED_MARKER_FILE"
+    touch "$PRODUCTION_ALREADY_INSTALLED_MARKER_FILE"
 fi
