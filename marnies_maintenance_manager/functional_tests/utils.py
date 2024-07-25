@@ -366,6 +366,11 @@ def _create_new_job(
         "Please fix the leaky faucet in the staff bathroom",
     )
 
+    # Scroll the page down to bring the Submit button into view if it is not already:
+    browser.execute_script(  # type: ignore[no-untyped-call]
+        "window.scrollTo(0, document.body.scrollHeight);",
+    )
+
     # He clicks the Submit button
     wait_until(submit_button.click)
 
