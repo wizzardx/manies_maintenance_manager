@@ -51,6 +51,7 @@ CMD=(
         --doctest-modules
         --reuse-db
         --no-migrations
+        --save_screenshots
 )
 
 # If STOP_ON_FIRST_ERROR is set, then fail after the firset error.

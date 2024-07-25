@@ -30,8 +30,9 @@ RETCODE=0
 # Reminder: Google Chrome can be seen in a local VNC client like Remmina, on
 # port 5900, with password 'secret'.
 CMD=(
-    docker compose -f docker-compose.local.yml exec django pytest \
+    docker compose -f docker-compose.local.yml exec django pytest
         marnies_maintenance_manager/functional_tests --doctest-modules
+        --save_screenshots
 )
 
 # If STOP_ON_FIRST_ERROR is set, then fail after the firset error.

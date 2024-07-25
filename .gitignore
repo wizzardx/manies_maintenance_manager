@@ -336,3 +336,4 @@ marnies_maintenance_manager/private-media/
 .envs/*
 test_results.json
 build_context_files.txt
+screenshots/
