@@ -3,6 +3,9 @@
 # ruff: noqa: PLR0913
 # pylint: disable=too-many-arguments
 
+import logging
+
+import environ
 from django.core.mail import EmailMessage
 from django.db.models.fields.files import FieldFile
 from django.http import HttpRequest
@@ -12,6 +15,11 @@ from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.utils import generate_email_body
 from marnies_maintenance_manager.jobs.utils import get_marnie_email
 from marnies_maintenance_manager.jobs.utils import safe_read
+
+env = environ.Env()
+SKIP_EMAIL_SEND = env.bool("SKIP_EMAIL_SEND", default=False)
+
+logger = logging.getLogger(__name__)
 
 
 def send_quote_update_email(
@@ -76,6 +84,8 @@ def send_job_email_with_attachment(
     email_to: str,
     email_cc: str,
     uploaded_file: FieldFile,
+    *,
+    skip_email_send: bool = SKIP_EMAIL_SEND,
 ) -> None:
     """Prepare and send an email with an attachment for a Maintenance Job.
 
@@ -85,7 +95,8 @@ def send_job_email_with_attachment(
         email_from (str): The email from address.
         email_to (str): The email to address.
         email_cc (str): The email cc address.
-        uploaded_file: The file to be attached to the email.
+        uploaded_file (FieldFile): The file to be attached to the email.
+        skip_email_send (bool): Flag to indicate if the email should not be sent.
     """
     email = EmailMessage(
         subject=email_subject,
@@ -98,4 +109,19 @@ def send_job_email_with_attachment(
     with safe_read(uploaded_file):
         email.attach(uploaded_file.name, uploaded_file.read(), "application/pdf")
 
-    email.send()
+    if not skip_email_send:
+        email.send()
+    else:
+        logger.info(
+            "Skipping email send. Would have sent the following email:\n\n"
+            "Subject: %s\n\n"
+            "Body: %s\n\n"
+            "From: %s\n\n"
+            "To: %s\n\n"
+            "CC: %s\n\n",
+            email_subject,
+            email_body,
+            email_from,
+            email_to,
+            email_cc,
+        )

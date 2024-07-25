@@ -2,6 +2,8 @@
 
 # pylint: disable=magic-value-comparison,no-self-use,unused-argument,too-many-arguments
 
+from unittest.mock import patch
+
 import pytest
 from bs4 import BeautifulSoup
 from django.contrib.messages.storage.base import Message
@@ -553,3 +555,50 @@ def test_agent_creating_job_causes_email_to_be_sent(
         "PS: This mail is sent from an unmonitored email address. "
         "Please do not reply to this email." in email.body
     )
+
+
+def test_form_valid_with_skip_email_send(
+    bob_agent_user_client: Client,
+    bob_agent_user: User,
+    marnie_user: User,
+) -> None:
+    """Test that no email is sent when skip_email_send is set to True.
+
+    Args:
+        bob_agent_user_client (Client): A test client configured for Bob, an agent user.
+        bob_agent_user (User): Bob's user instance, used for validation in this test.
+        marnie_user (User): Marnie's user instance, used for validation in this test.
+    """
+    # Patch the SKIP_EMAIL_SEND to True
+    with patch(
+        "marnies_maintenance_manager.jobs.views.job_create_view.SKIP_EMAIL_SEND",
+        new=True,
+    ):
+        response = bob_agent_user_client.post(
+            reverse("jobs:job_create"),
+            {
+                "date": "2021-01-01",
+                "address_details": "1234 Main St, Springfield, IL",
+                "gps_link": "https://maps.app.goo.gl/mXfDGVfn1dhZDxJj7",
+                "quote_request_details": "Replace the kitchen sink",
+            },
+            follow=True,
+        )
+
+        # Check the response
+        assert response.status_code == status.HTTP_200_OK
+        assert response.redirect_chain == [("/jobs/", 302)]
+
+        # Ensure no email was sent
+        num_mails_sent = len(mail.outbox)
+        assert num_mails_sent == 0
+
+        # Check that the success message was displayed
+        messages = list(response.context["messages"])
+        assert len(messages) == 1
+        flashed_message = messages[0]
+        assert (
+            flashed_message.message
+            == "Your maintenance request has been sent to Marnie."
+        )
+        assert flashed_message.level_tag == "success"

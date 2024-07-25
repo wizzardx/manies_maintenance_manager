@@ -1,8 +1,10 @@
 """Tests for the utility functions in the "jobs" app."""
 
 # pylint: disable=no-self-use, magic-value-comparison, redefined-outer-name
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument, too-many-arguments
+# ruff: noqa: PLR0913
 
+import logging
 import re
 import warnings
 from unittest import mock
@@ -11,13 +13,16 @@ import pytest
 import pytest_mock
 from _pytest.monkeypatch import MonkeyPatch  # pylint: disable=import-private-name
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.fields.files import FieldFile
 from django.http import HttpRequest
+from django.http.response import HttpResponseRedirect
 
 from marnies_maintenance_manager.jobs import exceptions
 from marnies_maintenance_manager.jobs import utils
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests import utils as test_utils
 from marnies_maintenance_manager.jobs.utils import safe_read
+from marnies_maintenance_manager.jobs.views.utils import send_job_email_with_attachment
 from marnies_maintenance_manager.jobs.views.utils import send_quote_update_email
 from marnies_maintenance_manager.users.models import User
 
@@ -271,7 +276,10 @@ def job() -> Job:
     Returns:
         Job: A mock of the Job object.
     """
-    return mock.Mock(spec=Job)
+    job = mock.Mock(spec=Job)
+    job.status = Job.Status.INSPECTION_COMPLETED.value
+    job.get_absolute_url.return_value = "/job-detail-url/"
+    return job
 
 
 @pytest.fixture()
@@ -281,7 +289,11 @@ def http_request() -> HttpRequest:
     Returns:
         HttpRequest: A mock of the HttpRequest object.
     """
-    return mock.Mock(spec=HttpRequest)
+    request = mock.Mock(spec=HttpRequest)
+    request.user = mock.Mock(spec=User)
+    request.method = "POST"
+    request.build_absolute_uri.return_value = "http://example.com/job-detail-url/"
+    return request
 
 
 @mock.patch("marnies_maintenance_manager.jobs.views.utils.EmailMessage")
@@ -340,6 +352,43 @@ def test_send_quote_update_email(
     mock_email_instance.send.assert_called_once()
 
     assert result == "agent_username"
+
+
+def test_send_job_email_with_attachment_skip_send(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test send_job_email_with_attachment when skip_email_send is True.
+
+    Args:
+        caplog (pytest.LogCaptureFixture): Fixture to capture log outputs.
+    """
+    email_subject = "Test Subject"
+    email_body = "Test Body"
+    email_from = "test_from@example.com"
+    email_to = "test_to@example.com"
+    email_cc = "test_cc@example.com"
+
+    uploaded_file = mock.Mock(spec=FieldFile)
+    uploaded_file.name = "test.pdf"
+    uploaded_file.read.return_value = b"PDF content"
+
+    with caplog.at_level(logging.INFO):
+        send_job_email_with_attachment(
+            email_subject,
+            email_body,
+            email_from,
+            email_to,
+            email_cc,
+            uploaded_file,
+            skip_email_send=True,
+        )
+
+    assert "Skipping email send. Would have sent the following email:" in caplog.text
+    assert email_subject in caplog.text
+    assert email_body in caplog.text
+    assert email_from in caplog.text
+    assert email_to in caplog.text
+    assert email_cc in caplog.text
 
 
 class TestSafeRead:
@@ -432,3 +481,55 @@ class TestSuppressFastdevStrictIfDeprecationWarning:
                     stacklevel=2,
                 )
             assert len(record) == 1
+
+
+@pytest.mark.django_db()
+@mock.patch("marnies_maintenance_manager.jobs.utils.get_object_or_404")
+@mock.patch("marnies_maintenance_manager.jobs.utils.get_marnie_email")
+@mock.patch("marnies_maintenance_manager.jobs.utils.generate_email_body")
+@mock.patch("marnies_maintenance_manager.jobs.utils.messages.success")
+def test_quote_accept_or_reject_skip_email_send(
+    mock_messages_success: mock.Mock,
+    mock_generate_email_body: mock.Mock,
+    mock_get_marnie_email: mock.Mock,
+    mock_get_object_or_404: mock.Mock,
+    http_request: HttpRequest,
+    job: Job,
+) -> None:
+    """Test quote_accept_or_reject function with skip_email_send=True.
+
+    Args:
+        mock_messages_success (mock.Mock): Mock of the messages.success function.
+        mock_generate_email_body (mock.Mock): Mock of the generate_email_body function.
+        mock_get_marnie_email (mock.Mock): Mock of the get_marnie_email function.
+        mock_get_object_or_404 (mock.Mock): Mock of the get_object_or_404 function.
+        http_request (HttpRequest): A mock of the HttpRequest object.
+        job (Job): A mock of the Job object.
+    """
+    # Arrange
+    mock_get_object_or_404.return_value = job
+    mock_get_marnie_email.return_value = "marnie@example.com"
+    mock_generate_email_body.return_value = "Generated email body"
+
+    http_request.user.is_superuser = True
+    http_request.method = "POST"
+
+    # Act
+    response = utils.quote_accept_or_reject(
+        http_request,
+        job.pk,
+        accepted=True,
+        skip_email_send=True,
+    )
+
+    # Assert
+    mock_get_object_or_404.assert_called_once_with(Job, pk=job.pk)
+    assert job.status == Job.Status.QUOTE_ACCEPTED_BY_AGENT.value
+    assert job.accepted_or_rejected == Job.AcceptedOrRejected.ACCEPTED.value
+    job.save.assert_called_once()  # type: ignore[attr-defined]
+    mock_messages_success.assert_called_once_with(
+        http_request,
+        "Quote accepted. An email has been sent to Marnie.",
+    )
+    assert isinstance(response, HttpResponseRedirect)
+    assert response.url == job.get_absolute_url()

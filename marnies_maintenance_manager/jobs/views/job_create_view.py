@@ -3,6 +3,7 @@
 import logging
 from typing import Any
 
+import environ
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -22,6 +23,9 @@ from marnies_maintenance_manager.jobs.utils import get_marnie_email
 from marnies_maintenance_manager.jobs.utils import get_sysadmin_email
 from marnies_maintenance_manager.jobs.utils import user_has_verified_email_address
 from marnies_maintenance_manager.users.models import User
+
+env = environ.Env()
+SKIP_EMAIL_SEND = env.bool("SKIP_EMAIL_SEND", default=False)
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +165,10 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
         form.fields["date"].widget = forms.DateInput(attrs={"type": "date"})
         return form
 
-    def form_valid(self, form: Any) -> HttpResponse:
+    def form_valid(  # pylint: disable=too-complex
+        self,
+        form: Any,
+    ) -> HttpResponse:
         """Set the agent field to the current user before saving the form.
 
         Args:
@@ -259,7 +266,23 @@ class JobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # typ
             to=[email_to],
             cc=[email_cc],
         )
-        email.send()
+
+        if not SKIP_EMAIL_SEND:
+            email.send()
+        else:
+            logger.info(
+                "Skipping email send. Would have sent the following email:\n\n"
+                "Subject: %s\n\n"
+                "Body: %s\n\n"
+                "From: %s\n\n"
+                "To: %s\n\n"
+                "CC: %s\n\n",
+                email_subject,
+                email_body,
+                email_from,
+                email_to,
+                email_cc,
+            )
 
         # And send the success flash message to the user:
         messages.success(

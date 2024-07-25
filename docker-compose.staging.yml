@@ -22,6 +22,7 @@ services:
       - ./.envs/.staging/.testing
     environment:
       - SENTRY_ENVIRONMENT=staging
+      - SKIP_EMAIL_SEND=True
     command: /start
 
   postgres:

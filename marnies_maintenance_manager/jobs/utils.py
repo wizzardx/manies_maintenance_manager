@@ -33,6 +33,7 @@ from .exceptions import MultipleMarnieUsersError
 from .exceptions import NoSystemAdministratorUserError
 
 env = environ.Env()
+SKIP_EMAIL_SEND = env.bool("SKIP_EMAIL_SEND", default=False)
 
 logger = logging.getLogger(__name__)
 
@@ -194,6 +195,7 @@ def quote_accept_or_reject(
     pk: UUID,
     *,
     accepted: bool,
+    skip_email_send: bool = SKIP_EMAIL_SEND,
 ) -> HttpResponse:
     """Accept or reject the quote for a specific Maintenance Job.
 
@@ -201,6 +203,7 @@ def quote_accept_or_reject(
          request (HttpRequest): The HTTP request.
          pk (UUID): The primary key of the Job instance.
          accepted (bool): True if the quote is accepted, False if it is rejected.
+         skip_email_send (bool): If True, skip sending the email.
 
     Returns:
          HttpResponse: The HTTP response.
@@ -281,7 +284,22 @@ def quote_accept_or_reject(
     )
 
     # Send the mail:
-    email.send()
+    if not skip_email_send:
+        email.send()
+    else:
+        logger.info(
+            "Skipping email send. Would have sent the following email:\n\n"
+            "Subject: %s\n\n"
+            "Body: %s\n\n"
+            "From: %s\n\n"
+            "To: %s\n\n"
+            "CC: %s\n\n",
+            email_subject,
+            email_body,
+            email_from,
+            email_to,
+            email_cc,
+        )
 
     # Send a success flash message to the user:
     messages.success(request, f"Quote {verb}ed. An email has been sent to Marnie.")
