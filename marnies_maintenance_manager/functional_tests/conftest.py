@@ -108,7 +108,7 @@ def _clear_local_media_dir() -> None:
                 file.unlink()
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True)
 def _tidy_test_records(
     django_db_blocker: DjangoDbBlocker,
 ) -> Generator[None, None, None]:
