@@ -21,3 +21,4 @@ django-crispy-forms==2.3  # https://github.com/django-crispy-forms/django-crispy
 crispy-bootstrap5==2024.2  # https://github.com/django-crispy-forms/crispy-bootstrap5
 django-redis==5.4.0  # https://github.com/jazzband/django-redis
 django-zen-queries==2.1.0  # https://github.com/dabapps/django-zen-queries
+django-private-storage==3.1.1  # https://github.com/edoburu/django-private-storage

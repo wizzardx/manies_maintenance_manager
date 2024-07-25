@@ -9,8 +9,6 @@
         dockerfile: ./compose/{{ deploy_env }}/postgres/Dockerfile
       - name: marnies_maintenance_manager_{{ deploy_env }}_traefik
         dockerfile: ./compose/{{ deploy_env }}/traefik/Dockerfile
-      - name: marnies_maintenance_manager_{{ deploy_env }}_nginx
-        dockerfile: ./compose/{{ deploy_env }}/nginx/Dockerfile
 
   tasks:
     - name: Build all Docker images using Docker Compose
@@ -101,7 +99,6 @@
       - name: marnies_maintenance_manager_{{ deploy_env }}_django
       - name: marnies_maintenance_manager_{{ deploy_env }}_postgres
       - name: marnies_maintenance_manager_{{ deploy_env }}_traefik
-      - name: marnies_maintenance_manager_{{ deploy_env }}_nginx
 
   tasks:
     - name: Install Docker, Docker Compose, zstd, rsync, rsyslog, and logrotate

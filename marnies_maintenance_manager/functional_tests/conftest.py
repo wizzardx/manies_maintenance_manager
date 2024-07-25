@@ -88,12 +88,17 @@ def _delete_ft_test_data() -> None:
 def _clear_local_media_dir() -> None:
     # Clear the local media directory
     # I don't like files like this collecting locally:
-    # ./ marnies_maintenance_manager / media / quotes / Discovery_PMB_2024_1.pdf
-    # ./ marnies_maintenance_manager / media / quotes / test_5fc6fj3.pdf
-    # ./ marnies_maintenance_manager / media / quotes / test.pdf
-    # ./ marnies_maintenance_manager / media / quotes / test_WRv04By.pdf
-    # ./ marnies_maintenance_manager / media / quotes / test_FdO9dtI.pdf
-    base_media_dir = Path("marnies_maintenance_manager/media")
+    # ./ marnies_maintenance_manager / private-media / quotes /
+    #        Discovery_PMB_2024_1.pdf
+    # ./ marnies_maintenance_manager / private-media / quotes /
+    #        test_5fc6fj3.pdf
+    # ./ marnies_maintenance_manager / private-media / quotes /
+    #        test.pdf
+    # ./ marnies_maintenance_manager / private-media / quotes /
+    #        test_WRv04By.pdf
+    # ./ marnies_maintenance_manager / private-media / quotes /
+    #        test_FdO9dtI.pdf
+    base_media_dir = Path("marnies_maintenance_manager/private-media")
     for media_type_dir in base_media_dir.iterdir():
         for file in media_type_dir.iterdir():
             # Only remove files with 'test' in the name - those are probably

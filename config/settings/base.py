@@ -163,6 +163,15 @@ MEDIA_ROOT = str(APPS_DIR / "media")
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = "/media/"
 
+# Private files
+
+INSTALLED_APPS += ("private_storage",)
+PRIVATE_STORAGE_ROOT = str(APPS_DIR / "private-media")
+PRIVATE_STORAGE_AUTH_FUNCTION = (
+    "marnies_maintenance_manager.jobs.permissions.private_media_permissions"
+)
+
+
 # TEMPLATES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#templates

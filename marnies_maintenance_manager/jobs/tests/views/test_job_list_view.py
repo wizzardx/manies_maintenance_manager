@@ -16,8 +16,13 @@ from typeguard import check_type
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
 
-HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD = (
-    '<a href="/media/final_payment_pops/test.pdf">Download Final Payment POP</a>'
+HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE_START = '<a href="'
+HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE_END = '">Download Final Payment POP</a>'
+
+HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE = (
+    HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE_START
+    + "{url}"
+    + HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE_END
 )
 
 
@@ -549,7 +554,10 @@ def test_download_link_is_present_when_final_payment_pop_is_set(
         bob_agent_user.username,
     )
     assert bob_job_with_final_payment_pop.final_payment_pop
-    assert HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD in response.content.decode()
+    expected_html = HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE.format(
+        url=bob_job_with_final_payment_pop.final_payment_pop.url,
+    )
+    assert expected_html in response.content.decode()
 
 
 def get_job_list_response(
@@ -592,7 +600,10 @@ def test_download_link_is_not_present_when_final_payment_pop_is_not_set(
     )
     assert bob_job_completed_by_marnie in job_list
     assert not bob_job_completed_by_marnie.final_payment_pop
-    assert HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD not in response.content.decode()
+    assert (
+        HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE_END
+        not in response.content.decode()
+    )
 
 
 class TestTipShownForAllUsersIfThereAreAnyJobsListed:

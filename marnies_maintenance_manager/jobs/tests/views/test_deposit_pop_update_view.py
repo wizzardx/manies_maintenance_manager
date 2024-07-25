@@ -261,7 +261,9 @@ def test_uploading_a_pdf_updates_the_model(
     job.refresh_from_db()
 
     # Check that the deposit_proof_of_payment field is now set:
-    assert job.deposit_proof_of_payment.name == "deposit_pops/test.pdf"
+    name = job.deposit_proof_of_payment.name  # eg: "deposit_pops/test_Sj1Eix1.pdf"
+    assert name.startswith("deposit_pops/test")
+    assert name.endswith(".pdf")
 
     with safe_read(job.deposit_proof_of_payment, test_pdf):
         assert job.deposit_proof_of_payment.read() == test_pdf.read()

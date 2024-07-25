@@ -233,7 +233,9 @@ def test_view_has_invoice_field(
     # Refresh the Maintenance Job from the database, and then check the updated
     # record:
     bob_job_with_deposit_pop.refresh_from_db()
-    assert bob_job_with_deposit_pop.invoice.name == "invoices/test.pdf"
+    name = bob_job_with_deposit_pop.invoice.name  # eg: "invoices/test_me0lP9l.pdf"
+    assert name.startswith("invoices/test_")
+    assert name.endswith(".pdf")
 
 
 def test_view_has_comments_field(

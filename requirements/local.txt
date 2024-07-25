@@ -19,6 +19,7 @@ pytest-xdist==3.6.1  # https://github.com/pytest-dev/pytest-xdist
 pytest-order==1.2.1  # https://github.com/pytest-dev/pytestf-order
 pytest-mock==3.14.0  # https://github.com/pytest-dev/pytest-mock
 pyautogui==0.9.54  # https://github.com/asweigart/pyautogui
+types-requests==2.32.0.20240712  # https://github.com/python/typeshed
 
 # Documentation
 # ------------------------------------------------------------------------------

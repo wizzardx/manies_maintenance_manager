@@ -16,9 +16,15 @@ from marnies_maintenance_manager.jobs.tests.views.utils import (
     check_basic_page_html_structure,
 )
 
-HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD = (
-    '<strong>Final Payment POP:</strong> <a href="/media/final_payment_pops/test.pdf">'
-    "Download Final Payment POP</a>"
+HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE_START = (
+    '<strong>Final Payment POP:</strong> <a href="'
+)
+HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE_END = '">Download Final Payment POP</a>'
+
+HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE = (
+    HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE_START
+    + "{url}"
+    + HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE_END
 )
 
 
@@ -219,7 +225,10 @@ def test_final_payment_pop_download_link_present_when_agent_submitted_final_pop(
     page = get_job_detail_page(bob_agent_user_client, job)
 
     # Make sure that the link to update the Final Payment POP is in the page:
-    assert HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD in page
+    expected_html = HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE.format(
+        url=job.final_payment_pop.url,
+    )
+    assert expected_html in page
 
 
 def test_final_payment_pop_download_link_missing_when_not_yet_submitted(
@@ -237,4 +246,4 @@ def test_final_payment_pop_download_link_missing_when_not_yet_submitted(
     page = get_job_detail_page(bob_agent_user_client, job)
 
     # Make sure that the link to update the Final Payment POP is not in the page:
-    assert HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD not in page
+    assert HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE_START not in page

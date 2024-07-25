@@ -328,7 +328,7 @@ tags
 dump.rdb
 
 ### Project template
-marnies_maintenance_manager/media/
+marnies_maintenance_manager/private-media/
 
 .pytest_cache/
 .ipython/

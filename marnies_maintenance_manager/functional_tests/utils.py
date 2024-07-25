@@ -8,6 +8,7 @@ job entries.
 """
 
 # pylint: disable=unused-argument, magic-value-comparison
+# ruff: noqa: ERA001
 
 import datetime
 import re
@@ -443,7 +444,7 @@ def _sign_in_as_marnie_and_navigate_to_job_details(browser: WebDriver) -> None:
     number_link.click()
 
 
-def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
+def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> dict[str, str]:
     # Marnie logs into the system and navigates through to the detail page of the job
     _sign_in_as_marnie_and_navigate_to_job_details(browser)
 
@@ -512,12 +513,20 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> None:
     download_url = quote_link.get_attribute("href")
     assert isinstance(download_url, str)
 
-    ## Example href value:
-    ## 'http://django:41507/media/quotes/test.pdf
-    assert download_url.endswith("/media/quotes/test.pdf")
+    ## Example href values:
+    ## - 'http://django:41507/protected_media/quotes/test.pdf'
+    ## - 'https://mmm-staging.ar-ciel.org/protected_media/quotes/test_oMjXoTi.pdf'
+    ## - 'http://django:47053/private-media/quotes/test_4labiyd.pdf'
+    assert "/private-media/quotes/test" in download_url
+    assert download_url.endswith(".pdf")
 
     ## Sign out and tidy up cookies:
     _sign_out_of_website_and_clean_up(browser)
+
+    # Return quote_download url to the caller:
+    return {
+        "quote_download_url": download_url,
+    }
 
 
 def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
@@ -765,7 +774,12 @@ def _marnie_completes_the_job(browser: WebDriver) -> None:
     invoice_link = browser.find_element(By.LINK_TEXT, "Download Invoice")
     assert invoice_link is not None
     assert "Download Invoice" in invoice_link.text
-    assert "test.pdf" in check_type(invoice_link.get_attribute("href"), str)
+    href = check_type(invoice_link.get_attribute("href"), str)
+
+    # Example href value:
+    #   'http://django:36549/private-media/invoices/test_iaW5hcE.pdf'
+    assert "/private-media/invoices/test" in href
+    assert href.endswith(".pdf")
 
     # He sees the comments he entered earlier:
     comments = browser.find_element(By.CLASS_NAME, "comments")

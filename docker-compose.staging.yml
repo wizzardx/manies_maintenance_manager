@@ -2,7 +2,7 @@ volumes:
   staging_postgres_data: {}
   staging_postgres_data_backups: {}
   staging_traefik: {}
-  staging_django_media: {}
+  staging_django_private_media: {}
 
 services:
   django:
@@ -12,7 +12,7 @@ services:
 
     image: marnies_maintenance_manager_staging_django
     volumes:
-      - staging_django_media:/app/marnies_maintenance_manager/media
+      - staging_django_private_media:/app/marnies_maintenance_manager/private-media
     depends_on:
       - postgres
       - redis
@@ -50,13 +50,3 @@ services:
 
   redis:
     image: docker.io/redis:6
-
-  nginx:
-    build:
-      context: .
-      dockerfile: ./compose/production/nginx/Dockerfile
-    image: marnies_maintenance_manager_staging_nginx
-    depends_on:
-      - django
-    volumes:
-      - staging_django_media:/usr/share/nginx/media:ro

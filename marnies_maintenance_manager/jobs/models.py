@@ -14,6 +14,7 @@ from model_utils import Choices
 from model_utils.fields import StatusField
 from model_utils.models import TimeStampedModel
 from model_utils.models import UUIDModel
+from private_storage.fields import PrivateFileField
 
 from marnies_maintenance_manager.jobs.validators import validate_pdf_contents
 from marnies_maintenance_manager.users.models import User
@@ -98,7 +99,7 @@ class Job(UUIDModel, TimeStampedModel):
     # Marnie populates these fields in the UI later on, after doing the initial
     # requested on-site inspection. The Agent can then see the details of the quote
     date_of_inspection = models.DateField(null=True, blank=True)
-    quote = models.FileField(
+    quote = PrivateFileField(
         upload_to="quotes/",
         blank=True,
         null=True,
@@ -126,7 +127,7 @@ class Job(UUIDModel, TimeStampedModel):
         default="",
     )
 
-    deposit_proof_of_payment = models.FileField(
+    deposit_proof_of_payment = PrivateFileField(
         upload_to="deposit_pops/",
         blank=True,
         null=True,
@@ -142,7 +143,7 @@ class Job(UUIDModel, TimeStampedModel):
         verbose_name=_("Job Date"),
     )
 
-    invoice = models.FileField(
+    invoice = PrivateFileField(
         upload_to="invoices/",
         blank=True,
         null=True,
@@ -164,7 +165,7 @@ class Job(UUIDModel, TimeStampedModel):
         help_text=_("Has the job been completed?"),
     )
 
-    final_payment_pop = models.FileField(
+    final_payment_pop = PrivateFileField(
         upload_to="final_payment_pops/",
         blank=True,
         null=True,

@@ -10,6 +10,8 @@ perspective in the Marnie's Maintenance Manager application.
 from pathlib import Path
 
 import environ
+import requests
+from rest_framework import status
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
@@ -148,3 +150,33 @@ def test_after_rejection_marnie_can_resubmit_quote(
 
     # Satisfied, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)
+
+
+def test_anonymous_user_cannot_download_uploaded_quote_file(
+    browser: WebDriver,
+    live_server_url: str,
+    marnie_user: User,
+    bob_agent_user: User,
+) -> None:
+    """Ensure an anonymous user cannot download an uploaded quote file.
+
+    Args:
+        browser (WebDriver): The Selenium WebDriver.
+        live_server_url (str): The URL of the live server.
+        marnie_user (User): The user instance for Marnie.
+        bob_agent_user (User): The user instance for Bob, who is an agent
+    """
+    ## Run through our shared workflow that starts with a new job and then
+    ## takes it all the way through to Marnie having done the work and assigned
+    ## an invoice.
+    _create_new_job(browser, live_server_url)
+
+    ## Next, Marnie does an inspection, and updates the inspection date and quote.
+    info = _update_job_with_inspection_date_and_quote(browser)
+
+    ## Grab the quote download URL:
+    quote_download_url = info["quote_download_url"]
+
+    ## Check the download link (this should fail):
+    response = requests.head(quote_download_url, timeout=5)
+    assert response.status_code == status.HTTP_403_FORBIDDEN

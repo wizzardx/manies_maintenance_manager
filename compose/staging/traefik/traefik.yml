@@ -38,16 +38,6 @@ http:
         # https://doc.traefik.io/traefik/routing/routers/#certresolver
         certResolver: letsencrypt
 
-    web-media-router:
-      rule: 'Host(`mmm-staging.ar-ciel.org`) && PathPrefix(`/media/`)'
-      entryPoints:
-        - web-secure
-      middlewares:
-        - csrf
-      service: django-media
-      tls:
-        certResolver: letsencrypt
-
   middlewares:
     csrf:
       # https://doc.traefik.io/traefik/master/middlewares/http/headers/#hostsproxyheaders
@@ -60,11 +50,6 @@ http:
       loadBalancer:
         servers:
           - url: http://django:5000
-
-    django-media:
-      loadBalancer:
-        servers:
-          - url: http://nginx:80
 
 providers:
   # https://doc.traefik.io/traefik/master/providers/file/

@@ -1,6 +1,7 @@
 """Tests for the server protected media view."""
 
 # pylint: disable=magic-value-comparison
+# ruff: noqa: ERA001
 
 from collections.abc import Iterator
 from pathlib import Path
@@ -12,23 +13,19 @@ from rest_framework import status
 from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
-from marnies_maintenance_manager.jobs.tests.utils import (
-    suppress_fastdev_strict_if_deprecation_warning,
-)
 from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.users.models import User
 
 
 @pytest.mark.django_db()
-def test_gets_redirected_to_login_for_anonymous_user(client: Client) -> None:
-    """Test anonymous user redirection to login for protected media file access.
+def test_gets_are_not_permitted_for_anonymous_user(client: Client) -> None:
+    """Test permission denied for anonymous user access to private media files.
 
     Args:
         client (Client): The Django test client.
     """
-    with suppress_fastdev_strict_if_deprecation_warning():
-        response = client.get("/media/test.txt", follow=True)
-    assert response.redirect_chain == [("/accounts/login/?next=/media/test.txt", 302)]
+    response = client.get("/private-media/test.txt")
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test_gets_404_not_found_error_for_none_existent_file_for_admin(
@@ -39,7 +36,7 @@ def test_gets_404_not_found_error_for_none_existent_file_for_admin(
     Args:
         admin_client (Client): The Django test client for the admin user.
     """
-    response = admin_client.get("/media/test.txt", follow=True)
+    response = admin_client.get("/private-media/test.txt")
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -49,7 +46,7 @@ def test_absolute_paths_not_allowed(admin_client: Client) -> None:
     Args:
         admin_client (Client): The Django test client for the admin user.
     """
-    response = admin_client.get("/media//test.txt", follow=True)
+    response = admin_client.get("/private-media//test.txt")
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
@@ -60,7 +57,7 @@ def test_directory_traversals_not_allowed(admin_client: Client) -> None:
     Args:
         admin_client (Client): The Django test client for the admin user.
     """
-    response = admin_client.get("/media/../test.pdf", follow=True)
+    response = admin_client.get("/private-media/../test.pdf")
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
@@ -70,7 +67,7 @@ def test_error_returned_for_none_get_request(admin_client: Client) -> None:
     Args:
         admin_client (Client): The Django test client for the admin user.
     """
-    response = admin_client.post("/media/test.txt", follow=True)
+    response = admin_client.post("/private-media/test.txt", follow=True)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
@@ -104,11 +101,11 @@ class TestQuoteDownloadAccess:
     """Tests for downloading quotes."""
 
     @staticmethod
-    def test_anonymous_user_redirected_to_login(
+    def test_anonymous_user_not_permitted(
         client: Client,
         bob_job_with_initial_marnie_inspection: Job,
     ) -> None:
-        """Test that anonymous users are redirected to the login page.
+        """Test that anonymous users are not permitted to download the file.
 
         Args:
             client (Client): The Django test client.
@@ -116,11 +113,8 @@ class TestQuoteDownloadAccess:
                 Marnie inspection.
         """
         job = bob_job_with_initial_marnie_inspection
-        with suppress_fastdev_strict_if_deprecation_warning():
-            response = client.get(job.quote.url, follow=True)
-        assert response.redirect_chain == [
-            ("/accounts/login/?next=/media/quotes/test.pdf", 302),
-        ]
+        response = client.get(job.quote.url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @staticmethod
     def test_marnie_can_download_quote(
@@ -154,13 +148,20 @@ class TestQuoteDownloadAccess:
         assert response["Content-Length"] == str(len(content))
 
         attach_relpath = Path(bob_job_with_initial_marnie_inspection.quote.name)
-        assert attach_relpath == Path("quotes/test.pdf")
-        attach_basename = attach_relpath.name
+        # eg: attach_relpath = PosixPath('quotes/test_ISjWJsF.pdf'
 
-        assert attach_basename == "test.pdf"
+        attach_basename = attach_relpath.name
+        # eg: attach_basename = "test_ISjWJsF.pdf"
+
+        assert attach_relpath.parent == Path("quotes")
+        assert attach_relpath.name.startswith("test")
+        assert attach_relpath.suffix == ".pdf"
+
+        assert attach_basename.startswith("test_")
+        assert attach_basename.endswith(".pdf")
+
         assert (
-            response["Content-Disposition"]
-            == f'attachment; filename="{attach_basename}"'
+            response["Content-Disposition"] == f'inline; filename="{attach_basename}"'
         )
 
     @staticmethod
@@ -206,7 +207,9 @@ class TestQuoteDownloadAccess:
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
         """
-        response = bob_agent_user_client.get("/media/quotes/test.pdf", follow=True)
+        response = bob_agent_user_client.get(
+            "/private-media/quotes/test.pdf",
+        )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @staticmethod
@@ -360,7 +363,7 @@ class TestDepositPOPDownloadAccess:
                 user.
         """
         response = bob_agent_user_client.get(
-            "/media/deposit_pops/test.pdf",
+            "/private-media/deposit_pops/test.pdf",
             follow=True,
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -529,7 +532,9 @@ class TestInvoiceDownloadAccess:
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
         """
-        response = bob_agent_user_client.get("/media/invoices/test.pdf", follow=True)
+        response = bob_agent_user_client.get(
+            "/private-media/invoices/test.pdf",
+        )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @staticmethod
@@ -655,7 +660,7 @@ class TestFinalPaymentPOPDownloadAccess:
                 user.
         """
         response = bob_agent_user_client.get(
-            "/media/final_payment_pops/test.pdf",
+            "/private-media/final_payment_pops/test.pdf",
             follow=True,
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
