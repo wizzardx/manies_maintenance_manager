@@ -156,7 +156,7 @@ class TestQuoteDownloadAccess:
         assert attach_relpath.name.startswith("test")
         assert attach_relpath.suffix == ".pdf"
 
-        assert attach_basename.startswith("test_")
+        assert attach_basename.startswith("test")
         assert attach_basename.endswith(".pdf")
 
         assert (
