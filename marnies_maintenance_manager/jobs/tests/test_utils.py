@@ -317,11 +317,11 @@ def test_send_quote_update_email(
     """
     # Arrange
     mock_generate_email_body.return_value = "Generated email body"
-    mock_get_marnie_email.return_value = "marnie@example.com"
+    mock_get_marnie_email.return_value = "marnie@mmm.ar-ciel.org"
     mock_email_instance = mock.Mock()
     mock_email_message.return_value = mock_email_instance
 
-    job.agent.email = "agent@example.com"
+    job.agent.email = "agent@mmm.ar-ciel.org"
     job.agent.username = "agent_username"
     job.quote.name = "quote.pdf"
     job.quote.read.return_value = b"PDF content"
@@ -339,9 +339,9 @@ def test_send_quote_update_email(
     mock_email_message.assert_called_once_with(
         subject=email_subject,
         body="Initial email bodyGenerated email body",
-        to=["agent@example.com"],
-        cc=["marnie@example.com"],
         from_email="noreply@mmm.ar-ciel.org",
+        to=["agent@mmm.ar-ciel.org"],
+        cc=["marnie@mmm.ar-ciel.org"],
     )
 
     mock_email_instance.attach.assert_called_once_with(
