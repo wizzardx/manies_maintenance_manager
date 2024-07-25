@@ -339,9 +339,9 @@ def test_send_quote_update_email(
     mock_email_message.assert_called_once_with(
         subject=email_subject,
         body="Initial email bodyGenerated email body",
-        from_email="noreply@example.com",
         to=["agent@example.com"],
         cc=["marnie@example.com"],
+        from_email="noreply@mmm.ar-ciel.org",
     )
 
     mock_email_instance.attach.assert_called_once_with(
