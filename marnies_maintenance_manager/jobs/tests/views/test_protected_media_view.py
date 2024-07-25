@@ -50,7 +50,6 @@ def test_absolute_paths_not_allowed(admin_client: Client) -> None:
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-# @pytest.mark.django_db()
 def test_directory_traversals_not_allowed(admin_client: Client) -> None:
     """Test that directory traversals are not allowed.
 
@@ -627,7 +626,7 @@ class TestFinalPaymentPOPDownloadAccess:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @staticmethod
-    def test_none_marnie_none_agent_cannot_download_invoice(
+    def test_none_marnie_none_agent_cannot_download_final_payment_pops(
         bob_job_with_final_payment_pop: Job,
         bob_agent_user_client: Client,
         bob_agent_user: User,

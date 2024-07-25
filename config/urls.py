@@ -1,5 +1,6 @@
-# ruff: noqa
 """Define URL patterns for the Django project."""
+
+# ruff: noqa
 
 import private_storage.urls
 from django.conf import settings

@@ -1,4 +1,4 @@
-"""Tests for the utility functions in the views module of the jobs app."""
+"""Tests for the utility functions in the views module of the "jobs" app."""
 
 # pylint: disable=too-few-public-methods
 
@@ -22,7 +22,7 @@ class TestAssertNoFormErrors:
         """
 
         class MockForm:
-            """A mock form class with an errors attribute."""
+            """A mock form class with an "errors" attribute."""
 
             errors = {"field": ["This field is required."]}
 
