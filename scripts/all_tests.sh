@@ -165,7 +165,7 @@ if [ "$COVERAGE_ERROR" != "0" ]; then
     handle_error
 fi
 
-STAGING_FQDN=mmm-staging.ar-ciel.org
+STAGING_FQDN=mmm-staging2.ar-ciel.org
 
 # Only deploy to Staging if there are no errors:
 if [ $NUM_ERRORS -eq 0 ]; then

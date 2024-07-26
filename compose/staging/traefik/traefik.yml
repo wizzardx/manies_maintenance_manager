@@ -28,7 +28,7 @@ certificatesResolvers:
 http:
   routers:
     web-secure-router:
-      rule: 'Host(`mmm-staging.ar-ciel.org`)'
+      rule: 'Host(`mmm-staging2.ar-ciel.org`)'
       entryPoints:
         - web-secure
       middlewares:

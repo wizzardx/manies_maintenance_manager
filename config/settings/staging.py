@@ -6,9 +6,9 @@ from .production import *  # noqa: F403
 from .production import env
 
 # Override the allowed hosts for staging
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["mmm-staging.ar-ciel.org"])
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["mmm-staging2.ar-ciel.org"])
 
 # Override the default 'from' email address
-DEFAULT_FROM_EMAIL = "Marnie's Maintenance Manager <noreply@mmm-staging.ar-ciel.org>"
+DEFAULT_FROM_EMAIL = "Marnie's Maintenance Manager <noreply@mmm-staging2.ar-ciel.org>"
 
 # Any other staging-specific overrides can go here

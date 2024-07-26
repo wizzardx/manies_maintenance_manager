@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-FQDN=mmm-staging.ar-ciel.org
+FQDN=mmm-staging2.ar-ciel.org
 ssh-keygen -f "/home/david/.ssh/known_hosts" -R "$FQDN"
 ssh -o StrictHostKeyChecking=no root@$FQDN echo ""
 

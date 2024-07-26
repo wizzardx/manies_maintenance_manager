@@ -520,7 +520,7 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> dict[str, 
 
     ## Example href values:
     ## - 'http://django:41507/protected_media/quotes/test.pdf'
-    ## - 'https://mmm-staging.ar-ciel.org/protected_media/quotes/test_oMjXoTi.pdf'
+    ## - 'https://mmm-staging2.ar-ciel.org/protected_media/quotes/test_oMjXoTi.pdf'
     ## - 'http://django:47053/private-media/quotes/test_4labiyd.pdf'
     assert "/private-media/quotes/test" in download_url
     assert download_url.endswith(".pdf")

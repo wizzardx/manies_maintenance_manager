@@ -40,7 +40,7 @@ VENV_DIR=$(scripts/print_venv_dir.sh)
 source "$VENV_DIR/bin/activate"
 
 echo "Preparing pytest command..."
-export TEST_SERVER=mmm-staging.ar-ciel.org:80
+export TEST_SERVER=mmm-staging2.ar-ciel.org:80
 
 TEST_USER_PASSWORD=$(grep ^TEST_USER_PASSWORD ./.envs/.test/.testing | awk -F '=' '{print $2}')
 export TEST_USER_PASSWORD
