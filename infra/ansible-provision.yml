@@ -11,6 +11,16 @@
         dockerfile: ./compose/{{ deploy_env }}/traefik/Dockerfile
 
   tasks:
+    - name: Fetch public IP address from api.ipify.org
+      uri:
+        url: "https://api.ipify.org?format=json"
+        return_content: yes
+      register: ipify_response
+
+    - name: Set public IP address as a fact
+      set_fact:
+        public_ip: "{{ ipify_response.json.ip }}"
+
     - name: Build all Docker images using Docker Compose
       ansible.builtin.command:
         cmd: docker compose -f ../docker-compose.{{ deploy_env }}.yml build
@@ -101,7 +111,7 @@
       - name: marnies_maintenance_manager_{{ deploy_env }}_traefik
 
   tasks:
-    - name: Install Docker, Docker Compose, zstd, rsync, rsyslog, and logrotate
+    - name: Install Docker, Docker Compose, zstd, rsync, rsyslog, logrotate, fail2ban, and ufw
       ansible.builtin.apt:
         name:
           - docker.io
@@ -110,6 +120,8 @@
           - rsync
           - rsyslog
           - logrotate
+          - fail2ban
+          - ufw
         state: latest
         update_cache: true
       become: true
@@ -243,3 +255,36 @@
         state: started
         enabled: true
       become: true
+
+    - name: Update /etc/ssh/sshd_config with AllowUsers directive
+      become: yes
+      become_user: root
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^AllowUsers'
+        line: "AllowUsers david@{{ hostvars.localhost.public_ip }} root@{{ hostvars.localhost.public_ip }}"
+        state: present
+
+    - name: Restart ssh service
+      ansible.builtin.systemd:
+        name: ssh
+        state: restarted
+      become: true
+
+    - name: Configure UFW to allow SSH, PostgreSQL, HTTP, and HTTPS
+      ansible.builtin.command:
+        cmd: >
+          ufw allow from {{ hostvars.localhost.public_ip }} to any port 22 &&
+          ufw allow from {{ hostvars.localhost.public_ip }} to any port 5432 &&
+          ufw allow 80 &&
+          ufw allow 443
+      become: true
+      args:
+        _uses_shell: true
+
+    - name: Enable UFW
+      ansible.builtin.command:
+        cmd: echo "y" | ufw enable
+      become: true
+      args:
+        _uses_shell: true
