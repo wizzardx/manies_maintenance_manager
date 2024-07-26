@@ -80,7 +80,6 @@ USER root
 
 # Temporarily set environment variables to compile translations
 RUN DJANGO_SECRET_KEY=temporary_secret_key \
-    REDIS_URL=redis://redis:6379/0 \
     DJANGO_SETTINGS_MODULE="config.settings.production" \
     DATABASE_URL="" \
     DJANGO_ADMIN_URL=dummy_admin_url \
