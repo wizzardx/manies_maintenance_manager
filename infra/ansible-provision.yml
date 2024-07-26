@@ -243,22 +243,3 @@
         state: started
         enabled: true
       become: true
-
-    - name: Configure logrotate for traditional log files
-      ansible.builtin.copy:
-        dest: /etc/logrotate.d/custom_logs
-        content: |
-          /var/log/*.log {
-              daily
-              rotate 14
-              compress
-              delaycompress
-              missingok
-              notifempty
-              create 0640 root utmp
-              sharedscripts
-              postrotate
-                  /usr/lib/rsyslog/rsyslog-rotate
-              endscript
-          }
-      become: true
