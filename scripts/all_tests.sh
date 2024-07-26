@@ -165,15 +165,23 @@ if [ "$COVERAGE_ERROR" != "0" ]; then
     handle_error
 fi
 
+STAGING_FQDN=mmm-staging.ar-ciel.org
+
 # Only deploy to Staging if there are no errors:
 if [ $NUM_ERRORS -eq 0 ]; then
-    echo "There were no previous errors. Deploying to staging...."
+    echo "There were no previous errors. Deploying to Staging...."
     scripts/deploy_to_staging.sh || handle_error
 
-    echo "Running headless functional tests against staging..."
-    scripts/functional_tests_against_staging_environment.sh
+    echo "Setting up basic testing data on Staging..."
+    ssh root@$STAGING_FQDN docker-compose \
+        -f /opt/docker/docker-compose.staging.yml run \
+        --rm django \
+        python manage.py setup_manual_dev_testing_data || handle_error
+
+    echo "Running headless functional tests against Staging..."
+    scripts/functional_tests_against_staging_environment.sh || handle_error
 else
-    echo "There were errors earlier. Not deploying to staging"
+    echo "There were errors earlier. Not deploying to Staging"
 fi
 
 # Different output at the end depending on if there were errors or not in the logic above.
