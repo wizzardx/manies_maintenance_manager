@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-FQDN="mmm-staging2.ar-ciel.org"
-DEPLOY_ENV="staging"
+FQDN="mmm.ar-ciel.org"
+DEPLOY_ENV="production"
 
 WORKING_DIR="$(dirname ${0})"
 source "${WORKING_DIR}/_sourced/deploy_to_env.sh"
