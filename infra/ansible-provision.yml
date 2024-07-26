@@ -262,7 +262,7 @@
       lineinfile:
         path: /etc/ssh/sshd_config
         regexp: '^AllowUsers'
-        line: "AllowUsers david@{{ hostvars.localhost.public_ip }} root@{{ hostvars.localhost.public_ip }}"
+        line: "AllowUsers david@{{ hostvars.localhost.public_ip }} root"
         state: present
 
     - name: Restart ssh service
@@ -274,7 +274,7 @@
     - name: Configure UFW to allow SSH, PostgreSQL, HTTP, and HTTPS
       ansible.builtin.command:
         cmd: >
-          ufw allow from {{ hostvars.localhost.public_ip }} to any port 22 &&
+          ufw allow 22 &&
           ufw allow from {{ hostvars.localhost.public_ip }} to any port 5432 &&
           ufw allow 80 &&
           ufw allow 443
