@@ -138,7 +138,7 @@ safety check --ignore 51457,70612 || handle_error
 
 # Check for out of date packages:
 echo "Check for outdated packages..."
-scripts/check_outdated_packages.py --ignore Django,regex,filelock,ansible,ansible-core,mypy,selenium,alabaster || handle_error
+scripts/check_outdated_packages.py --ignore Django,regex,filelock,ansible,ansible-core,alabaster || handle_error
 
 # Done with tools from under the python venv, so deactivate that now.
 echo "Deactivate python virtualenv."

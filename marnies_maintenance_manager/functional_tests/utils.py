@@ -114,9 +114,9 @@ def wait_until(fn: Callable[[], Any]) -> Any:
     while True:  # pylint: disable=while-used
         try:
             return fn()
-        except ElementClickInterceptedException:
+        except ElementClickInterceptedException:  # pragma: no cover
             if time.time() - start_time > MAX_WAIT:
-                raise  # pragma: no cover
+                raise
             time.sleep(0.1)
 
 
