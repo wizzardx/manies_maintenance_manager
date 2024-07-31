@@ -132,13 +132,18 @@ darglint2 "${files[@]}" || handle_error
 
 # Check for security issues:
 echo "Check for security issues..."
-# The ignored numbers here are known, and don't apply, and also I'm (currently) already
-# using the latest available versions of the affected PyPI packages.
-safety check --ignore 51457,70612 || handle_error
+# The ignored number over here is for a "bad" CVE report, and won't be fixed
+# upstream. More info over here:
+#   https://github.com/dbt-labs/dbt-core/issues/10250#issuecomment-2210501166
+safety check --ignore 70612 || handle_error
 
 # Check for out of date packages:
 echo "Check for outdated packages..."
-scripts/check_outdated_packages.py --ignore Django,regex,filelock,ansible,ansible-core,alabaster || handle_error
+
+# - An older "filelock" is needed by the latest "safety" package
+# - An older "regex" is needed by the latest "djlint" package.
+# - Ansible and ansible-core held back fpr compatibility with mitogen 0.3.7
+scripts/check_outdated_packages.py --ignore filelock,regex,ansible,ansible-core || handle_error
 
 # Done with tools from under the python venv, so deactivate that now.
 echo "Deactivate python virtualenv."
