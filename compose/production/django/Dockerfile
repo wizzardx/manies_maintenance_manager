@@ -18,6 +18,7 @@ COPY ./requirements .
 
 # Create Python Dependency and Sub-Dependency Wheels.
 RUN --mount=type=cache,target=/root/.cache/pip \
+  pip install --upgrade pip && \
   pip wheel --wheel-dir /usr/src/app/wheels  \
   -r ${BUILD_ENVIRONMENT}.txt
 

@@ -41,6 +41,7 @@ PRODUCTION_ALREADY_INSTALLED_MARKER_FILE="$VENV_DIR/.production_already_installe
 # "production.txt" file (the marker file md5sum markers are now out of date).
 if [[ ! -f "$LOCAL_ALREADY_INSTALLED_MARKER_FILE" || ! -f "$BASE_ALREADY_INSTALLED_MARKER_FILE"  || ! -f "$PRODUCTION_ALREADY_INSTALLED_MARKER_FILE" ]]; then
     log "Installing dependencies..."
+    python -m pip install --upgrade pip
     python -m pip install -r requirements/local.txt
     touch "$LOCAL_ALREADY_INSTALLED_MARKER_FILE"
     touch "$BASE_ALREADY_INSTALLED_MARKER_FILE"
