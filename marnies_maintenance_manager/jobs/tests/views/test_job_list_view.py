@@ -317,6 +317,7 @@ class TestMarnieAccessingJobListView:
             "Accept or Reject A/R",
             "Deposit POP",
             "Job Date",
+            "Photos",
             "Invoice",
             "Comments on the job",
             "Job Complete",
@@ -342,6 +343,7 @@ class TestMarnieAccessingJobListView:
             "",  # Accept or Reject A/R
             "",  # Deposit POP
             "",  # Job Date
+            "",  # Photos
             "",  # Invoice
             "",  # Comments
             "No",  # Job Complete

@@ -1,29 +1,40 @@
 """Tests for the job models of Marnie's Maintenance Manager."""
 
-# pylint: disable=no-self-use, magic-value-comparison
+# pylint: disable=no-self-use, magic-value-comparison, redefined-outer-name
 
 import datetime
 import re
 import uuid
 from typing import assert_never
+from unittest.mock import patch
 
+import django
+import model_utils
+import private_storage
 import pytest
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.validators import FileExtensionValidator
 from django.db.models.fields.files import FileField
+from django.db.models.fields.files import ImageFieldFile
+from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor
 from django.db.utils import IntegrityError
 from django.forms.models import ModelForm
 from django.urls import reverse
 from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
 from marnies_maintenance_manager.jobs.models import _get_next_actions_str_for_status
+from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.jobs.validators import validate_pdf_contents
 from marnies_maintenance_manager.users.models import User
 
 UUID_REGEX = (
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 )
+
+BASIC_TEST_JPG_FILE_SIZE = 138782
 
 
 @pytest.mark.django_db()
@@ -682,3 +693,188 @@ def test_get_next_actions_str(job_created_by_bob: Job) -> None:
 
     job_created_by_bob.status = Job.Status.FINAL_PAYMENT_POP_UPLOADED.value
     assert job_created_by_bob.get_next_actions_str() == "Nothing further is required"
+
+
+@pytest.fixture()
+def job_completion_photo(
+    job_created_by_bob: Job,
+    test_image: SimpleUploadedFile,
+) -> JobCompletionPhoto:
+    """Create a JobCompletionPhoto instance for testing.
+
+    Args:
+        job_created_by_bob (Job): Job instance created by Bob.
+        test_image (SimpleUploadedFile): A simple uploaded file for testing.
+
+    Returns:
+        JobCompletionPhoto: The created JobCompletionPhoto instance.
+    """
+    with safe_read(test_image):
+        return JobCompletionPhoto.objects.create(
+            job=job_created_by_bob,
+            photo=test_image,
+        )
+
+
+@pytest.mark.django_db()
+class TestJobCompletionPhoto:
+    """Tests for the JobCompletionPhoto model."""
+
+    @staticmethod
+    def test_has_uuid_id_field(job_completion_photo: JobCompletionPhoto) -> None:
+        """Ensure the JobCompletionPhoto model has an 'id' field that is a valid UUID.
+
+        Args:
+            job_completion_photo (JobCompletionPhoto): JobCompletionPhoto instance.
+        """
+        # Check an instance of the JobCompletionPhoto model
+        assert job_completion_photo.id is not None
+        assert isinstance(job_completion_photo.id, uuid.UUID)
+        uuid_length = 36
+        assert len(str(job_completion_photo.id)) == uuid_length
+        assert re.match(UUID_REGEX, str(job_completion_photo.id))
+
+        # Also check the JobCompletionPhoto class
+        assert isinstance(
+            JobCompletionPhoto.id,
+            django.db.models.query_utils.DeferredAttribute,
+        )
+        idfield = JobCompletionPhoto.id.field  # pylint: disable=no-member
+        assert isinstance(idfield, model_utils.fields.UUIDField)
+
+    @staticmethod
+    def test_has_created_field(job_completion_photo: JobCompletionPhoto) -> None:
+        """Ensure the JobCompletionPhoto model has a 'created' field.
+
+        Args:
+            job_completion_photo (JobCompletionPhoto): JobCompletionPhoto instance
+        """
+        # Check an instance of the JobCompletionPhoto model
+        assert job_completion_photo.created is not None
+        assert isinstance(job_completion_photo.created, datetime.datetime)
+
+        # Also check the JobCompletionPhoto class
+        assert hasattr(JobCompletionPhoto, "created")
+        assert isinstance(
+            JobCompletionPhoto.created,
+            django.db.models.query_utils.DeferredAttribute,
+        )
+
+        field = JobCompletionPhoto.created.field  # pylint: disable=no-member
+        assert isinstance(field, model_utils.fields.AutoCreatedField)
+        assert field.auto_now_add is False
+        assert field.auto_now is False
+        assert field.verbose_name == "created"
+
+    @staticmethod
+    def test_has_job_foreign_key_field(
+        job_completion_photo: JobCompletionPhoto,
+    ) -> None:
+        """Ensure the JobCompletionPhoto model has a 'job' field.
+
+        Args:
+            job_completion_photo (JobCompletionPhoto): JobCompletionPhoto instance
+        """
+        # Check an instance of the JobCompletionPhoto model
+        assert job_completion_photo.job is not None
+        assert isinstance(job_completion_photo.job, Job)
+        assert hasattr(job_completion_photo.job, "job_completion_photos")
+        assert (
+            job_completion_photo.job.job_completion_photos.__class__.__name__
+            == "RelatedManager"
+        )
+
+        # Also check the JobCompletionPhoto class
+        assert hasattr(JobCompletionPhoto, "job")
+        assert JobCompletionPhoto.job.__class__.__name__ == "ForwardManyToOneDescriptor"
+        assert isinstance(JobCompletionPhoto.job, ForwardManyToOneDescriptor)
+
+    @staticmethod
+    def test_has_photo_field(job_completion_photo: JobCompletionPhoto) -> None:
+        """Ensure the JobCompletionPhoto model has a 'photo' field.
+
+        Args:
+            job_completion_photo (JobCompletionPhoto): JobCompletionPhoto instance
+        """
+        # Check an instance of the JobCompletionPhoto model
+        photo = check_type(job_completion_photo.photo, ImageFieldFile)
+        photo_name = check_type(photo.name, str)
+
+        # eg photo.name: 'completion_photos/test_ofzSmry.jpp'
+        assert photo_name.startswith("completion_photos/test_")
+        assert photo_name.endswith(".jpg")
+
+        # eg photo.url: '/private-media/completion_photos/test_OmnPAY5.jpg'
+        assert photo.url.startswith("/private-media/completion_photos/test_")
+        assert photo.url.endswith(".jpg")
+
+        # Check the file exists and has the correct size
+        assert photo.storage.exists(photo_name)
+        assert photo.storage.size(photo_name) == BASIC_TEST_JPG_FILE_SIZE
+
+        # Also check the JobCompletionPhoto class
+        assert hasattr(JobCompletionPhoto, "photo")
+        descriptor = JobCompletionPhoto.photo
+        assert isinstance(descriptor, django.db.models.fields.files.ImageFileDescriptor)
+        field = descriptor.field
+        assert isinstance(field, private_storage.fields.PrivateImageField)
+        assert field.upload_to == "completion_photos/"
+        assert field.storage is not None
+        assert field.verbose_name == "photo"
+        assert field.null is False
+        assert field.blank is False
+
+    @staticmethod
+    def test_str_method(job_completion_photo: JobCompletionPhoto) -> None:
+        """Ensure the __str__ method returns the job date and the start of the address.
+
+        Args:
+            job_completion_photo (JobCompletionPhoto): JobCompletionPhoto instance.
+        """
+        photo = job_completion_photo
+        assert str(photo) == (
+            f"Photo for job {photo.job.number} of agent "
+            f"{photo.job.agent.username}, uploaded at {photo.created}"
+        )
+
+    @staticmethod
+    def test_job_completion_photo_save_calls_full_clean(
+        bob_agent_user: User,
+        test_image: SimpleUploadedFile,
+    ) -> None:
+        """Ensure the full_clean method is called before saving a JobCompletionPhoto.
+
+        Args:
+            bob_agent_user (User): The agent user Bob used to create a Job instance.
+            test_image (SimpleUploadedFile): A simple uploaded file for testing.
+        """
+        # Create a job instance
+        job = Job.objects.create(
+            agent=bob_agent_user,
+            date="2022-01-01",
+            address_details="1234 Main St, Springfield, IL",
+            gps_link="https://www.google.com/maps",
+            quote_request_details="Replace the kitchen sink",
+        )
+
+        # Create a JobCompletionPhoto instance
+        with safe_read(test_image):
+            job_completion_photo = JobCompletionPhoto(job=job, photo=test_image)
+
+            # Patch the full_clean method to assert it gets called
+            with patch.object(
+                job_completion_photo,
+                "full_clean",
+                wraps=job_completion_photo.full_clean,
+            ) as mock_full_clean:
+                job_completion_photo.save()
+
+        # Assert that full_clean was called
+        mock_full_clean.assert_called_once()
+
+        # Ensure the instance was saved correctly
+        saved_photo = JobCompletionPhoto.objects.get(pk=job_completion_photo.pk)
+        assert saved_photo is not None
+        assert saved_photo.job == job
+        assert saved_photo.photo.name == job_completion_photo.photo.name
+        assert saved_photo.photo.url == job_completion_photo.photo.url

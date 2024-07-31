@@ -15,6 +15,7 @@ from model_utils.fields import StatusField
 from model_utils.models import TimeStampedModel
 from model_utils.models import UUIDModel
 from private_storage.fields import PrivateFileField
+from private_storage.fields import PrivateImageField
 
 from marnies_maintenance_manager.jobs.validators import validate_pdf_contents
 from marnies_maintenance_manager.users.models import User
@@ -280,3 +281,39 @@ def _get_next_actions_str_for_status(status: str) -> str:
 
     # This ensures that all cases are handled
     return assert_never(status)  # type: ignore[arg-type]  # pragma: no cover
+
+
+class JobCompletionPhoto(UUIDModel, TimeStampedModel):
+    """Model representing a photo taken upon job completion."""
+
+    job = models.ForeignKey(
+        Job,
+        related_name="job_completion_photos",
+        on_delete=models.CASCADE,
+    )
+    photo = PrivateImageField(upload_to="completion_photos/", blank=False, null=False)
+
+    def __str__(self) -> str:
+        """Return a basic string representation of the photo.
+
+        Returns:
+            str: A string that represents the photo, containing the job number and the
+                 date and time it was uploaded.
+        """
+        return (
+            f"Photo for job {self.job.number} of agent {self.job.agent.username}"
+            f", uploaded at {self.created}"
+        )
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """Save the JobCompletionPhoto instance to the database.
+
+        Args:
+            *args (Any): Additional positional arguments.
+            **kwargs (Any): Additional keyword arguments.
+        """
+        # Call full_clean() to ensure that the model is validated before saving it:
+        self.full_clean()
+
+        # Now we can save the model:
+        super().save(*args, **kwargs)  # type: ignore[no-untyped-call]

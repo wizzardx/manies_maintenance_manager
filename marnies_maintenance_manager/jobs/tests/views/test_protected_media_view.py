@@ -13,6 +13,10 @@ from rest_framework import status
 from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
+from marnies_maintenance_manager.jobs.tests.views.conftest import (
+    BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS,
+)
 from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.users.models import User
 
@@ -86,12 +90,30 @@ def trigger_multilinked_error(
         file_attr (str): The file attribute to link (e.g., 'quote', 'invoice').
         expected_status (int): The expected HTTP status code. Defaults to 403.
     """
-    # Update another job to have the same file as the first job, so that we
-    # can trigger the error condition and get the wanted status error.
-    setattr(job2, file_attr, getattr(job1, file_attr))
+    # Update another job (or job completion photo) to have the same file as the first
+    # job (or job completion photo), so that we can trigger the error condition and get
+    # the wanted status error.
+
+    if file_attr == "job_completion_photo":
+        first_job_completion_photo = check_type(
+            job1.job_completion_photos.first(),
+            JobCompletionPhoto,
+        )
+        job2.job_completion_photos.create(
+            photo=first_job_completion_photo.photo,
+        )
+    else:
+        setattr(job2, file_attr, getattr(job1, file_attr))
     job2.save()
 
-    file_url = getattr(job1, file_attr).url
+    if file_attr == "job_completion_photo":
+        first_job_completion_photo = check_type(
+            job1.job_completion_photos.first(),
+            JobCompletionPhoto,
+        )
+        file_url = first_job_completion_photo.photo.url
+    else:
+        file_url = getattr(job1, file_attr).url
     response = client.get(file_url, follow=True)
     assert response.status_code == expected_status
 
@@ -684,3 +706,187 @@ class TestFinalPaymentPOPDownloadAccess:
             job_created_by_alice,
             "final_payment_pop",
         )
+
+
+class TestJobCompletionPhotoDownloadAccess:
+    """Tests for permissions to download Job Completion Photos."""
+
+    @staticmethod
+    def test_marnie_can_download(
+        bob_job_completed_by_marnie: Job,
+        marnie_user_client: Client,
+    ) -> None:
+        """Test that Marnie can download Job Completion Photos.
+
+        Args:
+            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            marnie_user_client (Client): The Django test client for the Marnie user.
+        """
+        job = bob_job_completed_by_marnie
+        completion_photos = job.job_completion_photos.all()
+        assert len(completion_photos) == BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS
+
+        for completion_photo in completion_photos:
+            response = marnie_user_client.head(completion_photo.photo.url)
+            assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_superuser_can_download(
+        bob_job_completed_by_marnie: Job,
+        superuser_client: Client,
+    ) -> None:
+        """Test that superusers can download Job Completion Photos.
+
+        Args:
+            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            superuser_client (Client): The Django test client for the superuser.
+        """
+        job = bob_job_completed_by_marnie
+        completion_photos = job.job_completion_photos.all()
+        assert len(completion_photos) == BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS
+
+        for completion_photo in completion_photos:
+            response = superuser_client.head(completion_photo.photo.url)
+            assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_agent_can_download(
+        bob_agent_user_client: Client,
+        bob_job_completed_by_marnie: Job,
+    ) -> None:
+        """Test that agents who created the job can download Job Completion Photos.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+        """
+        job = bob_job_completed_by_marnie
+        completion_photos = job.job_completion_photos.all()
+        assert len(completion_photos) == BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS
+
+        for completion_photo in completion_photos:
+            response = bob_agent_user_client.head(completion_photo.photo.url)
+            assert response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def test_other_agent_cannot_download(
+        alice_agent_user_client: Client,
+        bob_job_completed_by_marnie: Job,
+    ) -> None:
+        """Test that agents not creating the job cannot download Job Completion Photos.
+
+        Args:
+            alice_agent_user_client (Client): The Django test client for the Alice agent
+                user.
+            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+        """
+        job = bob_job_completed_by_marnie
+        completion_photos = job.job_completion_photos.all()
+        assert len(completion_photos) == BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS
+
+        for completion_photo in completion_photos:
+            response = alice_agent_user_client.head(completion_photo.photo.url)
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_none_marnie_none_agent_cannot_download(
+        bob_job_completed_by_marnie: Job,
+        bob_agent_user_client: Client,
+        bob_agent_user: User,
+    ) -> None:
+        """Test that users not Marnie or agents cannot download Job Completion Photos.
+
+        Args:
+            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_agent_user (User): The Bob agent user.
+        """
+        bob_agent_user.is_agent = False
+        bob_agent_user.save()
+
+        job = bob_job_completed_by_marnie
+        completion_photos = job.job_completion_photos.all()
+        assert len(completion_photos) == BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS
+
+        for completion_photo in completion_photos:
+            response = bob_agent_user_client.head(completion_photo.photo.url)
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_agent_cannot_download_unlinked_file(
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Test that agents cannot download unlinked Job Completion Photos.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+        """
+        response = bob_agent_user_client.head(
+            "/private-media/completion_photos/test.jpg",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_agent_cannot_download_multilinked_file(
+        bob_agent_user_client: Client,
+        bob_job_completed_by_marnie: Job,
+        job_created_by_alice: Job,
+    ) -> None:
+        """Test that agents cannot download Job Completion Photos tied to multiple jobs.
+
+        Args:
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            job_created_by_alice (Job): The job created by Alice.
+        """
+        trigger_multilinked_error(
+            bob_agent_user_client,
+            bob_job_completed_by_marnie,
+            job_created_by_alice,
+            "job_completion_photo",
+        )
+
+    @staticmethod
+    def test_agent_cannot_download_files_from_other_directories(
+        bob_job_completed_by_marnie: Job,
+        marnie_user_client: Client,
+    ) -> None:
+        """Test that agents cannot download files from unknown directories.
+
+        Args:
+            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            marnie_user_client (Client): The Django test client for the Marnie user.
+        """
+        completion_photo = check_type(
+            bob_job_completed_by_marnie.job_completion_photos.first(),
+            JobCompletionPhoto,
+        )
+        response = marnie_user_client.get(
+            completion_photo.photo.url.replace("completion_photos", "other"),
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @staticmethod
+    def test_agent_cannot_download_images_with_unknown_extension(
+        bob_job_completed_by_marnie: Job,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Test that agents cannot download images with unknown extensions.
+
+        Args:
+            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            bob_agent_user_client (Client): The Django test client for the Bob agent
+                user.
+        """
+        completion_photo = check_type(
+            bob_job_completed_by_marnie.job_completion_photos.first(),
+            JobCompletionPhoto,
+        )
+        response = bob_agent_user_client.get(
+            completion_photo.photo.url.replace(".jpg", ".pcx"),
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN

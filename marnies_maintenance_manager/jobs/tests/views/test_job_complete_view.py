@@ -15,6 +15,7 @@ from typeguard import check_type
 
 from marnies_maintenance_manager.jobs import constants
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
 from marnies_maintenance_manager.jobs.tests.conftest import BASIC_TEST_PDF_FILE
 from marnies_maintenance_manager.jobs.tests.views.utils import assert_no_form_errors
 from marnies_maintenance_manager.jobs.tests.views.utils import (
@@ -177,6 +178,10 @@ def submit_job_completion_form_and_assert_no_errors(
                     "job_date": "2022-03-04",
                     "invoice": test_pdf,
                     "comments": "This job is now complete.",
+                    "form-TOTAL_FORMS": "0",
+                    "form-INITIAL_FORMS": "0",
+                    "form-MIN_NUM_FORMS": "0",
+                    "form-MAX_NUM_FORMS": "1000",
                 },
                 follow=True,
             ),
@@ -214,6 +219,10 @@ def test_view_has_invoice_field(
                     "invoice": test_pdf,
                     "job_date": "2022-03-04",
                     "comments": "This job is now complete.",
+                    "form-TOTAL_FORMS": "0",
+                    "form-INITIAL_FORMS": "0",
+                    "form-MIN_NUM_FORMS": "0",
+                    "form-MAX_NUM_FORMS": "1000",
                 },
                 follow=True,
             ),
@@ -234,7 +243,7 @@ def test_view_has_invoice_field(
     # record:
     bob_job_with_deposit_pop.refresh_from_db()
     name = bob_job_with_deposit_pop.invoice.name  # eg: "invoices/test_me0lP9l.pdf"
-    assert name.startswith("invoices/test_")
+    assert name.startswith("invoices/test")
     assert name.endswith(".pdf")
 
 
@@ -261,6 +270,10 @@ def test_view_has_comments_field(
                     "comments": "This job is now complete.",
                     "job_date": "2022-03-04",
                     "invoice": test_pdf,
+                    "form-TOTAL_FORMS": "0",
+                    "form-INITIAL_FORMS": "0",
+                    "form-MIN_NUM_FORMS": "0",
+                    "form-MAX_NUM_FORMS": "1000",
                 },
                 follow=True,
             ),
@@ -370,6 +383,10 @@ def test_comments_field_is_not_required(
                 data={
                     "job_date": "2022-03-04",
                     "invoice": test_pdf,
+                    "form-TOTAL_FORMS": "0",
+                    "form-INITIAL_FORMS": "0",
+                    "form-MIN_NUM_FORMS": "0",
+                    "form-MAX_NUM_FORMS": "1000",
                 },
                 follow=True,
             ),
@@ -563,6 +580,10 @@ def submit_job_completion_form(
                     "job_date": job_date,
                     "invoice": test_pdf,
                     "comments": comments,
+                    "form-TOTAL_FORMS": "0",
+                    "form-INITIAL_FORMS": "0",
+                    "form-MIN_NUM_FORMS": "0",
+                    "form-MAX_NUM_FORMS": "1000",
                 },
                 follow=True,
             ),
@@ -631,6 +652,10 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
                     "job_date": "2022-03-04",
                     "invoice": test_pdf,
                     "comments": "This job is now complete.",
+                    "form-TOTAL_FORMS": "0",
+                    "form-INITIAL_FORMS": "0",
+                    "form-MIN_NUM_FORMS": "0",
+                    "form-MAX_NUM_FORMS": "1000",
                 },
                 follow=True,
             ),
@@ -670,3 +695,105 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
         expected_content=BASIC_TEST_PDF_FILE.read_bytes(),
         expected_mime_type="application/pdf",
     )
+
+
+def test_submitting_a_photo_causes_a_photo_to_be_associated_with_the_job(
+    marnie_user_client: Client,
+    bob_job_with_deposit_pop: Job,
+    test_pdf: SimpleUploadedFile,
+    test_image: SimpleUploadedFile,
+) -> None:
+    """Ensure that submitting a photo causes it to be associated with the job.
+
+    Args:
+        marnie_user_client (Client): The Django test client for Marnie.
+        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+        test_image (SimpleUploadedFile): The test image file.
+    """
+    with safe_read(test_pdf), safe_read(test_image):
+        response = check_type(
+            marnie_user_client.post(
+                reverse(
+                    "jobs:job_complete",
+                    kwargs={"pk": bob_job_with_deposit_pop.pk},
+                ),
+                data={
+                    "job_date": "2022-03-04",
+                    "invoice": test_pdf,
+                    "comments": "This job is now complete.",
+                    "form-TOTAL_FORMS": "1",
+                    "form-INITIAL_FORMS": "0",
+                    "form-MIN_NUM_FORMS": "0",
+                    "form-MAX_NUM_FORMS": "1000",
+                    "form-0-photo": test_image,
+                },
+                follow=True,
+            ),
+            TemplateResponse,
+        )
+
+    # Assert the response status code is 200
+    assert response.status_code == status.HTTP_200_OK
+
+    # There shouldn't be any form errors:
+    assert_no_form_errors(response)
+
+    # Refresh the Maintenance Job from the database, and then check the updated
+    # record:
+    bob_job_with_deposit_pop.refresh_from_db()
+
+    # Check that the photo has been associated with the job:
+    assert bob_job_with_deposit_pop.job_completion_photos.count() == 1
+    photo = check_type(
+        bob_job_with_deposit_pop.job_completion_photos.first(),
+        JobCompletionPhoto,
+    )
+    with safe_read(test_image):
+        assert photo.photo.read() == test_image.read()
+    assert photo.job == bob_job_with_deposit_pop
+    assert photo.job_id == bob_job_with_deposit_pop.id
+
+
+def test_submitting_pdf_as_photo_causes_error_to_be_returned(
+    marnie_user_client: Client,
+    bob_job_with_deposit_pop: Job,
+    test_pdf: SimpleUploadedFile,
+    test_pdf_2: SimpleUploadedFile,
+) -> None:
+    """Ensure that submitting a PDF as a photo causes an error to be returned.
+
+    Args:
+        marnie_user_client (Client): The Django test client for Marnie.
+        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+        test_pdf_2 (SimpleUploadedFile): The test PDF file.
+    """
+    with safe_read(test_pdf, test_pdf_2):
+        response = check_type(
+            marnie_user_client.post(
+                reverse(
+                    "jobs:job_complete",
+                    kwargs={"pk": bob_job_with_deposit_pop.pk},
+                ),
+                data={
+                    "job_date": "2022-03-04",
+                    "invoice": test_pdf,
+                    "comments": "This job is now complete.",
+                    "form-TOTAL_FORMS": "1",
+                    "form-INITIAL_FORMS": "0",
+                    "form-MIN_NUM_FORMS": "0",
+                    "form-MAX_NUM_FORMS": "1000",
+                    "form-0-photo": test_pdf_2,
+                },
+                follow=True,
+            ),
+            TemplateResponse,
+        )
+
+        expected_html = (
+            "<strong>Upload a valid image. The file you uploaded "
+            "was either not an image or a corrupted image.</strong>"
+        )
+
+        assert expected_html in response.content.decode()

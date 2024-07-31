@@ -1,6 +1,8 @@
 """View for completing a Maintenance Job."""
 
 from typing import TYPE_CHECKING
+from typing import Any
+from typing import cast
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -10,7 +12,9 @@ from django.views.generic import UpdateView
 from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.forms import JobCompleteForm
+from marnies_maintenance_manager.jobs.forms import JobCompletionPhotoFormSet
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
 from marnies_maintenance_manager.jobs.views.mixins import JobSuccessUrlMixin
 from marnies_maintenance_manager.jobs.views.utils import prepare_and_send_email
 from marnies_maintenance_manager.users.models import User
@@ -63,9 +67,20 @@ class JobCompleteView(
         # This method is called when valid form data has been POSTed. It's responsible
         # for doing things before and after performing the actual save of the form.
         # (to the database).
+        context = self.get_context_data()
+        photo_formset = context["photo_formset"]
+
+        if not (form.is_valid() and photo_formset.is_valid()):
+            form2 = cast(dict[str, Any], form)
+            return self.render_to_response(self.get_context_data(form=form2))
+
+        # Associate each photo with the job before saving the formset
+        job = form.save(commit=False)
+        for photo_form in photo_formset:
+            photo_form.instance.job = job
+        photo_formset.save()
 
         # Update the Job's state to "marnie completed"
-        job = form.save(commit=False)
         job.status = Job.Status.MARNIE_COMPLETED.value
         job.complete = True
         job.save()
@@ -95,3 +110,26 @@ class JobCompleteView(
 
         # Return response back to the caller:
         return response
+
+    def get_context_data(self, **kwargs: dict[str, Any]) -> dict[str, Any]:
+        """Get the context data for this view.
+
+        Args:
+            **kwargs (dict[str, Any]): The keyword arguments
+
+        Returns:
+            dict[str, Any]: The context data.
+        """
+        # noinspection PyUnresolvedReferences
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context["photo_formset"] = JobCompletionPhotoFormSet(
+                self.request.POST,
+                self.request.FILES,
+                queryset=JobCompletionPhoto.objects.filter(job=self.object),
+            )
+        else:
+            context["photo_formset"] = JobCompletionPhotoFormSet(
+                queryset=JobCompletionPhoto.objects.filter(job=self.object),
+            )
+        return context

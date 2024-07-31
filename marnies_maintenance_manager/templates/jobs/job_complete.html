@@ -10,11 +10,30 @@
   <form method="post" enctype="multipart/form-data" id="maintenanceForm">
     {% csrf_token %}
     {{ form|crispy }}
+    {{ photo_formset.management_form }}
+    <div id="photo-formset">
+      {% for form in photo_formset %}{{ form|crispy }}{% endfor %}
+    </div>
+    <button type="button" class="btn btn-secondary" id="add-photo">Add photo</button>
     <button class="btn btn-primary" type="submit" id="saveChangesButton">Save changes</button>
   </form>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       handleFormSubmission('maintenanceForm', 'saveChangesButton');
+
+      const addPhotoButton = document.getElementById('add-photo');
+      const formsetDiv = document.getElementById('photo-formset');
+{# djlint:off #}
+      let formCount = {{ photo_formset.total_form_count }};
+{# djlint:on #}
+      addPhotoButton.addEventListener('click', function() {
+        const newForm = document.createElement('div');
+        const newIndex = formCount;
+        const emptyFormTemplate = `{{ photo_formset.empty_form|crispy }}`.replace(/__prefix__/g, newIndex);
+        newForm.innerHTML = emptyFormTemplate;
+        formsetDiv.appendChild(newForm);
+        document.querySelector('#id_form-TOTAL_FORMS').value = ++formCount;
+      });
     });
   </script>
 {% endblock content %}

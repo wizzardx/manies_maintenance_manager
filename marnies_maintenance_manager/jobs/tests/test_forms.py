@@ -7,9 +7,12 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from marnies_maintenance_manager.jobs.forms import FinalPaymentPOPUpdateForm
 from marnies_maintenance_manager.jobs.forms import JobCompleteForm
+from marnies_maintenance_manager.jobs.forms import JobCompletionPhotoForm
+from marnies_maintenance_manager.jobs.forms import JobCompletionPhotoFormSet
 from marnies_maintenance_manager.jobs.forms import JobUpdateForm
 from marnies_maintenance_manager.jobs.forms import QuoteUpdateForm
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
 from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.users.models import User
 
@@ -168,3 +171,53 @@ class TestFinalPaymentPOPUpdateForm:
         assert not form.is_valid()
         assert "final_payment_pop" in form.errors
         assert "This field is required." in form.errors["final_payment_pop"]
+
+
+class TestJobCompletionPhotoForm:
+    """Tests for the JobCompletionPhotoForm form."""
+
+    @staticmethod
+    def test_model_class_is_job_completion_photo() -> None:
+        """Test that the JobCompletionPhotoForm is for the JobCompletionPhoto model."""
+        assert JobCompletionPhotoForm.Meta.model == JobCompletionPhoto
+
+    @staticmethod
+    def test_has_photo_field() -> None:
+        """Test that the JobCompletionPhotoForm has a photo field."""
+        assert "photo" in JobCompletionPhotoForm.Meta.fields
+
+    @staticmethod
+    def test_photo_field_is_an_image_field() -> None:
+        """Test that the photo field is an image field."""
+        form = JobCompletionPhotoForm()
+        assert isinstance(form.fields["photo"], forms.ImageField)
+
+    @staticmethod
+    def test_photo_field_is_required() -> None:
+        """Test that the photo field is required."""
+        data = {"photo": ""}
+        form = JobCompletionPhotoForm(data=data)
+        assert not form.is_valid()
+        assert "photo" in form.errors
+        assert "This field is required." in form.errors["photo"]
+
+
+class TestJobCompletionPhotoFormSet:
+    """Tests for the JobCompletionPhotoFormSet formset."""
+
+    @staticmethod
+    def test_model_class_is_job_completion_photo() -> None:
+        """Test that JobCompletionPhotoFormSet is for the JobCompletionPhoto model."""
+        assert JobCompletionPhotoFormSet.model == JobCompletionPhoto
+
+    @staticmethod
+    def test_form_class_is_job_completion_photo_form() -> None:
+        """Test that the form class is the JobCompletionPhotoForm."""
+        assert "'django.forms.widgets.JobCompletionPhotoForm'" in str(
+            JobCompletionPhotoFormSet.form,
+        )
+
+    @staticmethod
+    def test_extra_is_zero() -> None:
+        """Test that the extra attribute is set to zero."""
+        assert JobCompletionPhotoFormSet.extra == 0

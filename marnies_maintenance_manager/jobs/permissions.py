@@ -15,6 +15,7 @@ from private_storage.models import PrivateFile
 from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
 from marnies_maintenance_manager.users.models import User
 
 # Pattern found in the path to the file indicating directory traversal
@@ -42,6 +43,47 @@ def _is_quote_file(path: Path) -> bool:
     return is_quotes_dir and is_pdf_file
 
 
+# This constant is used in the _is_file_accessible_by_user function to check if the
+# user has access to a JobCompletionPhoto object.
+SPECIAL_JOB_COMPLETION_PHOTO_FIELD = "job_completion_photo"
+
+
+def _get_job_from_completion_photo(path: Path) -> Job | None:
+    """Retrieve the job associated with a JobCompletionPhoto.
+
+    Args:
+        path (Path): The relative path to the JobCompletionPhoto.
+
+    Returns:
+        Job | None: The associated Job if found, otherwise None.
+    """
+    try:
+        completion_photo = JobCompletionPhoto.objects.get(photo=path)
+    except (
+        JobCompletionPhoto.DoesNotExist,
+        JobCompletionPhoto.MultipleObjectsReturned,
+    ):
+        return None
+
+    return completion_photo.job
+
+
+def _get_job_from_field(path: Path, field_name: str) -> Job | None:
+    """Retrieve the job associated with a specific field.
+
+    Args:
+        path (Path): The relative path to the field.
+        field_name (str): The field name in the Job model.
+
+    Returns:
+        Job | None: The associated Job if found, otherwise None.
+    """
+    try:
+        return Job.objects.get(**{field_name: path})
+    except (Job.DoesNotExist, Job.MultipleObjectsReturned):
+        return None
+
+
 def _is_file_accessible_by_user(user: User, path: Path, field_name: str) -> bool:
     """Check if the user has access to a specific file type.
 
@@ -50,6 +92,8 @@ def _is_file_accessible_by_user(user: User, path: Path, field_name: str) -> bool
         path (Path): The relative path to the file.
         field_name (str): The field name in the Job model to check (e.g., 'quote',
             'deposit_proof_of_payment', 'invoice').
+            - If the value is "job_completion_photo", then this is interpreted instead
+              as access to a JobCompletionPhoto object, rather than a Job object.
 
     Returns:
         bool: True if the user is allowed to access the file, otherwise False.
@@ -62,21 +106,15 @@ def _is_file_accessible_by_user(user: User, path: Path, field_name: str) -> bool
     # that the file is for.
     if user.is_agent:
         # Get the related job from the file path for the specified field:
-        try:
-            job = Job.objects.get(**{field_name: path})
-        except Job.DoesNotExist:
-            # If a matching job is not found, then we treat this as a permission denied.
-            # This is a security measure to prevent agents from accessing files.
-            # The file itself might actually exist on the server, but we don't want to
-            # reveal its existence to agents unnecessarily.
-            return False
-        except Job.MultipleObjectsReturned:
-            # If multiple matching jobs are found, then we treat this as a permission
-            # denied.
-            return False
+        if field_name == SPECIAL_JOB_COMPLETION_PHOTO_FIELD:
+            job = _get_job_from_completion_photo(path)
+        else:
+            job = _get_job_from_field(path, field_name)
 
         # Return True if the agent created the job, otherwise False.
-        return job.agent == user
+        if job:
+            return job.agent == user
+        return False
 
     # Unknown user type, so deny access:
     return False
@@ -152,8 +190,45 @@ def _is_final_payment_pop_file(path: Path) -> bool:
     return is_final_payment_proofs_dir and is_pdf_file
 
 
+def _has_common_image_filename_extension(
+    basename: str,
+) -> bool:
+    """Check if the filename has a common image filename extension.
+
+    Args:
+        basename (str): The basename of the file.
+
+    Returns:
+        bool: True if the filename has a common image filename extension, otherwise
+              False.
+    """
+    return basename.lower().endswith((".jpg", ".jpeg", ".png", ".gif", ".bmp"))
+
+
+def _is_job_completion_photo(path: Path) -> bool:
+    """Check if the file is a Job Completion Photo image.
+
+    Args:
+        path (Path): The simplified relative path to the file.
+            - example value: Path("final_payment_pops/test.pdf")
+
+    Returns:
+        bool: True if the file is a Job Completion Photo, otherwise False.
+    """
+    # Break into parts:
+    dirname, basename = path.parts
+    job_completion_photos_dirname = "completion_photos"
+    is_final_payment_proofs_dir = dirname == job_completion_photos_dirname
+    is_image_file = _has_common_image_filename_extension(basename)
+    return is_final_payment_proofs_dir and is_image_file
+
+
 def _access_allowed_for_final_payment_pop_file(user: User, path: Path) -> bool:
     return _is_file_accessible_by_user(user, path, "final_payment_pop")
+
+
+def _access_allowed_for_job_completion_photo_file(user: User, path: Path) -> bool:
+    return _is_file_accessible_by_user(user, path, "job_completion_photo")
 
 
 def _access_allowed(request: HttpRequest, path: Path) -> bool:
@@ -168,30 +243,27 @@ def _access_allowed(request: HttpRequest, path: Path) -> bool:
     Returns:
         bool: True if the user is allowed to access the file, otherwise False.
     """
-    # Admins can access everything:
     user = check_type(request.user, User)
+
+    # Admins can access everything:
     if user.is_superuser:
         return True
 
-    # Is it a quote file?
-    if _is_quote_file(path):
-        # Yes. Check if the user is allowed to access the quote file:
-        return _access_allowed_for_quote_file(user, path)
+    # Define a mapping of file type check functions to their respective access functions
+    # fmt: off
+    file_type_access_check_map = {
+        _is_quote_file: _access_allowed_for_quote_file,
+        _is_deposit_proof_of_payment_file:
+            _access_allowed_for_deposit_proof_of_payment_file,
+        _is_invoice_file: _access_allowed_for_invoice_file,
+        _is_final_payment_pop_file: _access_allowed_for_final_payment_pop_file,
+        _is_job_completion_photo: _access_allowed_for_job_completion_photo_file,
+    }
+    # fmt: on
 
-    # Is it a Deposit Proof of Payment?
-    if _is_deposit_proof_of_payment_file(path):
-        # Yes. Check if the user is allowed to access the deposit proof of payment file:
-        return _access_allowed_for_deposit_proof_of_payment_file(user, path)
-
-    # Is it an Invoice?
-    if _is_invoice_file(path):
-        # Yes. Check if the user is allowed to access the invoice file:
-        return _access_allowed_for_invoice_file(user, path)
-
-    # Is it a final payment POP?
-    if _is_final_payment_pop_file(path):
-        # Yes. Check if the user is allowed to access the final payment POP file:
-        return _access_allowed_for_final_payment_pop_file(user, path)
+    for file_type_check, access_function in file_type_access_check_map.items():
+        if file_type_check(path):
+            return access_function(user, path)
 
     # If the logic reaches this point, then access is not allowed:
     return False

@@ -4,10 +4,12 @@ from typing import TYPE_CHECKING
 
 from django import forms
 from django.core.files.base import File
+from django.forms import modelformset_factory
 from typeguard import check_type
 from typeguard import typechecked
 
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
 from marnies_maintenance_manager.jobs.utils import safe_read
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -88,6 +90,25 @@ class DepositPOPUpdateForm(TypedModelForm):
         ]
 
     deposit_proof_of_payment = forms.FileField()
+
+
+class JobCompletionPhotoForm(TypedModelForm):
+    """Form for uploading job completion photos."""
+
+    class Meta:
+        """Metaclass for the JobCompletionPhotoForm."""
+
+        model = JobCompletionPhoto
+        fields = ["photo"]
+
+    photo = forms.ImageField()
+
+
+JobCompletionPhotoFormSet = modelformset_factory(
+    JobCompletionPhoto,
+    form=JobCompletionPhotoForm,
+    extra=0,
+)
 
 
 class JobCompleteForm(TypedModelForm):

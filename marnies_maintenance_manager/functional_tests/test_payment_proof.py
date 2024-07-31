@@ -32,7 +32,7 @@ from marnies_maintenance_manager.users.models import User
 
 def _check_maintenance_jobs_page_table_after_pop_submission(browser: WebDriver) -> None:
     # He notices that the new Maintenance Job is listed on the web page in a table
-    cell_texts = _check_maintenance_jobs_table(browser)
+    cell_texts = _check_maintenance_jobs_table(browser)["cell_texts"]
 
     ## Make sure the cell text contents match the expected values.
     assert cell_texts == [
@@ -48,6 +48,7 @@ def _check_maintenance_jobs_page_table_after_pop_submission(browser: WebDriver) 
         "Download POP",  # Deposit POP
         "",  # Invoice
         "",  # Job Date
+        "",  # Job Completion Photos
         "",  # Comments on the job
         "No",  # Job Complete
         "",  # Final Payment POP

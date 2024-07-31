@@ -7,8 +7,9 @@ application, waiting for certain conditions, and creating or updating
 job entries.
 """
 
-# pylint: disable=unused-argument, magic-value-comparison
-# ruff: noqa: ERA001
+# pylint: disable=unused-argument, magic-value-comparison, too-many-locals
+# pylint: disable=too-many-statements, disable=consider-using-assignment-expr
+# ruff: noqa: ERA001, PLR0915
 
 import datetime
 import re
@@ -168,7 +169,7 @@ def _sign_out_of_website_and_clean_up(browser: WebDriver) -> None:
 
 
 def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) -> None:
-    cell_texts = _check_maintenance_jobs_table(browser)
+    cell_texts = _check_maintenance_jobs_table(browser)["cell_texts"]
 
     ## Make sure the cell text contents match the expected values.
     assert cell_texts == [
@@ -183,6 +184,7 @@ def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) ->
         "",  # Accept or Reject A/R
         "",  # Deposit POP
         "",  # Job Date
+        "",  # Photos
         "",  # Invoice
         "",  # Comments
         "No",  # Job Complete
@@ -191,10 +193,10 @@ def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) ->
 
 
 def _check_maintenance_jobs_page_table_after_job_completion(browser: WebDriver) -> None:
-    cell_texts = _check_maintenance_jobs_table(browser)
+    row_info = _check_maintenance_jobs_table(browser)
+    cell_texts = row_info["cell_texts"]
 
     ## Make sure the cell text contents match the expected values.
-
     expected = [
         "1",  # This is for the row number, automatically added by the system.
         (
@@ -210,6 +212,7 @@ def _check_maintenance_jobs_page_table_after_job_completion(browser: WebDriver) 
         "A",  # Accept or Reject A/R
         "Download POP",  # Deposit POP
         "2021-03-02",  # Job Date
+        "Download Photo 1 Download Photo 2",  # Job completion photos
         "Download Invoice",  # Invoice
         "I fixed the leaky faucet While I was in there I noticed damage in the wall "
         "Do you want me to fix that too?",
@@ -218,11 +221,31 @@ def _check_maintenance_jobs_page_table_after_job_completion(browser: WebDriver) 
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 
+    # Attempt to reach the browser using the browser.
+    photo_urls = row_info["photo_urls"]
+
+    # Get the current url of the browser:
+    orig_url = browser.current_url
+
+    for url in photo_urls:
+        browser.get(url)
+
+        # If the image is retrievable at the URL, then when we retrieve the page,
+        # the browser in Chrome contains HTML to view the image in the browser.
+        # We check for a short fragment of the expected HTML in that case.
+        expected_html = f'src="{url}"'
+        if expected_html not in browser.page_source:  # pragma: no cover
+            msg = f"Failed to download photo from {url}"
+            raise AssertionError(msg)
+
+    # Browse back to our original URL:
+    browser.get(orig_url)
+
 
 def _check_maintenance_jobs_page_table_after_final_payment_pop_submission(
     browser: WebDriver,
 ) -> None:
-    cell_texts = _check_maintenance_jobs_table(browser)
+    cell_texts = _check_maintenance_jobs_table(browser)["cell_texts"]
 
     ## Make sure the cell text contents match the expected values.
     expected = [
@@ -237,6 +260,7 @@ def _check_maintenance_jobs_page_table_after_final_payment_pop_submission(
         "A",  # Accept or Reject A/R
         "Download POP",  # Deposit POP
         "2021-03-02",  # Job Date
+        "Download Photo 1 Download Photo 2",  # Job completion photos
         "Download Invoice",  # Invoice
         "I fixed the leaky faucet While I was in there I noticed damage in the wall "
         "Do you want me to fix that too?",  # Comments on the job
@@ -246,7 +270,7 @@ def _check_maintenance_jobs_page_table_after_final_payment_pop_submission(
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 
 
-def _check_maintenance_jobs_table(browser: WebDriver) -> list[str]:
+def _check_maintenance_jobs_table(browser: WebDriver) -> dict[str, list[str]]:
     """Check the maintenance jobs table for the correct row and cell contents.
 
     Args:
@@ -280,6 +304,7 @@ def _check_maintenance_jobs_table(browser: WebDriver) -> list[str]:
         "Accept or Reject A/R",
         "Deposit POP",
         "Job Date",
+        "Photos",
         "Invoice",
         "Comments on the job",
         "Job Complete",
@@ -288,7 +313,22 @@ def _check_maintenance_jobs_table(browser: WebDriver) -> list[str]:
 
     ## The second row is the new job
     row = rows[1]
-    return [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
+
+    # Prepare and return details extracted from the row
+    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
+
+    # Get the download URLs for the photo images
+    photo_urls = []
+    photo_cell = row.find_elements(By.TAG_NAME, "td")[11]
+    photo_links = photo_cell.find_elements(By.TAG_NAME, "a")
+    for link in photo_links:
+        url = check_type(link.get_attribute("href"), str)
+        photo_urls.append(url)
+
+    return {
+        "cell_texts": cell_texts,
+        "photo_urls": photo_urls,
+    }
 
 
 def _create_new_job(
@@ -409,6 +449,7 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
         "",  # Accept or Reject A/R
         "",  # Deposit POP
         "",  # Job Date
+        "",  # Photos
         "",  # Invoice
         "",  # Comments
         "No",  # Job Complete
@@ -608,6 +649,7 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
         "R",  # Accept or Reject A/R
         "",  # Deposit POP
         "",  # Job Date
+        "",  # Job Completion Photos
         "",  # Invoice
         "",  # Comments
         "No",  # Job Complete
@@ -750,12 +792,27 @@ def _marnie_completes_the_job(browser: WebDriver) -> None:
     # He uploads the invoice file:
     invoice_input.send_keys(str(FUNCTIONAL_TESTS_DATA_DIR / "test.pdf"))
 
+    # He sees an "Add photo" button, and clicks on it.
+    add_photo_button = browser.find_element(By.ID, "add-photo")
+    add_photo_button.click()
+
+    # He sees a field where he can upload a photo for the work done:
+    photo_input = browser.find_element(By.NAME, "form-0-photo")
+
+    # He uploads a photo file:
+    photo_input.send_keys(str(FUNCTIONAL_TESTS_DATA_DIR / "test.jpg"))
+
+    # He adds a second photo.
+    add_photo_button.click()
+    photo_input = browser.find_element(By.NAME, "form-1-photo")
+    photo_input.send_keys(str(FUNCTIONAL_TESTS_DATA_DIR / "test_2.jpg"))
+
     # He sees a "Submit" button and clicks it:
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
     submit_button.click()
 
     # He is taken back to the maintenance jobs page for Bob.
-    assert browser.title == "Maintenance Jobs for bob"
+    assert browser.title == "Maintenance Jobs for bob", browser.title
     assert browser.find_element(By.TAG_NAME, "h1").text == "Maintenance Jobs for bob"
 
     # He sees a flash notification that the job has been completed.
@@ -802,6 +859,15 @@ def _marnie_completes_the_job(browser: WebDriver) -> None:
     invoice_link = browser.find_element(By.LINK_TEXT, "Download Invoice")
     assert invoice_link is not None
     assert "Download Invoice" in invoice_link.text
+
+    # He sees links to the photos that he uploaded earlier:
+    link_texts = ["Download Photo 1", "Download Photo 2"]
+    for link_text in link_texts:
+        photo_link = browser.find_element(By.LINK_TEXT, link_text)
+        assert photo_link is not None
+        assert link_text in photo_link.text
+        url = check_type(photo_link.get_attribute("href"), str)
+        assert url.endswith(".jpg")
 
     # Happy with this, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)

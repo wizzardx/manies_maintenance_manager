@@ -79,6 +79,7 @@ def test_agent_uploads_final_payment_pop(
         "A",  # Accept or Reject A/R
         "Download POP",  # Deposit POP
         "2021-03-02",  # Job Date
+        "Download Photo 1 Download Photo 2",  # Job Photos
         "Download Invoice",  # Invoice
         "I fixed the leaky faucet While I was in there I noticed damage in the "
         "wall Do you want me to fix that too?",  # Comments

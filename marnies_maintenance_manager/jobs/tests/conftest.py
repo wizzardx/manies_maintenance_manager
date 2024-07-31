@@ -8,6 +8,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 BASIC_TEST_PDF_FILE = Path(__file__).parent / "views" / "test.pdf"
 BASIC_TEST_PDF_FILE_2 = Path(__file__).parent / "views" / "test_2.pdf"
+BASIC_TEST_JPG_FILE = (
+    Path(__file__).parent.parent.parent / "functional_tests" / "test.jpg"
+)
 
 
 @pytest.fixture(scope="session")
@@ -37,6 +40,22 @@ def test_pdf_2() -> Iterator[SimpleUploadedFile]:
         "test_2.pdf",
         BASIC_TEST_PDF_FILE_2.read_bytes(),
         content_type="application/pdf",
+    )
+    yield f
+    assert f.tell() == 0, "File position not reset to 0 after use"
+
+
+@pytest.fixture(scope="session")
+def test_image() -> Iterator[SimpleUploadedFile]:
+    """Return a test JPG file as a SimpleUploadedFile.
+
+    Yields:
+        SimpleUploadedFile: The test PDF file.
+    """
+    f = SimpleUploadedFile(
+        "test.jpg",
+        BASIC_TEST_JPG_FILE.read_bytes(),
+        content_type="image/jpeg",
     )
     yield f
     assert f.tell() == 0, "File position not reset to 0 after use"

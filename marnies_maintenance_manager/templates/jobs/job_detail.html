@@ -110,6 +110,16 @@
     <p>
       <strong>Job Date:</strong> <span class="job-date">{{ job.job_date|date:"Y-m-d" }}</span>
     </p>
+    {% if job.job_completion_photos %}
+      <p>
+        <strong>Photos:</strong>
+        <span class="photos">
+          {% for photo in job.job_completion_photos.all %}
+            <a href="{{ photo.photo.url }}">Download Photo {{ forloop.counter }}</a>
+          {% endfor %}
+        </span>
+      </p>
+    {% endif %}
     <p>
       <strong>Invoice:</strong>  <a href="{{ job.invoice.url }}">Download Invoice</a>
     </p>
