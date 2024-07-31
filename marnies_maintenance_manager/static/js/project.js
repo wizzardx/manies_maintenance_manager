@@ -22,12 +22,12 @@ function handleFormSubmission(formId, submitButtonId) {
     loadingIndicator.style.display = 'none';
     loadingIndicator.textContent = 'Submitting...';
 
-    // Insert the loading indicator after the submit button
+    // Insert the loading indicator after the "Submit" button
     submitButton.parentNode.insertBefore(loadingIndicator, submitButton.nextSibling);
 
-    // Add an event listener to the form to handle the submit event
+    // Add an event listener to the form to handle the "submit" event
     form.addEventListener('submit', function(event) {
-        // Disable the submit button to prevent multiple submissions
+        // Disable the "Submit" button to prevent multiple submissions
         submitButton.disabled = true;
 
         // Show the loading indicator to provide feedback to the user

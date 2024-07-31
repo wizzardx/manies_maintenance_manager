@@ -103,7 +103,7 @@ def test_agent_uploads_final_payment_pop(
     header = browser.find_element(By.TAG_NAME, "h1")
     assert "Upload Final Payment Proof of Payment" in header.text
 
-    # He sees a form with a file input field, and a submit button.
+    # He sees a form with a file input field, and a "submit" button.
     file_input = browser.find_element(By.ID, "id_final_payment_pop")
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
 
@@ -138,7 +138,7 @@ def test_agent_uploads_final_payment_pop(
     maintenance_jobs_link = browser.find_element(By.LINK_TEXT, "Maintenance Jobs")
     maintenance_jobs_link.click()
 
-    # He sees the table with the job details, and the final payment proof of payment
+    # He sees the table with the job details, and the final "proof of payment"
     # link in the table.
     _check_maintenance_jobs_page_table_after_final_payment_pop_submission(
         browser,

@@ -418,7 +418,7 @@ class TestSafeRead:
     def test_fails_if_tell_not_at_zero_after_reading(
         mocker: pytest_mock.MockFixture,
     ) -> None:
-        """Test AssertionError if file pointer isn't reset to 0 after reading.
+        """Test AssertionError if the file pointer isn't reset to 0 after reading.
 
         Args:
             mocker (pytest_mock.MockFixture): A pytest-mock fixture.

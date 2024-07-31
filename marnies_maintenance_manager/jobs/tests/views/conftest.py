@@ -206,7 +206,7 @@ def bob_job_completed_by_marnie(
     assert job.complete is False
     assert job.invoice.name == ""
 
-    # Update job to the completed state:
+    # Update Job to the completed state:
     job.status = Job.Status.MARNIE_COMPLETED.value
     job.job_date = datetime.date(2022, 1, 1)
     job.comments = "Job completed successfully"
