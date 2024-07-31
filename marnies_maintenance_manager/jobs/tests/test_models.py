@@ -5,7 +5,6 @@
 import datetime
 import re
 import uuid
-from typing import assert_never
 from unittest.mock import patch
 
 import django
@@ -25,7 +24,6 @@ from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
-from marnies_maintenance_manager.jobs.models import _get_next_actions_str_for_status
 from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.jobs.validators import validate_pdf_contents
 from marnies_maintenance_manager.users.models import User
@@ -611,88 +609,6 @@ class TestFinalPaymentPOPField:
 
         # Only the .pdf file extension is allowed and the PDF contents must be valid:
         assert_pdf_field_validators(field)
-
-
-def test__get_next_actions_str_for_status_helper_func() -> None:
-    """Ensure _get_next_actions_str_for_status returns the correct string."""
-    for status in Job.Status:
-        match status:
-            case Job.Status.PENDING_INSPECTION:
-                expected = "Marnie needs to inspect the site and then upload a quote"
-            case Job.Status.INSPECTION_COMPLETED:
-                expected = "The agent needs to Accept or Reject Marnie's quote"
-            case Job.Status.QUOTE_REJECTED_BY_AGENT:
-                expected = (
-                    "Marnie and the Agent need to discuss the quote outside "
-                    "of this app. To go ahead inside this app, "
-                    "Marnie can upload a new quote."
-                )
-            case Job.Status.QUOTE_ACCEPTED_BY_AGENT:
-                expected = (
-                    "The agent needs to pay the deposit and then "
-                    "upload the proof of payment"
-                )
-            case Job.Status.DEPOSIT_POP_UPLOADED:
-                expected = "Marnie needs to complete the job and then upload a quote"
-            case Job.Status.MARNIE_COMPLETED:
-                expected = (
-                    "The agent needs to make the final payment and then "
-                    "upload the proof of payment"
-                )
-            case Job.Status.FINAL_PAYMENT_POP_UPLOADED:
-                expected = "Nothing further is required"
-            case _ as unreachable:  # pragma: no cover
-                # This ensures that all cases are handled
-                assert_never(unreachable)
-        found = _get_next_actions_str_for_status(status.value)
-        assert found == expected
-
-
-def test_get_next_actions_str(job_created_by_bob: Job) -> None:
-    """Ensure the get_next_actions_str method returns the correct string.
-
-    Args:
-        job_created_by_bob (Job): Job instance created by Bob.
-    """
-    assert (
-        job_created_by_bob.get_next_actions_str()
-        == "Marnie needs to inspect the site and then upload a quote"
-    )
-
-    job_created_by_bob.status = Job.Status.INSPECTION_COMPLETED.value
-    assert (
-        job_created_by_bob.get_next_actions_str()
-        == "The agent needs to Accept or Reject Marnie's quote"
-    )
-
-    job_created_by_bob.status = Job.Status.QUOTE_REJECTED_BY_AGENT.value
-    assert (
-        job_created_by_bob.get_next_actions_str()
-        == "Marnie and the Agent need to discuss the quote outside of this app. "
-        "To go ahead inside this app, Marnie can upload a new quote."
-    )
-
-    job_created_by_bob.status = Job.Status.QUOTE_ACCEPTED_BY_AGENT.value
-    assert (
-        job_created_by_bob.get_next_actions_str()
-        == "The agent needs to pay the deposit and then upload the proof of payment"
-    )
-
-    job_created_by_bob.status = Job.Status.DEPOSIT_POP_UPLOADED.value
-    assert (
-        job_created_by_bob.get_next_actions_str()
-        == "Marnie needs to complete the job and then upload a quote"
-    )
-
-    job_created_by_bob.status = Job.Status.MARNIE_COMPLETED.value
-    assert (
-        job_created_by_bob.get_next_actions_str()
-        == "The agent needs to make the final payment and then "
-        "upload the proof of payment"
-    )
-
-    job_created_by_bob.status = Job.Status.FINAL_PAYMENT_POP_UPLOADED.value
-    assert job_created_by_bob.get_next_actions_str() == "Nothing further is required"
 
 
 @pytest.fixture()

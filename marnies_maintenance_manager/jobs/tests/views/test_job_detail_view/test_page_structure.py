@@ -88,9 +88,6 @@ def test_job_detail_view_shows_expected_job_details(
     # Search for comments
     assert job.comments in page
 
-    # Make sure that the "Next Actions" is in the page:
-    assert job.get_next_actions_str() in page
-
 
 def test_fields_only_shown_when_job_complete(
     bob_job_completed_by_marnie: Job,

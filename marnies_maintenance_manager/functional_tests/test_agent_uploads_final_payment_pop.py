@@ -66,10 +66,6 @@ def test_agent_uploads_final_payment_pop(
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
     expected = [
         "1",
-        (
-            "The agent needs to make the final payment and then upload the proof of "
-            "payment"
-        ),  # Next Actions
         "2021-01-01",
         "Department of Home Affairs Bellville",
         "GPS",

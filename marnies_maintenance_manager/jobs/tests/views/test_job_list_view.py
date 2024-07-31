@@ -307,7 +307,6 @@ class TestMarnieAccessingJobListView:
         header_cells_text_list = [cell.text for cell in header_cells]
         assert header_cells_text_list == [
             "Number",
-            "Next Actions",
             "Date",
             "Address Details",
             "GPS Link",
@@ -333,7 +332,6 @@ class TestMarnieAccessingJobListView:
         # Confirm the expected text in the first row:
         expected_row_text_list = [
             "1",
-            "Marnie needs to inspect the site and then upload a quote",  # Next Actions
             "2022-01-01",
             "1234 Main St, Springfield, IL",
             "GPS",

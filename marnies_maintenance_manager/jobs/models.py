@@ -3,7 +3,6 @@
 import uuid
 from enum import Enum
 from typing import Any
-from typing import assert_never
 
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
@@ -241,46 +240,6 @@ class Job(UUIDModel, TimeStampedModel):
 
         # Now we can save the model:
         super().save(*args, **kwargs)  # type: ignore[no-untyped-call]
-
-    def get_next_actions_str(self) -> str:
-        """Get a string describing the next actions required for the job.
-
-        Returns:
-            str: A string describing the next actions required for the job.
-        """
-        return _get_next_actions_str_for_status(self.status)
-
-
-def _get_next_actions_str_for_status(status: str) -> str:
-    actions = {
-        Job.Status.PENDING_INSPECTION.value: (
-            "Marnie needs to inspect the site and then upload a quote"
-        ),
-        Job.Status.INSPECTION_COMPLETED.value: (
-            "The agent needs to Accept or Reject Marnie's quote"
-        ),
-        Job.Status.QUOTE_REJECTED_BY_AGENT.value: (
-            "Marnie and the Agent need to discuss the quote outside of this "
-            "app. To go ahead inside this app, Marnie can upload a new quote."
-        ),
-        Job.Status.QUOTE_ACCEPTED_BY_AGENT.value: (
-            "The agent needs to pay the deposit and then upload the proof of payment"
-        ),
-        Job.Status.DEPOSIT_POP_UPLOADED.value: (
-            "Marnie needs to complete the job and then upload a quote"
-        ),
-        Job.Status.MARNIE_COMPLETED.value: (
-            "The agent needs to make the final payment and then upload the "
-            "proof of payment"
-        ),
-        Job.Status.FINAL_PAYMENT_POP_UPLOADED.value: "Nothing further is required",
-    }
-
-    if status in actions:
-        return actions[status]
-
-    # This ensures that all cases are handled
-    return assert_never(status)  # type: ignore[arg-type]  # pragma: no cover
 
 
 class JobCompletionPhoto(UUIDModel, TimeStampedModel):
