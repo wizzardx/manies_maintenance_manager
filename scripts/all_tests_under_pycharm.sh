@@ -14,7 +14,7 @@ time scripts/all_tests.sh "$@" || RETCODE=$?
 
 # That script can take a while, so play a noise and run `yad` to bring my attention
 # back to it.
-paplay /usr/share/sounds/sound-icons/message
+pw-play /usr/share/sounds/sound-icons/message
 
 show_message() {
     local message="$1"
