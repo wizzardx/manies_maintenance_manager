@@ -2,56 +2,107 @@
 
 # pylint: disable=magic-value-comparison
 
+from typing import cast
+
 from django import forms
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.files.uploadedfile import UploadedFile
+from django.utils.datastructures import MultiValueDict
 
 from marnies_maintenance_manager.jobs.forms import FinalPaymentPOPUpdateForm
 from marnies_maintenance_manager.jobs.forms import JobCompleteForm
+from marnies_maintenance_manager.jobs.forms import JobCompleteInspectionForm
 from marnies_maintenance_manager.jobs.forms import JobCompletionPhotoForm
 from marnies_maintenance_manager.jobs.forms import JobCompletionPhotoFormSet
-from marnies_maintenance_manager.jobs.forms import JobUpdateForm
 from marnies_maintenance_manager.jobs.forms import QuoteUpdateForm
+from marnies_maintenance_manager.jobs.forms import QuoteUploadForm
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
 from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.users.models import User
 
 
-class TestJobUpdateForm:
-    """Tests for the JobUpdateForm form."""
+class TestJobCompleteInspectionForm:
+    """Tests for the JobCompleteInspectionForm form."""
 
     @staticmethod
     def test_model_class_is_job() -> None:
-        """Test that the JobUpdateForm is for the Job model."""
-        assert JobUpdateForm.Meta.model == Job
+        """Test that the JobCompleteInspectionForm is for the Job model."""
+        assert JobCompleteInspectionForm.Meta.model == Job
 
     @staticmethod
     def test_has_date_of_inspection_field() -> None:
-        """Test that the JobUpdateForm has a date_of_inspection field."""
-        assert "date_of_inspection" in JobUpdateForm.Meta.fields
+        """Test that the JobCompleteInspectionForm has a date_of_inspection field."""
+        assert "date_of_inspection" in JobCompleteInspectionForm.Meta.fields
 
     @staticmethod
-    def test_has_quote_field() -> None:
-        """Test that the JobUpdateForm has a quote field."""
-        assert "quote" in JobUpdateForm.Meta.fields
+    def test_does_not_have_quote_field() -> None:
+        """Test that the JobCompleteInspectionForm does not have a quote field."""
+        assert "quote" not in JobCompleteInspectionForm.Meta.fields
 
     @staticmethod
     def test_date_of_inspection_field_is_required() -> None:
         """Test that the date_of_inspection field is required."""
         data = {"date_of_inspection": ""}
-        form = JobUpdateForm(data=data)
+        form = JobCompleteInspectionForm(data=data)
         assert not form.is_valid()
         assert "date_of_inspection" in form.errors
         assert "This field is required." in form.errors["date_of_inspection"]
+
+
+class TestQuoteUploadForm:
+    """Tests for the QuoteUploadForm form."""
+
+    @staticmethod
+    def test_model_class_is_job() -> None:
+        """Test that the QuoteUploadForm is for the Job model."""
+        assert QuoteUploadForm.Meta.model == Job
+
+    @staticmethod
+    def test_has_quote_field() -> None:
+        """Test that the QuoteUploadForm has a quote field."""
+        assert "quote" in QuoteUploadForm.Meta.fields
 
     @staticmethod
     def test_quote_field_is_required() -> None:
         """Test that the quote field is required."""
         data = {"quote": ""}
-        form = JobUpdateForm(data=data)
+        form = QuoteUploadForm(data=data)
         assert not form.is_valid()
         assert "quote" in form.errors
         assert "This field is required." in form.errors["quote"]
+
+    @staticmethod
+    def test_updates_the_job_object(
+        test_pdf: SimpleUploadedFile,
+        bob_job_with_initial_marnie_inspection: Job,
+    ) -> None:
+        """Test that the form updates the job object.
+
+        Args:
+            test_pdf (SimpleUploadedFile): A test PDF file.
+            bob_job_with_initial_marnie_inspection (Job): A job instance.
+        """
+        # Check Job before saving.
+        job = bob_job_with_initial_marnie_inspection
+        assert not job.quote
+        assert job.quote.name == ""
+
+        file_data = cast(MultiValueDict[str, UploadedFile], {"quote": test_pdf})
+        form = QuoteUploadForm(instance=job, files=file_data)
+        assert form.is_valid(), form.errors
+        with safe_read(test_pdf):
+            form.save()
+
+        # Check Job after saving:
+        quote_name = job.quote.name  # eg:  'quotes/test_XH4UNrl.pdf'
+        assert quote_name.startswith("quotes/test")
+        assert quote_name.endswith(".pdf")
+
+        with safe_read(test_pdf):
+            test_pdf_data = test_pdf.read()
+
+        assert job.quote.read() == test_pdf_data
 
 
 class TestQuoteUpdateForm:

@@ -47,32 +47,32 @@ def test_gets_redirected_to_login_for_anonymous_user(client: Client) -> None:
 
 def test_fails_for_none_post_request(
     bob_agent_user_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Ensure that the view fails for a GET request.
 
     Args:
         bob_agent_user_client (Client): The Django test client for Bob.
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
     response = bob_agent_user_client.get(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
+        f"/jobs/{bob_job_with_quote.id}/quote/reject/",
     )
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
 def test_gets_permission_error_for_marnie_user(
     marnie_user_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Ensure that Marnie cannot reject the quote for Bob's job.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
     response = marnie_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
+        f"/jobs/{bob_job_with_quote.id}/quote/reject/",
         follow=True,
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -80,16 +80,16 @@ def test_gets_permission_error_for_marnie_user(
 
 def test_gets_permission_error_for_different_agent_user(
     alice_agent_user_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Ensure that Alice cannot reject the quote for Bob's job.
 
     Args:
         alice_agent_user_client (Client): The Django test client for Alice.
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
     response = alice_agent_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
+        f"/jobs/{bob_job_with_quote.id}/quote/reject/",
         follow=True,
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -116,24 +116,22 @@ def test_fails_if_job_not_in_correct_state(
 
 def test_can_reject_when_job_already_in_rejected_state(
     bob_agent_user_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Ensure Bob can reject the quote when the job is already in the REJECTED state.
 
     Args:
         bob_agent_user_client (Client): The Django test client for Bob.
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
-    bob_job_with_initial_marnie_inspection.status = (
-        Job.Status.QUOTE_REJECTED_BY_AGENT.value
-    )
-    bob_job_with_initial_marnie_inspection.save()
+    bob_job_with_quote.status = Job.Status.QUOTE_REJECTED_BY_AGENT.value
+    bob_job_with_quote.save()
     response = bob_agent_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
+        f"/jobs/{bob_job_with_quote.id}/quote/reject/",
     )
     assert response.status_code == status.HTTP_302_FOUND
     response2 = check_type(response, HttpResponseRedirect)
-    assert response2.url == f"/jobs/{bob_job_with_initial_marnie_inspection.id}/"
+    assert response2.url == f"/jobs/{bob_job_with_quote.id}/"
 
 
 def test_fails_for_nonexistent_job(bob_agent_user_client: Client) -> None:
@@ -150,35 +148,35 @@ def test_fails_for_nonexistent_job(bob_agent_user_client: Client) -> None:
 
 def test_redirects_to_job_detail_view(
     bob_agent_user_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Ensure user is redirected to the job detail view after rejecting the quote.
 
     Args:
         bob_agent_user_client (Client): The Django test client for Bob.
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
     response = bob_agent_user_client.post(
-        f"/jobs/{bob_job_with_initial_marnie_inspection.id}/quote/reject/",
+        f"/jobs/{bob_job_with_quote.id}/quote/reject/",
     )
     assert response.status_code == status.HTTP_302_FOUND
     response2 = check_type(response, HttpResponseRedirect)
-    assert response2.url == f"/jobs/{bob_job_with_initial_marnie_inspection.id}/"
+    assert response2.url == f"/jobs/{bob_job_with_quote.id}/"
 
 
 def test_sets_job_to_rejected_by_agent(
     bob_agent_user_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Ensure that the job is set to REJECTED_BY_AGENT after rejecting the quote.
 
     Args:
         bob_agent_user_client (Client): The Django test client for Bob.
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
     job = _reject_quote_and_get_job(
         bob_agent_user_client,
-        bob_job_with_initial_marnie_inspection,
+        bob_job_with_quote,
     )
     assert job.accepted_or_rejected == Job.AcceptedOrRejected.REJECTED.value
 
@@ -208,7 +206,7 @@ def _reject_quote(client: Client, job: Job) -> None:
 
 def test_email_sent_to_marnie_user(
     bob_agent_user_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
     marnie_user: User,
     bob_agent_user: User,
 ) -> None:
@@ -216,7 +214,7 @@ def test_email_sent_to_marnie_user(
 
     Args:
         bob_agent_user_client (Client): The Django test client for Bob.
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
         marnie_user (User): The Marnie user.
         bob_agent_user (User): The Bob user.
     """
@@ -224,7 +222,7 @@ def test_email_sent_to_marnie_user(
     mail.outbox.clear()
 
     # Reject the quote:
-    _reject_quote(bob_agent_user_client, bob_job_with_initial_marnie_inspection)
+    _reject_quote(bob_agent_user_client, bob_job_with_quote)
 
     # Check that an email was sent, with the expected details.
     assert len(mail.outbox) == 1
@@ -240,22 +238,22 @@ def test_email_sent_to_marnie_user(
     assert "Agent bob has rejected the quote for a maintenance job." in email.body
 
     # Check the rest of the email contents:
-    assert_standard_email_content(email, bob_job_with_initial_marnie_inspection)
+    assert_standard_email_content(email, bob_job_with_quote)
 
 
 def test_flash_message_displayed(
     bob_agent_user_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Ensure that a flash message is displayed after rejecting a quote.
 
     Args:
         bob_agent_user_client (Client): The Django test client for Bob.
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
     messages = assert_standard_quote_post_response(
         bob_agent_user_client,
-        bob_job_with_initial_marnie_inspection,
+        bob_job_with_quote,
         "reject",
     )
     assert str(messages[0]) == "Quote rejected. An email has been sent to Marnie."
@@ -263,12 +261,12 @@ def test_flash_message_displayed(
 
 def test_admin_user_can_reject_quote(
     admin_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Ensure that the admin user can reject the quote.
 
     Args:
         admin_client (Client): The Django test client for the admin user.
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
-    _reject_quote(admin_client, bob_job_with_initial_marnie_inspection)
+    _reject_quote(admin_client, bob_job_with_quote)

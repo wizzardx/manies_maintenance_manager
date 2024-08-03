@@ -690,7 +690,7 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
     # use it to check the email body.
     verify_email_attachment(
         email,
-        expected_prefix="quotes/test",
+        expected_prefix="invoices/test",
         expected_suffix=".pdf",
         expected_content=BASIC_TEST_PDF_FILE.read_bytes(),
         expected_mime_type="application/pdf",

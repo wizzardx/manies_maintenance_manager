@@ -67,18 +67,17 @@ def test_only_the_post_method_may_be_used(bob_agent_user: User) -> None:
 
 def test_does_not_work_for_marnie(
     marnie_user: User,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Test that the view does not work for Marnie.
 
     Args:
         marnie_user (User): The user who is Marnie.
-        bob_job_with_initial_marnie_inspection (Job): The job with the initial
-            inspection done by Marnie.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
     perform_post_request_and_check_response(
         marnie_user,
-        bob_job_with_initial_marnie_inspection,
+        bob_job_with_quote,
         status.HTTP_403_FORBIDDEN,
     )
 
@@ -133,6 +132,7 @@ def test_fails_for_jobs_in_incorrect_states(  # noqa: PLR0913
     bob_job_with_deposit_pop: Job,
     bob_job_completed_by_marnie: Job,
     bob_job_with_final_payment_pop: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Test that the view fails for jobs in incorrect states.
 
@@ -144,6 +144,7 @@ def test_fails_for_jobs_in_incorrect_states(  # noqa: PLR0913
         bob_job_completed_by_marnie (Job): The job completed by Marnie.
         bob_job_with_final_payment_pop (Job): The job with the final payment pop
             uploaded
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
 
     Raises:
         LogicalError: If an unknown state is encountered.
@@ -160,6 +161,8 @@ def test_fails_for_jobs_in_incorrect_states(  # noqa: PLR0913
         match state:
             case Job.Status.PENDING_INSPECTION:
                 job = job_created_by_bob
+            case Job.Status.QUOTE_UPLOADED:
+                job = bob_job_with_quote
             case Job.Status.QUOTE_ACCEPTED_BY_AGENT:
                 job = job_accepted_by_bob
             case Job.Status.DEPOSIT_POP_UPLOADED:
@@ -191,18 +194,17 @@ def test_fails_for_jobs_in_incorrect_states(  # noqa: PLR0913
 
 def test_does_not_work_for_agent_who_did_not_create_the_job(
     alice_agent_user: User,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Test that the view does not work for an agent who did not create the job.
 
     Args:
         alice_agent_user (User): The user who is an agent.
-        bob_job_with_initial_marnie_inspection (Job): The job with the initial
-            inspection done by Marnie.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote
     """
     perform_post_request_and_check_response(
         alice_agent_user,
-        bob_job_with_initial_marnie_inspection,
+        bob_job_with_quote,
         status.HTTP_403_FORBIDDEN,
     )
 
@@ -228,52 +230,49 @@ def assert_quote_accept_redirects_to_job_details(client: Client, job: Job) -> No
 
 def test_redirects_to_job_details_page(
     bob_agent_user_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Test that the view redirects to the job details page.
 
     Args:
         bob_agent_user_client (Client): The Django test client for Bob.
-        bob_job_with_initial_marnie_inspection (Job): The job with the initial
-            inspection done by Marnie.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
     assert_quote_accept_redirects_to_job_details(
         bob_agent_user_client,
-        bob_job_with_initial_marnie_inspection,
+        bob_job_with_quote,
     )
 
 
 def test_works_for_admin(
     admin_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Test that the view works for an admin.
 
     Args:
         admin_client (Client): The Django test client for the admin user.
-        bob_job_with_initial_marnie_inspection (Job): The job with the initial
-            inspection done by Marnie.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
     assert_quote_accept_redirects_to_job_details(
         admin_client,
-        bob_job_with_initial_marnie_inspection,
+        bob_job_with_quote,
     )
 
 
 def test_works_when_marnie_just_inspected_and_created_a_quote(
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
     bob_agent_user_client: Client,
 ) -> None:
     """Test that the view works when Marnie just inspected and created a quote.
 
     Args:
-        bob_job_with_initial_marnie_inspection (Job): The job with the initial
-            inspection done by Marnie.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
         bob_agent_user_client (Client): The Django test client for Bob.
     """
     assert_quote_accept_redirects_to_job_details(
         bob_agent_user_client,
-        bob_job_with_initial_marnie_inspection,
+        bob_job_with_quote,
     )
 
 
@@ -362,18 +361,17 @@ def test_sends_email_to_marnie(
 
 def test_creates_a_flash_message(
     bob_agent_user_client: Client,
-    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_with_quote: Job,
 ) -> None:
     """Test that the view creates a flash message.
 
     Args:
         bob_agent_user_client (Client): The Django test client for Bob.
-        bob_job_with_initial_marnie_inspection (Job): The job with the initial
-            inspection done by Marnie.
+        bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
     """
     messages = assert_standard_quote_post_response(
         bob_agent_user_client,
-        bob_job_with_initial_marnie_inspection,
+        bob_job_with_quote,
         "accept",
     )
     assert str(messages[0]) == "Quote accepted. An email has been sent to Marnie."

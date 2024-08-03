@@ -34,7 +34,10 @@ class TestUpdateLinkVisibility:
         assert link is not None
 
         # Confirm that the link goes to the correct URL.
-        expected_url = reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
+        expected_url = reverse(
+            "jobs:job_complete_inspection",
+            kwargs={"pk": job_created_by_bob.pk},
+        )
         assert link["href"] == expected_url
 
     @staticmethod

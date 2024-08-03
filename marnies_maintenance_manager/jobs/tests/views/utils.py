@@ -75,7 +75,9 @@ def check_basic_page_html_structure(  # noqa: PLR0913
     title_tag = soup.find("title")
     assert title_tag, "Title tag should exist in the HTML"
     title_tag_text = title_tag.get_text(strip=True)
-    assert title_tag_text == expected_title
+    assert (
+        title_tag_text == expected_title
+    ), f"Expected title {expected_title!r}, got {title_tag_text!r}"
 
     # Check a h1 tag
     if expected_h1_text is not None:

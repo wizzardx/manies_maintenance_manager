@@ -47,11 +47,17 @@
       <strong>Deposit POP:</strong> <a href="{{ job.deposit_proof_of_payment.url }}">Download Deposit POP</a>
     </p>
   {% endif %}
-  {# Display the "Update" link if our backend wants it #}
-  {% if update_link_present %}
+  {# Display the "Complete Inspection" link if our backend wants it #}
+  {% if complete_inspection_link_present %}
     <a class="btn btn-primary"
-       href="{% url 'jobs:job_update' pk=job.pk %}"
+       href="{% url 'jobs:job_complete_inspection' pk=job.pk %}"
        role="button">Complete Inspection</a>
+  {% endif %}
+  {# Display the "Upload Quote" link if our backend wants it #}
+  {% if upload_quote_link_present %}
+    <a class="btn btn-primary"
+       href="{% url 'jobs:quote_upload' pk=job.pk %}"
+       role="button">Upload Quote</a>
   {% endif %}
   {# The div below is so that we can show the "Accept Quote" and "Reject Quote" buttons side-by-side with CSS styling #}
   <div class="button-container">
@@ -96,8 +102,8 @@
        href="{% url 'jobs:deposit_pop_update' pk=job.pk %}"
        role="button">Upload Deposit POP</a>
   {% endif %}
-  {# Display a (different) "Update" link if the backend wants it #}
-  {% if update_link_2_present %}
+  {# Display a "Complete Job" link if the backend wants it #}
+  {% if complete_job_link_present %}
     <a class="btn btn-primary"
        href="{% url 'jobs:job_complete' pk=job.pk %}"
        role="button">Complete Job</a>

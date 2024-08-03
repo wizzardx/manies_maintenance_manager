@@ -5,16 +5,25 @@ updating user information, and redirecting to specific user pages, ensuring
 access control through authentication.
 """
 
+from typing import TYPE_CHECKING
+from typing import Any
+
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView
 from django.views.generic import RedirectView
 from django.views.generic import UpdateView
+from typeguard import check_type
 
 from marnies_maintenance_manager.users.models import User
+
+if TYPE_CHECKING:  # pragma: no cover  # pylint: disable=consider-ternary-expression
+    TypedQuerySet = QuerySet[User]
+else:
+    TypedQuerySet = QuerySet
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):  # type: ignore[type-arg]
@@ -57,26 +66,22 @@ class UserUpdateView(
         Returns:
             str: The URL to redirect to the user's detailed profile view.
         """
-        # for mypy to know that the user is authenticated
-        assert self.request.user.is_authenticated  # nosec B101
-        return self.request.user.get_absolute_url()
+        return check_type(self.request.user, User).get_absolute_url()
 
-    # pylint: disable=arguments-differ
-    def get_object(self) -> User:  # type: ignore[override]
+    def get_object(self, queryset: TypedQuerySet | None = None) -> User:
         """Retrieve and return the current user's profile.
 
         Ensures that the user is authenticated before retrieving their profile.
         If the user is not authenticated, this method raises a ValueError.
 
+        Args:
+            queryset (TypedQuerySet, optional): The queryset to retrieve the user
+                profile from.
+
         Returns:
             User: The profile of the currently authenticated user.
-
-        Raises:
-            ValueError: If the user is not authenticated.
         """
-        if isinstance(self.request.user, AnonymousUser):
-            raise ValueError("User must be authenticated")  # noqa: EM101,TRY003,TRY004
-        return self.request.user
+        return check_type(self.request.user, User)
 
 
 user_update_view = UserUpdateView.as_view()
@@ -91,12 +96,16 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
     permanent = False
 
-    def get_redirect_url(self) -> str:  # pylint: disable=arguments-differ
+    def get_redirect_url(self, *args: Any, **kwargs: Any) -> str:
         """Return the URL for the user's detailed profile view.
 
         Determines and returns the URL based on the logged-in user's username.
         This method constructs the URL by reversing the 'users:detail' view
         with the current user's username as a keyword argument.
+
+        Args:
+            *args (Any): Additional positional arguments.
+            **kwargs (Any): Additional keyword arguments.
 
         Returns:
             str: The URL to redirect to the user's detailed profile view.

@@ -21,21 +21,33 @@ else:
     TypedFile = File
 
 
-class JobUpdateForm(TypedModelForm):
+class JobCompleteInspectionForm(TypedModelForm):
     """Form for updating a job."""
 
     class Meta:
-        """Metaclass for the JobUpdateForm."""
+        """Metaclass for the JobCompleteInspectionForm."""
 
         model = Job
         fields = [
             "date_of_inspection",
-            "quote",
         ]
 
     date_of_inspection = forms.DateField(
         widget=forms.DateInput(attrs={"type": "date"}),
     )
+
+
+class QuoteUploadForm(TypedModelForm):
+    """Form for uploading a quote."""
+
+    class Meta:
+        """Metaclass for the QuoteUpdateForm."""
+
+        model = Job
+        fields = [
+            "quote",
+        ]
+
     quote = forms.FileField()
 
 

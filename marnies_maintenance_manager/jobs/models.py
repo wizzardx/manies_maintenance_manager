@@ -75,6 +75,7 @@ class Job(UUIDModel, TimeStampedModel):
 
         PENDING_INSPECTION = "pending_inspection"
         INSPECTION_COMPLETED = "inspection_completed"
+        QUOTE_UPLOADED = "quote_uploaded"
         QUOTE_REJECTED_BY_AGENT = "quote_rejected_by_agent"
         QUOTE_ACCEPTED_BY_AGENT = "quote_accepted_by_agent"
         DEPOSIT_POP_UPLOADED = "deposit_pop_uploaded"
@@ -85,6 +86,7 @@ class Job(UUIDModel, TimeStampedModel):
     STATUS = Choices(  # type: ignore[no-untyped-call]
         (Status.PENDING_INSPECTION.value, _("Pending Inspection")),
         (Status.INSPECTION_COMPLETED.value, _("Inspection Completed")),
+        (Status.QUOTE_UPLOADED.value, _("Quote Uploaded")),
         (Status.QUOTE_REJECTED_BY_AGENT.value, _("Quote Rejected By Agent")),
         (Status.QUOTE_ACCEPTED_BY_AGENT.value, _("Quote Accepted By Agent")),
         (Status.DEPOSIT_POP_UPLOADED.value, _("Deposit POP Uploaded")),

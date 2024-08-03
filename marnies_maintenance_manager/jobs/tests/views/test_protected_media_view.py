@@ -124,32 +124,30 @@ class TestQuoteDownloadAccess:
     @staticmethod
     def test_anonymous_user_not_permitted(
         client: Client,
-        bob_job_with_initial_marnie_inspection: Job,
+        bob_job_with_quote: Job,
     ) -> None:
         """Test that anonymous users are not permitted to download the file.
 
         Args:
             client (Client): The Django test client.
-            bob_job_with_initial_marnie_inspection (Job): The job with an initial
-                Marnie inspection.
+            bob_job_with_quote (Job): The job with Marnie's quote attached.
         """
-        job = bob_job_with_initial_marnie_inspection
+        job = bob_job_with_quote
         response = client.get(job.quote.url)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @staticmethod
     def test_marnie_can_download_quote(
         marnie_user_client: Client,
-        bob_job_with_initial_marnie_inspection: Job,
+        bob_job_with_quote: Job,
     ) -> None:
         """Test that Marnie can download a quote.
 
         Args:
             marnie_user_client (Client): The Django test client for the Marnie user.
-            bob_job_with_initial_marnie_inspection (Job): The job with an initial
-                Marnie inspection.
+            bob_job_with_quote (Job): The job with Marnie's quote attached.
         """
-        job = bob_job_with_initial_marnie_inspection
+        job = bob_job_with_quote
         response = check_type(
             marnie_user_client.get(job.quote.url, follow=True),
             FileResponse,
@@ -161,14 +159,14 @@ class TestQuoteDownloadAccess:
 
         streaming_content = check_type(response.streaming_content, Iterator[bytes])
         content = b"".join(streaming_content)
-        quote = bob_job_with_initial_marnie_inspection.quote
+        quote = bob_job_with_quote.quote
         with safe_read(quote):
             assert content == quote.read()
 
         assert response["Content-Type"] == "application/pdf"
         assert response["Content-Length"] == str(len(content))
 
-        attach_relpath = Path(bob_job_with_initial_marnie_inspection.quote.name)
+        attach_relpath = Path(bob_job_with_quote.quote.name)
         # eg: attach_relpath = PosixPath('quotes/test_ISjWJsF.pdf'
 
         attach_basename = attach_relpath.name
@@ -188,33 +186,31 @@ class TestQuoteDownloadAccess:
     @staticmethod
     def test_superuser_can_download_quote(
         superuser_client: Client,
-        bob_job_with_initial_marnie_inspection: Job,
+        bob_job_with_quote: Job,
     ) -> None:
         """Test that superusers can download quotes.
 
         Args:
             superuser_client (Client): The Django test client for the superuser.
-            bob_job_with_initial_marnie_inspection (Job): The job with an initial
-                Marnie inspection.
+            bob_job_with_quote (Job): The job with Marnie's quote attached.
         """
-        job = bob_job_with_initial_marnie_inspection
+        job = bob_job_with_quote
         response = superuser_client.get(job.quote.url, follow=True)
         assert response.status_code == status.HTTP_200_OK
 
     @staticmethod
     def test_agent_can_download_quote(
         bob_agent_user_client: Client,
-        bob_job_with_initial_marnie_inspection: Job,
+        bob_job_with_quote: Job,
     ) -> None:
         """Test that agents who originally created the job can download the quote.
 
         Args:
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
-            bob_job_with_initial_marnie_inspection (Job): The job with an initial agent
-                inspection.
+            bob_job_with_quote (Job): The job with Marnies quote attached.
         """
-        job = bob_job_with_initial_marnie_inspection
+        job = bob_job_with_quote
         response = bob_agent_user_client.get(job.quote.url, follow=True)
         assert response.status_code == status.HTTP_200_OK
 
@@ -236,7 +232,7 @@ class TestQuoteDownloadAccess:
     @staticmethod
     def test_agent_cannot_download_multilinked_quote(
         bob_agent_user_client: Client,
-        bob_job_with_initial_marnie_inspection: Job,
+        bob_job_with_quote: Job,
         job_created_by_alice: Job,
     ) -> None:
         """Test that an agent cannot download a quote that is linked to multiple jobs.
@@ -244,13 +240,12 @@ class TestQuoteDownloadAccess:
         Args:
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
-            bob_job_with_initial_marnie_inspection (Job): The job with an initial agent
-                inspection.
+            bob_job_with_quote (Job): The job with Marnie's quote attached.
             job_created_by_alice (Job): The job created by Alice.
         """
         trigger_multilinked_error(
             bob_agent_user_client,
-            bob_job_with_initial_marnie_inspection,
+            bob_job_with_quote,
             job_created_by_alice,
             "quote",
         )
@@ -260,49 +255,47 @@ class TestQuoteDownloadAccess:
     @staticmethod
     def test_other_agent_cannot_download_quote(
         alice_agent_user_client: Client,
-        bob_job_with_initial_marnie_inspection: Job,
+        bob_job_with_quote: Job,
     ) -> None:
         """Test that agents not originally creating the job cannot download the quote.
 
         Args:
             alice_agent_user_client (Client): The Django test client for the Alice agent
                 user.
-            bob_job_with_initial_marnie_inspection (Job): The job with an initial agent
-                inspection.
+            bob_job_with_quote (Job): The job with Marnie's quote attached.
         """
         response = alice_agent_user_client.get(
-            bob_job_with_initial_marnie_inspection.quote.url,
+            bob_job_with_quote.quote.url,
             follow=True,
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @staticmethod
     def test_marnie_cannot_download_files_from_other_directories(
-        bob_job_with_initial_marnie_inspection: Job,
+        bob_job_with_quote: Job,
         marnie_user_client: Client,
     ) -> None:
         """Test that Marnie cannot download files from unknown directories.
 
         Args:
-            bob_job_with_initial_marnie_inspection (Job): The job created by Bob.
+            bob_job_with_quote (Job): The job with Marnie's quote attached.
             marnie_user_client (Client): The Django test client for Marnie.
         """
         response = marnie_user_client.get(
-            bob_job_with_initial_marnie_inspection.quote.url.replace("quotes", "other"),
+            bob_job_with_quote.quote.url.replace("quotes", "other"),
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @staticmethod
     def test_none_marnie_none_agent_cannot_download_quote(
-        bob_job_with_initial_marnie_inspection: Job,
+        bob_job_with_quote: Job,
         bob_agent_user_client: Client,
         bob_agent_user: User,
     ) -> None:
         """Test that users who are neither Marnie nor agents cannot download quotes.
 
         Args:
-            bob_job_with_initial_marnie_inspection (Job): The job with an initial Marnie
-                inspection.
+            bob_job_with_quote (Job): The job with Marnie's quote attached.
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
             bob_agent_user (User): The Bob agent user.
@@ -312,7 +305,7 @@ class TestQuoteDownloadAccess:
         bob_agent_user.save()
 
         response = bob_agent_user_client.get(
-            bob_job_with_initial_marnie_inspection.quote.url,
+            bob_job_with_quote.quote.url,
             follow=True,
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -1,30 +1,41 @@
 """View for updating a Maintenance Job."""
 
+import logging
 from typing import TYPE_CHECKING
 
+import environ
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.core.mail import EmailMessage
 from django.http import HttpResponse
 from django.views.generic import UpdateView
 from typeguard import check_type
 
-from marnies_maintenance_manager.jobs.forms import JobUpdateForm
+from marnies_maintenance_manager.jobs.constants import DEFAULT_FROM_EMAIL
+from marnies_maintenance_manager.jobs.forms import JobCompleteInspectionForm
 from marnies_maintenance_manager.jobs.models import Job
+from marnies_maintenance_manager.jobs.utils import generate_email_body
+from marnies_maintenance_manager.jobs.utils import get_marnie_email
 from marnies_maintenance_manager.jobs.views.mixins import JobSuccessUrlMixin
-from marnies_maintenance_manager.jobs.views.utils import send_quote_update_email
 from marnies_maintenance_manager.users.models import User
+
+env = environ.Env()
+SKIP_EMAIL_SEND = env.bool("SKIP_EMAIL_SEND", default=False)
+
 
 if TYPE_CHECKING:  # pylint: disable=consider-ternary-expression
     TypedUpdateView = UpdateView[  # pragma: no cover
         Job,
-        JobUpdateForm,
+        JobCompleteInspectionForm,
     ]
 else:
     TypedUpdateView = UpdateView
 
+logger = logging.getLogger(__name__)
 
-class JobUpdateView(
+
+class JobCompleteInspectionView(
     LoginRequiredMixin,
     UserPassesTestMixin,
     JobSuccessUrlMixin,
@@ -33,8 +44,8 @@ class JobUpdateView(
     """Update a Maintenance Job."""
 
     model = Job
-    form_class = JobUpdateForm
-    template_name = "jobs/job_update.html"
+    form_class = JobCompleteInspectionForm
+    template_name = "jobs/job_complete_inspection.html"
 
     def test_func(self) -> bool:
         """Check if the user can access this view.
@@ -51,11 +62,11 @@ class JobUpdateView(
         )
 
     # noinspection PyUnresolvedReferences
-    def form_valid(self, form: JobUpdateForm) -> HttpResponse:
+    def form_valid(self, form: JobCompleteInspectionForm) -> HttpResponse:
         """Set the status of the job to "inspection_completed" before saving the form.
 
         Args:
-            form (JobUpdateForm): The form instance.
+            form (JobCompleteInspectionForm): The form instance.
 
         Returns:
             HttpResponse: The HTTP response.
@@ -71,25 +82,49 @@ class JobUpdateView(
         # In this part, we email the agent, notifying him of the completion of
         # the inspection by Marnie.
 
-        email_subject = "Quote for your maintenance request"
+        email_subject = "Marnie completed an inspection for your maintenance request"
         email_body = (
-            f"Marnie performed the inspection on {job.date_of_inspection} and "
-            "has quoted you. The quote is attached to this email.\n\n"
+            f"Marnie performed the inspection on {job.date_of_inspection}. An email "
+            "with the quote will be sent later.\n\n"
             "Details of your original request:\n\n"
             "-----\n\n"
             f"Subject: New maintenance request by {job.agent.username}\n\n"
         )
 
-        # Call the email body-generation logic used previously, to help us populate
-        # the rest of this email body:
-        agent_username = send_quote_update_email(
-            self.request,
-            email_body,
-            email_subject,
-            job,
+        # Email the agent, and cc Marnie:
+        request = self.request
+        email_body += generate_email_body(job, request)
+        email_from = DEFAULT_FROM_EMAIL
+        email_to = job.agent.email
+        email_cc = get_marnie_email()
+
+        email = EmailMessage(
+            subject=email_subject,
+            body=email_body,
+            from_email=email_from,
+            to=[email_to],
+            cc=[email_cc],
         )
 
+        if not SKIP_EMAIL_SEND:
+            email.send()
+        else:
+            logger.info(
+                "Skipping email send. Would have sent the following email:\n\n"
+                "Subject: %s\n\n"
+                "Body: %s\n\n"
+                "From: %s\n\n"
+                "To: %s\n\n"
+                "CC: %s\n\n",
+                email_subject,
+                email_body,
+                email_from,
+                email_to,
+                email_cc,
+            )
+
         # Send a success flash message to the user:
+        agent_username = job.agent.username
         messages.success(
             self.request,
             f"An email has been sent to {agent_username}.",

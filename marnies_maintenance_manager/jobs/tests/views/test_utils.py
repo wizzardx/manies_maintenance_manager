@@ -8,6 +8,8 @@ import pytest
 import pytest_mock
 
 from marnies_maintenance_manager.jobs.tests.views import utils
+from marnies_maintenance_manager.jobs.views import utils as views_utils
+from marnies_maintenance_manager.users.models import User
 
 
 class TestAssertNoFormErrors:
@@ -86,3 +88,29 @@ class TestAssertNoFormErrors:
         mock_response.context_data = {"form": MockForm}
 
         utils.assert_no_form_errors(mock_response)  # Should not raise
+
+
+@pytest.mark.django_db()
+def test_prepare_and_send_email_with_unknown_attachment_type(
+    mocker: pytest_mock.MockFixture,
+    marnie_user: User,  # pylint: disable=unused-argument
+) -> None:
+    """Test that the function raises a ValueError if the attachment type is unknown.
+
+    Args:
+        mocker (pytest_mock.MockFixture): A pytest-mock fixture.
+        marnie_user (User): A User instance
+    """
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Invalid value for 'what_to_attach': 'unknown_attachment_type'",
+        ),
+    ):
+        views_utils.prepare_and_send_email(
+            email_subject="subject",
+            email_body="body",
+            job=mocker.Mock(),
+            request=mocker.Mock(),
+            what_to_attach="unknown_attachment_type",  # type: ignore[arg-type]
+        )

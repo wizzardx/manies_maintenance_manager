@@ -421,7 +421,11 @@ def _create_new_job(
     _sign_out_of_website_and_clean_up(browser)
 
 
-def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
+def _check_job_row_and_click_on_number(
+    browser: WebDriver,
+    *,
+    quote_expected: bool,
+) -> None:
     table = browser.find_element(By.ID, "id_list_table")
     rows = table.find_elements(By.TAG_NAME, "tr")
 
@@ -432,7 +436,8 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
     ## now.
     row = rows[1]
     cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-    assert cell_texts == [
+
+    expected_cell_texts = [
         "1",
         "2021-01-01",
         "Department of Home Affairs Bellville",
@@ -448,7 +453,16 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
         "",  # Comments
         "No",  # Job Complete
         "",  # Final Payment POP
-    ], cell_texts
+    ]
+
+    # If there shouldn't be a quote, then update the expected cell texts.
+    if not quote_expected:
+        download_quote_idx = 6
+        assert expected_cell_texts[download_quote_idx] == "Download Quote"
+        expected_cell_texts[download_quote_idx] = ""
+
+    # Now check:
+    assert cell_texts == expected_cell_texts
 
     # He clicks on the #1 number again:
     number_link = browser.find_element(By.LINK_TEXT, "1")
@@ -456,7 +470,7 @@ def _check_job_row_and_click_on_number(browser: WebDriver) -> None:
 
 
 def _marnie_logs_in_and_navigates_to_bob_jobs(browser: WebDriver) -> None:
-    """Simulate Marnie to logging in and navigating to Bob's jobs page.
+    """Simulate Marnie to logging in and navigating to Bob's "jobs" page.
 
     Args:
         browser (WebDriver): The Selenium WebDriver.
@@ -499,15 +513,16 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> dict[str, 
     assert "Complete Inspection" in browser.title, browser.title
     assert "Complete Inspection" in browser.find_element(By.TAG_NAME, "h1").text
 
-    # He also sees on this page, that he can edit (only) these fields:
-    # - Date of Inspection
+    # He also sees on this page, the only editable field is the "Date of Inspection"
     inspection_date_field = browser.find_element(By.ID, "id_date_of_inspection")
 
-    # - Quote (an invoice to be uploaded by Marnie, for the fixes to be done for
-    #   the site he has visited)>
-    quote_invoice_field = browser.find_element(By.ID, "id_quote")
+    # Quote invoice field is no longer on this page.
+    # (that was split off into its own page, rather than being editable at the same
+    # time as the inspection date)
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.ID, "id_quote")
 
-    # As well as a "submit" button just below those two:
+    # There is a "submit" button just below the field:
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
 
     # But in particular, he doesn't see fields that only the Agent should be able to
@@ -522,29 +537,71 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> dict[str, 
         browser.find_element(By.ID, "id_quote_request_details")
 
     # He inputs a date into the inspection date field.
+    # In his workflow, this is typically while he is on his way out, from the original
+    # site inspection.
     input_date = datetime.date(2021, 2, 1)
     keys = input_date.strftime(CRISPY_FORMS_DATE_INPUT_FORMAT)
     inspection_date_field.send_keys(keys)
-
-    # He uploads a Quote invoice.
-    quote_invoice_field.send_keys(str(FUNCTIONAL_TESTS_DATA_DIR / "test.pdf"))
 
     # He clicks the "submit" button.
     submit_button.click()
 
     # This takes him back to the Maintenance Jobs page for Bob the Agent.
-    assert "Maintenance Jobs for bob" in browser.title
+    assert "Maintenance Jobs for bob" in browser.title, browser.title
     assert "Maintenance Jobs for bob" in browser.find_element(By.TAG_NAME, "h1").text
 
     # He also sees a flash notification that an email has been sent to Bob.
     expected_msg = "An email has been sent to bob."
     assert expected_msg in browser.page_source
 
-    # He sees that the new details are now listed in the table.
-    _check_job_row_and_click_on_number(browser)
+    # He sees that the new details are now listed in the table, and then click son the
+    # "1" link. At the same time, he should not see a quote download link.
+    _check_job_row_and_click_on_number(browser, quote_expected=False)
+
+    # After that, Marnie should be back on the Job Details page.
+    assert "Maintenance Job Details" in browser.title
+    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
 
     # Over here he can now see the inspection date:
     assert "2021-02-01" in browser.page_source
+
+    # There still shouldn't yet be a link to the Quote invoice:
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.LINK_TEXT, "Download Quote")
+
+    # Let's assume that Marnie has done the work at home necessary to generate the
+    # invoice PDF file, and he is now ready to upload it to the system under the
+    # job where he already input the inspection date.
+
+    # He sees a "Upload Quote" link, and clicks on it.
+    submit_quote_link = browser.find_element(By.LINK_TEXT, "Upload Quote")
+    submit_quote_link.click()
+
+    # He sees the "Upload Quote" page, with the title and header mentioning the same.
+    assert "Upload Quote" in browser.title
+    assert "Upload Quote" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees the "Quote" field, and a "Submit" button.
+    quote_invoice_field = browser.find_element(By.ID, "id_quote")
+    submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
+
+    # He specifically does not see the "Date of Inspection" field on this page.
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.ID, "id_date_of_inspection")
+
+    # He uploads a Quote.
+    quote_invoice_field.send_keys(str(FUNCTIONAL_TESTS_DATA_DIR / "test.pdf"))
+
+    # He clicks the "submit" button.
+    submit_button.click()
+
+    # This takes him back to the Job-listing page.
+    assert "Maintenance Jobs for bob" in browser.title, browser.title
+    assert "Maintenance Jobs for bob" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees a flash notification that an email has been sent to Bob.
+    expected_msg = "An email has been sent to bob."
+    assert expected_msg in browser.page_source
 
     # And also, there is a link to the Quote invoice, with the text "Download Quote":
     quote_link = browser.find_element(By.LINK_TEXT, "Download Quote")
@@ -589,7 +646,7 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
     assert "Maintenance Jobs" in browser.find_element(By.TAG_NAME, "h1").text
 
     # He sees his original job details over there.
-    _check_job_row_and_click_on_number(browser)
+    _check_job_row_and_click_on_number(browser, quote_expected=True)
 
     # He can see from the Title and the Heading that he is in the "Maintenance Job
     # Details" page.
@@ -661,7 +718,7 @@ def _bob_accepts_marnies_quote(browser: WebDriver) -> None:
     maintenance_jobs_link.click()
 
     # He sees the details of the job, and clicks on the number to view the details:
-    _check_job_row_and_click_on_number(browser)
+    _check_job_row_and_click_on_number(browser, quote_expected=True)
 
     # He sees the details of the job, and clicks on the "Accept Quote" button:
     accept_button = browser.find_element(By.XPATH, "//button[text()='Accept Quote']")

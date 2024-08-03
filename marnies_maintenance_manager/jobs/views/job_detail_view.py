@@ -35,13 +35,19 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         Returns:
             dict: The context data.
         """
-        # Only Marnie and Admin can see the Update link, and only when the current Job
-        # status allows for it.
+        # Only Marnie and Admin can see the "Complete Inspection" link, and only when
+        # the current Job status allows for it.
         user = check_type(self.request.user, User)
         job = self.get_object()
-        update_link_present = (
+        complete_inspection_link_present = (
             user.is_marnie or user.is_superuser
         ) and job.status == Job.Status.PENDING_INSPECTION.value
+        upload_quote_link_present = (
+            user.is_marnie or user.is_superuser
+        ) and job.status in {
+            Job.Status.INSPECTION_COMPLETED.value,
+            Job.Status.QUOTE_REJECTED_BY_AGENT.value,
+        }
 
         # The "Reject Quote" button may only be seen when the Job is a correct status,
         # and the user is Admin or an Agent. If the user is an Agent, then we also check
@@ -49,7 +55,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         # not needed (since the user doesn't have permission to see other agents' jobs
         # anyway).
         reject_quote_button_present = (
-            job.status == Job.Status.INSPECTION_COMPLETED.value
+            job.status == Job.Status.QUOTE_UPLOADED.value
             and ((user.is_agent and user == job.agent) or user.is_superuser)
         )
 
@@ -57,7 +63,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         # displayed, except that it should also be displayed when the quote has been
         # rejected by the Agent.
         accept_quote_button_present = job.status in {
-            Job.Status.INSPECTION_COMPLETED.value,
+            Job.Status.QUOTE_UPLOADED.value,
             Job.Status.QUOTE_REJECTED_BY_AGENT.value,
         } and ((user.is_agent and user == job.agent) or user.is_superuser)
 
@@ -75,10 +81,10 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
             and (user.is_superuser or (user.is_agent and user == job.agent))
         )
 
-        # There's a second "Update" link present, used by Marnie when completing
+        # There's a "Complete Job" link present, used by Marnie when completing
         # the job. This link only shows up when the agent has uploaded a proof of
         # payment for the deposit.
-        update_link_2_present = (
+        complete_job_link_present = (
             job.status == Job.Status.DEPOSIT_POP_UPLOADED.value
             and user.is_marnie
             or user.is_superuser
@@ -90,14 +96,15 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         )
 
         context = super().get_context_data(**kwargs)
-        context["update_link_present"] = update_link_present
+        context["complete_inspection_link_present"] = complete_inspection_link_present
+        context["upload_quote_link_present"] = upload_quote_link_present
         context["reject_quote_button_present"] = reject_quote_button_present
         context["accept_quote_button_present"] = accept_quote_button_present
         context["update_quote_link_present"] = update_quote_link_present
         context["submit_deposit_proof_of_payment_link_present"] = (
             submit_deposit_proof_of_payment_link_present
         )
-        context["update_link_2_present"] = update_link_2_present
+        context["complete_job_link_present"] = complete_job_link_present
         context["upload_final_payment_pop_link_present"] = (
             upload_final_payment_pop_link_present
         )

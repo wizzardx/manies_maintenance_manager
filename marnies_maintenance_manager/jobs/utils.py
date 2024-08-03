@@ -230,7 +230,7 @@ def quote_accept_or_reject(
 
     # Return an error if the job is not in the correct state.
     if job.status not in {
-        Job.Status.INSPECTION_COMPLETED.value,
+        Job.Status.QUOTE_UPLOADED.value,
         Job.Status.QUOTE_REJECTED_BY_AGENT.value,
     }:
         return HttpResponse(

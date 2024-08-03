@@ -4,6 +4,7 @@
 # pylint: disable=too-many-arguments
 
 import logging
+from enum import Enum
 
 import environ
 from django.core.mail import EmailMessage
@@ -20,6 +21,13 @@ env = environ.Env()
 SKIP_EMAIL_SEND = env.bool("SKIP_EMAIL_SEND", default=False)
 
 logger = logging.getLogger(__name__)
+
+
+class AttachmentType(Enum):
+    """Enum for possible attachment types to pass to prepare_and_send_email()."""
+
+    QUOTE = "quote"
+    INVOICE = "invoice"
 
 
 def send_quote_update_email(
@@ -39,7 +47,13 @@ def send_quote_update_email(
     Returns:
         str: The username of the Agent who originally created the Maintenance Job.
     """
-    prepare_and_send_email(email_subject, email_body, job, request)
+    prepare_and_send_email(
+        email_subject,
+        email_body,
+        job,
+        request,
+        AttachmentType.QUOTE,
+    )
 
     # Get username associated with the Agent who originally created the Maintenance
     # Job:
@@ -51,6 +65,7 @@ def prepare_and_send_email(
     email_body: str,
     job: Job,
     request: HttpRequest,
+    what_to_attach: AttachmentType,
 ) -> None:
     """Prepare and send an email with the quote update for a Maintenance Job.
 
@@ -59,12 +74,23 @@ def prepare_and_send_email(
         email_body (str): The email body.
         job (Job): The Job instance.
         request (HttpRequest): The request object.
+        what_to_attach (AttachmentType): The type of attachment to include in the email.
+
+    Raises:
+        ValueError: If an invalid value is passed for 'what_to_attach'.
     """
     email_body += generate_email_body(job, request)
     email_from = DEFAULT_FROM_EMAIL
     email_to = job.agent.email
     email_cc = get_marnie_email()
-    uploaded_file = job.quote
+    match what_to_attach:
+        case AttachmentType.QUOTE:
+            uploaded_file = job.quote
+        case AttachmentType.INVOICE:
+            uploaded_file = job.invoice
+        case _:
+            msg = f"Invalid value for 'what_to_attach': {what_to_attach!r}"
+            raise ValueError(msg)
 
     # Create the email message:
     send_job_email_with_attachment(

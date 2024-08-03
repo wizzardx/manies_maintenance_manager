@@ -6,14 +6,8 @@ import datetime
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.template.response import TemplateResponse
-from django.test import Client
-from django.urls import reverse
-from rest_framework import status
-from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.models import Job
-from marnies_maintenance_manager.jobs.tests.views.utils import assert_no_form_errors
 from marnies_maintenance_manager.jobs.utils import safe_read
 from marnies_maintenance_manager.users.models import User
 
@@ -59,81 +53,40 @@ def job_created_by_alice(alice_agent_user: User) -> Job:
 
 
 @pytest.fixture()
-def bob_job_update_url(job_created_by_bob: Job) -> str:
-    """Return the URL for the job update view for the job created by Bob.
-
-    Args:
-        job_created_by_bob (Job): The job created by Bob.
-
-    Returns:
-        str: The URL for Bobs job update view.
-    """
-    return reverse("jobs:job_update", kwargs={"pk": job_created_by_bob.pk})
-
-
-@pytest.fixture()
-def bob_job_with_initial_marnie_inspection(
-    job_created_by_bob: Job,
-    marnie_user_client: Client,
-    bob_job_update_url: str,
+def bob_job_with_quote(
+    bob_job_with_initial_marnie_inspection: Job,
     test_pdf: SimpleUploadedFile,
 ) -> Job:
-    """Create a job with the initial inspection done by Marnie.
+    """Return a job where Bob has uploaded the invoice.
 
     Args:
-        job_created_by_bob (Job): The job created by Bob.
-        marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for the job update view for the job created
-            by Bob.
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
         test_pdf (SimpleUploadedFile): The test PDF file.
 
     Returns:
-        Job: The job created by Bob with the initial inspection done by Marnie.
+        Job: The job where Bob has uploaded the invoice.
     """
-    job = job_created_by_bob
-
-    # Check that the Job is in the correct initial state:
-    assert job.status == Job.Status.PENDING_INSPECTION.value
-
+    job = bob_job_with_initial_marnie_inspection
+    job.quote = test_pdf
+    job.status = Job.Status.QUOTE_UPLOADED.value
     with safe_read(test_pdf):
-        response = check_type(
-            marnie_user_client.post(
-                bob_job_update_url,
-                {
-                    "date_of_inspection": "2001-02-05",
-                    "quote": test_pdf,
-                },
-                follow=True,
-            ),
-            TemplateResponse,
-        )
-
-    # Assert the response status code is 200
-    assert response.status_code == status.HTTP_200_OK
-
-    # There should be no form errors
-    assert_no_form_errors(response)
-
-    # Check that the job is in the correct state after inspection:
-    job.refresh_from_db()
-    assert job.status == Job.Status.INSPECTION_COMPLETED.value
-
-    # Return the Job where Marnie has now inspected the site.
+        job.save()
     return job
 
 
 @pytest.fixture()
-def job_rejected_by_bob(bob_job_with_initial_marnie_inspection: Job) -> Job:
+def job_rejected_by_bob(bob_job_with_quote: Job) -> Job:
     """Return a job where Bob has rejected the quote.
 
     Args:
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+        bob_job_with_quote (Job): The job created by Bob with the
             initial inspection done by Marnie.
 
     Returns:
         Job: The job where Bob has rejected the quote.
     """
-    job = bob_job_with_initial_marnie_inspection
+    job = bob_job_with_quote
     job.status = Job.Status.QUOTE_REJECTED_BY_AGENT.value
     job.accepted_or_rejected = Job.AcceptedOrRejected.REJECTED.value
     job.save()
@@ -141,17 +94,16 @@ def job_rejected_by_bob(bob_job_with_initial_marnie_inspection: Job) -> Job:
 
 
 @pytest.fixture()
-def job_accepted_by_bob(bob_job_with_initial_marnie_inspection: Job) -> Job:
+def job_accepted_by_bob(bob_job_with_quote: Job) -> Job:
     """Return a job where Bob has accepted the quote.
 
     Args:
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
-            initial inspection done by Marnie.
+        bob_job_with_quote (Job): The job created by Bob with the quote uploaded.
 
     Returns:
         Job: The job where Bob has accepted the quote.
     """
-    job = bob_job_with_initial_marnie_inspection
+    job = bob_job_with_quote
     job.status = Job.Status.QUOTE_ACCEPTED_BY_AGENT.value
     job.accepted_or_rejected = Job.AcceptedOrRejected.ACCEPTED.value
     job.save()

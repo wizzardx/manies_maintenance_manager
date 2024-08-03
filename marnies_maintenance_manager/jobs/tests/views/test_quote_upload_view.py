@@ -1,8 +1,6 @@
-"""Tests for the job update view."""
+"""Tests for the job "upload quote" view."""
 
 # pylint: disable=redefined-outer-name,unused-argument,magic-value-comparison
-
-import datetime
 
 import pytest
 from django.contrib.messages.storage.base import Message
@@ -20,7 +18,7 @@ from marnies_maintenance_manager.jobs.tests.utils import (
     suppress_fastdev_strict_if_deprecation_warning,
 )
 from marnies_maintenance_manager.jobs.utils import safe_read
-from marnies_maintenance_manager.jobs.views.job_update_view import JobUpdateView
+from marnies_maintenance_manager.jobs.views.quote_upload_view import QuoteUploadView
 from marnies_maintenance_manager.users.models import User
 
 from .utils import check_basic_page_html_structure
@@ -30,23 +28,23 @@ from .utils import verify_email_attachment
 
 def test_anonymous_user_cannot_access_the_view(
     client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
 ) -> None:
-    """Test that the anonymous user cannot access the job update view.
+    """Test that the anonymous user cannot access the "upload quote" view.
 
     Args:
         client (Client): The Django test client.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_upload_quote_url (str): The URL for Bobs jobs "upload quote" view.
     """
     with suppress_fastdev_strict_if_deprecation_warning():
-        response = client.get(bob_job_update_url, follow=True)
+        response = client.get(bob_job_upload_quote_url, follow=True)
 
     # This should be a redirect to a login page:
     assert response.status_code == status.HTTP_200_OK
 
     expected_redirect_chain = [
         (
-            f"/accounts/login/?next=/jobs/{bob_job_update_url.split('/')[-3]}/update/",
+            f"/accounts/login/?next={bob_job_upload_quote_url}",
             status.HTTP_302_FOUND,
         ),
     ]
@@ -55,111 +53,90 @@ def test_anonymous_user_cannot_access_the_view(
 
 def test_agent_user_cannot_access_the_view(
     bob_agent_user_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
 ) -> None:
-    """Test that the agent user cannot access the job update view.
+    """Test that the agent user cannot access the "upload quote" view.
 
     Args:
         bob_agent_user_client (Client): The Django test client for Bob.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can
+            upload a quote for the job created by Bob.
     """
-    response = bob_agent_user_client.get(bob_job_update_url)
+    response = bob_agent_user_client.get(bob_job_upload_quote_url)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test_admin_user_can_access_the_view(
     superuser_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
 ) -> None:
-    """Test that the admin user can access the job update view.
+    """Test that the admin user can access the "upload quote" view.
 
     Args:
         superuser_client (Client): The Django test client for the superuser.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_upload_quote_url (str): The URL for the view where the superuser can
+            upload a quote for the job created by Bob.
     """
-    response = superuser_client.get(bob_job_update_url)
+    response = superuser_client.get(bob_job_upload_quote_url)
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_marnie_user_can_access_the_view(
     marnie_user_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
 ) -> None:
-    """Test that the Marnie user can access the job update view.
+    """Test that the Marnie user can access the "upload quote" view.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can upload a
+            quote for the job created by Bob.
     """
-    response = marnie_user_client.get(bob_job_update_url)
+    response = marnie_user_client.get(bob_job_upload_quote_url)
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_page_has_basic_correct_structure(
     marnie_user_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
 ) -> None:
-    """Test that the job update page has the correct basic structure.
+    """Test that the "upload quote" page has the correct basic structure.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can upload a
+            quote for the job created by Bob.
     """
     check_basic_page_html_structure(
         client=marnie_user_client,
-        url=bob_job_update_url,
-        expected_title="Complete Inspection",
-        expected_template_name="jobs/job_update.html",
-        expected_h1_text="Complete Inspection",
+        url=bob_job_upload_quote_url,
+        expected_title="Upload Quote",
+        expected_template_name="jobs/quote_upload.html",
+        expected_h1_text="Upload Quote",
         expected_func_name="view",
-        expected_url_name="job_update",
-        expected_view_class=JobUpdateView,
+        expected_url_name="quote_upload",
+        expected_view_class=QuoteUploadView,
     )
-
-
-def test_view_has_date_of_inspection_field(
-    job_created_by_bob: Job,
-    marnie_user_client: Client,
-    bob_job_update_url: str,
-    test_pdf: SimpleUploadedFile,
-) -> None:
-    """Test that the job update page has the 'date_of_inspection' field.
-
-    Args:
-        job_created_by_bob (Job): The job created by Bob.
-        marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bobs job update view.
-        test_pdf (SimpleUploadedFile): The test PDF file.
-    """
-    post_job_update_and_check_response(
-        marnie_user_client,
-        bob_job_update_url,
-        test_pdf,
-        job_created_by_bob,
-    )
-
-    assert job_created_by_bob.date_of_inspection == datetime.date(2001, 2, 5)
 
 
 def post_job_update_and_check_response(
     marnie_user_client: Client,
     bob_job_update_url: str,
     test_pdf: SimpleUploadedFile,
-    job_created_by_bob: Job,
+    job: Job,
 ) -> None:
-    """Post job update and check the response.
+    """Post "upload quote" and check the response.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bob's job update view.
+        bob_job_update_url (str): The URL for Bob's "upload quote" view.
         test_pdf (SimpleUploadedFile): The test PDF file.
-        job_created_by_bob (Job): The job created by Bob.
+        job (Job): The related job to update.
     """
     with safe_read(test_pdf):
         response = marnie_user_client.post(
             bob_job_update_url,
             {
-                "date_of_inspection": "2001-02-05",
                 "quote": test_pdf,
             },
             follow=True,
@@ -174,33 +151,35 @@ def post_job_update_and_check_response(
     ]
 
     # Refresh the Maintenance Job from the database:
-    job_created_by_bob.refresh_from_db()
+    job.refresh_from_db()
 
 
 def test_view_has_quote_field(
-    job_created_by_bob: Job,
+    bob_job_with_initial_marnie_inspection: Job,
     marnie_user_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
     test_pdf: SimpleUploadedFile,
 ) -> None:
-    """Test that the job update page has the 'quote' field.
+    """Test that the "upload quote" page has the 'quote' field.
 
     Args:
-        job_created_by_bob (Job): The job created by Bob.
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can upload a
+            quote for the job created by Bob.
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
     # POST request to upload new PDF
     post_job_update_and_check_response(
         marnie_user_client,
-        bob_job_update_url,
+        bob_job_upload_quote_url,
         test_pdf,
-        job_created_by_bob,
+        bob_job_with_initial_marnie_inspection,
     )
 
     # And confirm that the PDF file has been updated
-    quote_name = job_created_by_bob.quote.name
+    quote_name = bob_job_with_initial_marnie_inspection.quote.name
     # Can be something like one of these:
     # - quotes/test.pdf
     # - quotes/test_qKAGkkh.pdf
@@ -208,88 +187,73 @@ def test_view_has_quote_field(
     assert quote_name.endswith(".pdf")
 
 
-def test_date_of_inspection_field_is_required(
-    job_created_by_bob: Job,
-    marnie_user_client: Client,
-    bob_job_update_url: str,
-    test_pdf: SimpleUploadedFile,
-) -> None:
-    """Test that the 'date_of_inspection' field is required.
-
-    Args:
-        job_created_by_bob (Job): The job created by Bob.
-        marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bobs job update view.
-        test_pdf (SimpleUploadedFile): The test PDF file.
-    """
-    with safe_read(test_pdf):
-        post_update_request_and_check_errors(
-            client=marnie_user_client,
-            url=bob_job_update_url,
-            data={"quote": test_pdf},
-            field_name="date_of_inspection",
-            expected_error="This field is required.",
-        )
-
-
 def test_quote_field_is_required(
-    job_created_by_bob: Job,
+    bob_job_with_initial_marnie_inspection: Job,
     marnie_user_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
 ) -> None:
     """Test that the 'quote' field is required.
 
     Args:
-        job_created_by_bob (Job): The job created by Bob.
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can upload a
+            quote for the job created by Bob.
     """
     post_update_request_and_check_errors(
         client=marnie_user_client,
-        url=bob_job_update_url,
-        data={"date_of_inspection": "2001-02-05"},
+        url=bob_job_upload_quote_url,
+        data={},
         field_name="quote",
         expected_error="This field is required.",
     )
 
 
-def test_updating_job_changes_status_to_inspection_completed(
-    job_created_by_bob: Job,
+def test_updating_job_changes_status_to_quote_uploaded(
+    bob_job_with_initial_marnie_inspection: Job,
     marnie_user_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
     test_pdf: SimpleUploadedFile,
 ) -> None:
-    """Test that updating the job changes the status to 'Inspection Completed'.
+    """Test that updating the job changes the status to 'Quote Uploaded'.
 
     Args:
-        job_created_by_bob (Job): The job created by Bob.
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can upload a
+            quote for the job created by Bob.
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
     # POST request to upload new details:
     post_job_update_and_check_response(
         marnie_user_client,
-        bob_job_update_url,
+        bob_job_upload_quote_url,
         test_pdf,
-        job_created_by_bob,
+        bob_job_with_initial_marnie_inspection,
     )
 
     # Check that the status changed as expected
-    assert job_created_by_bob.status == Job.Status.INSPECTION_COMPLETED.value
+    bob_job_with_initial_marnie_inspection.refresh_from_db()
+    assert (
+        bob_job_with_initial_marnie_inspection.status == Job.Status.QUOTE_UPLOADED.value
+    )
 
 
 def test_should_not_allow_txt_extension_file_for_quote(
-    job_created_by_bob: Job,
+    bob_job_with_initial_marnie_inspection: Job,
     marnie_user_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
 ) -> None:
     """Test that the view should not allow a .txt file extension for the 'quote' field.
 
     Args:
-        job_created_by_bob (Job): The job created by Bob.
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can upload a
+            quote for the job created by Bob.
     """
     # New TXT file to upload
     test_txt = SimpleUploadedFile(
@@ -301,9 +265,8 @@ def test_should_not_allow_txt_extension_file_for_quote(
     with safe_read(test_txt):
         post_update_request_and_check_errors(
             client=marnie_user_client,
-            url=bob_job_update_url,
+            url=bob_job_upload_quote_url,
             data={
-                "date_of_inspection": "2001-02-05",
                 "quote": test_txt,
             },
             field_name="quote",
@@ -313,16 +276,18 @@ def test_should_not_allow_txt_extension_file_for_quote(
 
 
 def test_validates_pdf_contents(
-    job_created_by_bob: Job,
+    bob_job_with_initial_marnie_inspection: Job,
     marnie_user_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
 ) -> None:
     """Test that the view should validate the contents of the PDF file.
 
     Args:
-        job_created_by_bob (Job): The job created by Bob.
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can upload a
+            quote for the job created by Bob.
     """
     # New PDF file to upload
     new_pdf = SimpleUploadedFile(
@@ -334,9 +299,8 @@ def test_validates_pdf_contents(
     with safe_read(new_pdf):
         post_update_request_and_check_errors(
             client=marnie_user_client,
-            url=bob_job_update_url,
+            url=bob_job_upload_quote_url,
             data={
-                "date_of_inspection": "2001-02-05",
                 "quote": new_pdf,
             },
             field_name="quote",
@@ -344,46 +308,46 @@ def test_validates_pdf_contents(
         )
 
 
-def test_marnie_cannot_access_view_after_initial_site_inspection(
-    bob_job_with_initial_marnie_inspection: Job,
+def test_marnie_cannot_access_view_after_quote_already_uploaded(
+    bob_job_with_quote: Job,
     marnie_user_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
 ) -> None:
     """Ensure Marnie can't access the update view after completing initial inspection.
 
     Args:
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
-            initial inspection done by Marnie.
+        bob_job_with_quote (Job): The job created by Bob with a quote uploaded by
+            Marnie.
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for the job update view for the job created
-            by Bob.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can upload a
+            quote for the job created by Bob.
     """
-    response = marnie_user_client.get(bob_job_update_url)
+    response = marnie_user_client.get(bob_job_upload_quote_url)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_superuser_cannot_access_view_after_initial_site_inspection(
-    bob_job_with_initial_marnie_inspection: Job,
+def test_superuser_cannot_access_view_after_quote_already_uploaded(
+    bob_job_with_quote: Job,
     superuser_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
 ) -> None:
-    """Ensure the superuser can't access the update view after Marnie already inspected.
+    """Ensure the superuser can't access the view after Marnie already uploaded a quote.
 
     Args:
-        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
-            initial inspection done by Marnie.
+        bob_job_with_quote (Job): The job created by Bob with a quote uploaded by
+            Marnie.
         superuser_client (Client): The Django test client for the superuser.
-        bob_job_update_url (str): The URL for the job update view for the job created
-            by Bob.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can upload a
+            quote for the job created by Bob.
     """
-    response = superuser_client.get(bob_job_update_url)
+    response = superuser_client.get(bob_job_upload_quote_url)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test_clicking_save_redirects_to_job_listing_page(
     job_created_by_bob: Job,
     marnie_user_client: Client,
-    bob_job_update_url: str,
+    bob_job_upload_quote_url: str,
     test_pdf: SimpleUploadedFile,
 ) -> None:
     """Test that clicking 'Save' redirects to the job listing page.
@@ -391,41 +355,44 @@ def test_clicking_save_redirects_to_job_listing_page(
     Args:
         job_created_by_bob (Job): The job created by Bob.
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can
+            upload a quote for the job created by Bob.
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
     post_job_update_and_check_response(
         marnie_user_client,
-        bob_job_update_url,
+        bob_job_upload_quote_url,
         test_pdf,
         job_created_by_bob,
     )
 
 
 @pytest.fixture()
-def http_response_to_marnie_inspecting_site_of_job_by_bob(
-    job_created_by_bob: Job,
-    bob_job_update_url: str,
+def http_response_to_marnie_uploading_a_quote(
+    bob_job_with_initial_marnie_inspection: Job,
+    bob_job_upload_quote_url: str,
     marnie_user_client: Client,
     test_pdf: SimpleUploadedFile,
 ) -> TemplateResponse:
-    """Get the HTTP response after Marnie inspects the site of the job created by Bob.
+    """Get the HTTP response after Marnie uploads an Invoice to Bob's job.
 
     Args:
-        job_created_by_bob (Job): The job created by Bob.
-        bob_job_update_url (str): The URL for Bobs job update view.
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can upload a
+            quote for the job created by Bob.
         marnie_user_client (Client): The Django test client for Marnie.
         test_pdf (SimpleUploadedFile): The test PDF file.
 
     Returns:
-        TemplateResponse: The HTTP response after Marnie inspects the site of the job
+        TemplateResponse: The HTTP response after Marnie uploads an Invoice to Bob's
+            job.
     """
     with safe_read(test_pdf):
         response = check_type(
             marnie_user_client.post(
-                bob_job_update_url,
+                bob_job_upload_quote_url,
                 {
-                    "date_of_inspection": "2001-02-05",
                     "quote": test_pdf,
                 },
                 follow=True,
@@ -445,20 +412,20 @@ def http_response_to_marnie_inspecting_site_of_job_by_bob(
 
 
 @pytest.fixture()
-def flashed_message_after_inspecting_a_site(
-    http_response_to_marnie_inspecting_site_of_job_by_bob: TemplateResponse,
+def flashed_message_after_uploading_a_quote(
+    http_response_to_marnie_uploading_a_quote: TemplateResponse,
 ) -> Message:
-    """Retrieve the flashed message after Marnie inspects a site.
+    """Retrieve the flashed message after Marnie uploads a quote.
 
     Args:
-        http_response_to_marnie_inspecting_site_of_job_by_bob (TemplateResponse): The
-            HTTP response after Marnie inspects the site.
+        http_response_to_marnie_uploading_a_quote (TemplateResponse): The
+            HTTP response after Marnie uploads a quote.
 
     Returns:
-        Message: The flashed message after Marnie inspects a site.
+        Message: The flashed message after Marnie uploads a quote.
     """
     # Check the messages:
-    response = http_response_to_marnie_inspecting_site_of_job_by_bob
+    response = http_response_to_marnie_uploading_a_quote
     messages = list(response.context["messages"])
     assert len(messages) == 1
 
@@ -467,31 +434,33 @@ def flashed_message_after_inspecting_a_site(
 
 
 def test_a_flash_message_is_displayed_when_marnie_clicks_save(
-    flashed_message_after_inspecting_a_site: Message,
+    flashed_message_after_uploading_a_quote: Message,
 ) -> None:
     """Test that a flash message is displayed when Marnie clicks 'Save'.
 
     Args:
-        flashed_message_after_inspecting_a_site (Message): The flashed message after
-            Marnie inspects a site.
+        flashed_message_after_uploading_a_quote (Message): The flashed message after
+            Marnie uploads a quote.
     """
     # Marnie should see a "Maintenance Update email has been sent to <agent username>"
     # flash message when she clicks the "Save" button.
-    flashed_message = flashed_message_after_inspecting_a_site
-    assert flashed_message.message == "An email has been sent to bob."
+    flashed_message = flashed_message_after_uploading_a_quote
+    assert flashed_message.message == (
+        "Your quote has been uploaded. An email has been sent to bob."
+    )
     assert flashed_message.level_tag == "success"
 
 
 def test_marnie_clicking_save_sends_an_email_to_agent(
-    http_response_to_marnie_inspecting_site_of_job_by_bob: TemplateResponse,
+    http_response_to_marnie_uploading_a_quote: TemplateResponse,
     bob_agent_user: User,
     marnie_user: User,
 ) -> None:
     """Test that Marnie clicking 'Save' sends an email to the agent.
 
     Args:
-        http_response_to_marnie_inspecting_site_of_job_by_bob (TemplateResponse): The
-            HTTP response after Marnie inspects the site.
+        http_response_to_marnie_uploading_a_quote (TemplateResponse): The HTTP response
+            after Marnie uploads a quote.
         bob_agent_user (User): The agent user Bob.
         marnie_user (User): The user Marnie.
     """
@@ -500,26 +469,27 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
     # wouldn't have been sent there.
 
     # But for the most recent part of the fixtures (Marnie inspecting the site and
-    # updating thew website), we did go through the view-based logic, so an email
-    # should have been sent there.
+    # updating thew website, then later uploading an invoice), we did go through
+    # various view-based logic, so some emails should have been sent there.
     num_mails_sent = len(mail.outbox)
-    assert num_mails_sent == 1
+    expected_num_emails_by_this_point = 2
+    assert num_mails_sent == expected_num_emails_by_this_point
 
-    # Grab the mail:
-    email = mail.outbox[0]
+    # Grab the most recent mails:
+    email = mail.outbox[-1]
 
     # Check various details of the mail here.
 
     # Check mail metadata:
-    assert email.subject == "Quote for your maintenance request"
+    assert email.subject == "Marnie uploaded a quote for your maintenance request"
     assert bob_agent_user.email in email.to
     assert marnie_user.email in email.cc
     assert constants.DEFAULT_FROM_EMAIL in email.from_email
 
     # Check mail contents:
     assert (
-        "Marnie performed the inspection on 2001-02-05 and has quoted you. The quote "
-        "is attached to this email." in email.body
+        "Marnie uploaded a quote for a maintenance job. "
+        "The quote is attached to this email." in email.body
     )
 
     # There should now be exactly one job in the database. Fetch it so that we can
@@ -530,4 +500,34 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
         expected_suffix=".pdf",
         expected_content=BASIC_TEST_PDF_FILE.read_bytes(),
         expected_mime_type="application/pdf",
+    )
+
+
+def test_marnie_clicking_save_sets_state_to_quote_uploaded(
+    bob_job_with_initial_marnie_inspection: Job,
+    marnie_user_client: Client,
+    bob_job_upload_quote_url: str,
+    test_pdf: SimpleUploadedFile,
+) -> None:
+    """Test that Marnie clicking 'Save' sets the state to 'Quote Uploaded'.
+
+    Args:
+        bob_job_with_initial_marnie_inspection (Job): The job created by Bob with the
+            initial inspection done by Marnie.
+        marnie_user_client (Client): The Django test client for Marnie.
+        bob_job_upload_quote_url (str): The URL for the view where Marnie can upload a
+            quote for the job created by Bob.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+    """
+    # POST request to upload new details:
+    post_job_update_and_check_response(
+        marnie_user_client,
+        bob_job_upload_quote_url,
+        test_pdf,
+        bob_job_with_initial_marnie_inspection,
+    )
+
+    # Check that the status changed as expected
+    assert (
+        bob_job_with_initial_marnie_inspection.status == Job.Status.QUOTE_UPLOADED.value
     )

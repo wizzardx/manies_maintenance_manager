@@ -16,6 +16,7 @@ from marnies_maintenance_manager.jobs.forms import JobCompletionPhotoFormSet
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
 from marnies_maintenance_manager.jobs.views.mixins import JobSuccessUrlMixin
+from marnies_maintenance_manager.jobs.views.utils import AttachmentType
 from marnies_maintenance_manager.jobs.views.utils import prepare_and_send_email
 from marnies_maintenance_manager.users.models import User
 
@@ -101,7 +102,13 @@ class JobCompleteView(
         )
 
         request = self.request
-        prepare_and_send_email(email_subject, email_body, job, request)
+        prepare_and_send_email(
+            email_subject,
+            email_body,
+            job,
+            request,
+            AttachmentType.INVOICE,
+        )
 
         # Send a success flash message to the user:
         agent = job.agent

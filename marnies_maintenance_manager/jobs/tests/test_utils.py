@@ -270,14 +270,14 @@ class TestMakeTestUser:
 
 
 @pytest.fixture()
-def job() -> Job:
+def job() -> mock.Mock:
     """Return a mock of the Job object.
 
     Returns:
         Job: A mock of the Job object.
     """
     job = mock.Mock(spec=Job)
-    job.status = Job.Status.INSPECTION_COMPLETED.value
+    job.status = Job.Status.QUOTE_UPLOADED.value
     job.get_absolute_url.return_value = "/job-detail-url/"
     return job
 
@@ -494,7 +494,7 @@ def test_quote_accept_or_reject_skip_email_send(
     mock_get_marnie_email: mock.Mock,
     mock_get_object_or_404: mock.Mock,
     http_request: HttpRequest,
-    job: Job,
+    job: mock.Mock,
 ) -> None:
     """Test quote_accept_or_reject function with skip_email_send=True.
 
@@ -526,7 +526,7 @@ def test_quote_accept_or_reject_skip_email_send(
     mock_get_object_or_404.assert_called_once_with(Job, pk=job.pk)
     assert job.status == Job.Status.QUOTE_ACCEPTED_BY_AGENT.value
     assert job.accepted_or_rejected == Job.AcceptedOrRejected.ACCEPTED.value
-    job.save.assert_called_once()  # type: ignore[attr-defined]
+    job.save.assert_called_once()
     mock_messages_success.assert_called_once_with(
         http_request,
         "Quote accepted. An email has been sent to Marnie.",
