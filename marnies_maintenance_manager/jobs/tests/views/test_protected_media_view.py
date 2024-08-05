@@ -452,77 +452,82 @@ class TestInvoiceDownloadAccess:
     @staticmethod
     def test_marnie_can_download_invoice(
         marnie_user_client: Client,
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
     ) -> None:
         """Test that Marnie can download invoices.
 
         Args:
             marnie_user_client (Client): The Django test client for the Marnie user.
-            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
         """
-        job = bob_job_completed_by_marnie
+        job = bob_job_with_marnie_final_documentation
         response = marnie_user_client.get(job.invoice.url, follow=True)
         assert response.status_code == status.HTTP_200_OK
 
     @staticmethod
     def test_superuser_can_download_invoice(
         superuser_client: Client,
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
     ) -> None:
         """Test that superusers can download invoices.
 
         Args:
             superuser_client (Client): The Django test client for the superuser.
-            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
         """
-        job = bob_job_completed_by_marnie
+        job = bob_job_with_marnie_final_documentation
         response = superuser_client.get(job.invoice.url, follow=True)
         assert response.status_code == status.HTTP_200_OK
 
     @staticmethod
     def test_agent_can_download_invoice(
         bob_agent_user_client: Client,
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
     ) -> None:
         """Test that agents who created the job can download the invoice.
 
         Args:
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
-            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
         """
-        job = bob_job_completed_by_marnie
+        job = bob_job_with_marnie_final_documentation
         response = bob_agent_user_client.get(job.invoice.url, follow=True)
         assert response.status_code == status.HTTP_200_OK
 
     @staticmethod
     def test_other_agent_cannot_download_invoice(
         alice_agent_user_client: Client,
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
     ) -> None:
         """Test that agents not creating the job cannot download invoices.
 
         Args:
             alice_agent_user_client (Client): The Django test client for the Alice agent
                 user.
-            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
         """
         response = alice_agent_user_client.get(
-            bob_job_completed_by_marnie.invoice.url,
+            bob_job_with_marnie_final_documentation.invoice.url,
             follow=True,
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @staticmethod
     def test_none_marnie_none_agent_cannot_download_invoice(
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
         bob_agent_user_client: Client,
         bob_agent_user: User,
     ) -> None:
         """Test that users not Marnie or agents cannot download invoices.
 
         Args:
-            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
             bob_agent_user (User): The Bob agent user.
@@ -531,7 +536,7 @@ class TestInvoiceDownloadAccess:
         bob_agent_user.save()
 
         response = bob_agent_user_client.get(
-            bob_job_completed_by_marnie.invoice.url,
+            bob_job_with_marnie_final_documentation.invoice.url,
             follow=True,
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -554,7 +559,7 @@ class TestInvoiceDownloadAccess:
     @staticmethod
     def test_agent_cannot_download_multilinked_invoice(
         bob_agent_user_client: Client,
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
         job_created_by_alice: Job,
     ) -> None:
         """Test that agents cannot download invoices linked to multiple jobs.
@@ -562,12 +567,13 @@ class TestInvoiceDownloadAccess:
         Args:
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
-            bob_job_completed_by_marnie (Job): The job completed by Marnie.
+            bob_job_with_marnie_final_documentation (Job): Job with Marnies final
+                documentation added to it.
             job_created_by_alice (Job): The job created by Alice.
         """
         trigger_multilinked_error(
             bob_agent_user_client,
-            bob_job_completed_by_marnie,
+            bob_job_with_marnie_final_documentation,
             job_created_by_alice,
             "invoice",
         )
@@ -706,16 +712,17 @@ class TestJobCompletionPhotoDownloadAccess:
 
     @staticmethod
     def test_marnie_can_download(
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
         marnie_user_client: Client,
     ) -> None:
         """Test that Marnie can download Job Completion Photos.
 
         Args:
-            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
             marnie_user_client (Client): The Django test client for the Marnie user.
         """
-        job = bob_job_completed_by_marnie
+        job = bob_job_with_marnie_final_documentation
         completion_photos = job.job_completion_photos.all()
         assert len(completion_photos) == BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS
 
@@ -725,16 +732,17 @@ class TestJobCompletionPhotoDownloadAccess:
 
     @staticmethod
     def test_superuser_can_download(
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
         superuser_client: Client,
     ) -> None:
         """Test that superusers can download Job Completion Photos.
 
         Args:
-            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
             superuser_client (Client): The Django test client for the superuser.
         """
-        job = bob_job_completed_by_marnie
+        job = bob_job_with_marnie_final_documentation
         completion_photos = job.job_completion_photos.all()
         assert len(completion_photos) == BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS
 
@@ -745,16 +753,17 @@ class TestJobCompletionPhotoDownloadAccess:
     @staticmethod
     def test_agent_can_download(
         bob_agent_user_client: Client,
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
     ) -> None:
         """Test that agents who created the job can download Job Completion Photos.
 
         Args:
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
-            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
         """
-        job = bob_job_completed_by_marnie
+        job = bob_job_with_marnie_final_documentation
         completion_photos = job.job_completion_photos.all()
         assert len(completion_photos) == BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS
 
@@ -765,16 +774,17 @@ class TestJobCompletionPhotoDownloadAccess:
     @staticmethod
     def test_other_agent_cannot_download(
         alice_agent_user_client: Client,
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
     ) -> None:
         """Test that agents not creating the job cannot download Job Completion Photos.
 
         Args:
             alice_agent_user_client (Client): The Django test client for the Alice agent
                 user.
-            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
         """
-        job = bob_job_completed_by_marnie
+        job = bob_job_with_marnie_final_documentation
         completion_photos = job.job_completion_photos.all()
         assert len(completion_photos) == BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS
 
@@ -784,14 +794,15 @@ class TestJobCompletionPhotoDownloadAccess:
 
     @staticmethod
     def test_none_marnie_none_agent_cannot_download(
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
         bob_agent_user_client: Client,
         bob_agent_user: User,
     ) -> None:
         """Test that users not Marnie or agents cannot download Job Completion Photos.
 
         Args:
-            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
             bob_agent_user (User): The Bob agent user.
@@ -799,7 +810,7 @@ class TestJobCompletionPhotoDownloadAccess:
         bob_agent_user.is_agent = False
         bob_agent_user.save()
 
-        job = bob_job_completed_by_marnie
+        job = bob_job_with_marnie_final_documentation
         completion_photos = job.job_completion_photos.all()
         assert len(completion_photos) == BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS
 
@@ -825,7 +836,7 @@ class TestJobCompletionPhotoDownloadAccess:
     @staticmethod
     def test_agent_cannot_download_multilinked_file(
         bob_agent_user_client: Client,
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
         job_created_by_alice: Job,
     ) -> None:
         """Test that agents cannot download Job Completion Photos tied to multiple jobs.
@@ -833,29 +844,31 @@ class TestJobCompletionPhotoDownloadAccess:
         Args:
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
-            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
             job_created_by_alice (Job): The job created by Alice.
         """
         trigger_multilinked_error(
             bob_agent_user_client,
-            bob_job_completed_by_marnie,
+            bob_job_with_marnie_final_documentation,
             job_created_by_alice,
             "job_completion_photo",
         )
 
     @staticmethod
     def test_agent_cannot_download_files_from_other_directories(
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
         marnie_user_client: Client,
     ) -> None:
         """Test that agents cannot download files from unknown directories.
 
         Args:
-            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies final
+                documentation added to it.
             marnie_user_client (Client): The Django test client for the Marnie user.
         """
         completion_photo = check_type(
-            bob_job_completed_by_marnie.job_completion_photos.first(),
+            bob_job_with_marnie_final_documentation.job_completion_photos.first(),
             JobCompletionPhoto,
         )
         response = marnie_user_client.get(
@@ -865,18 +878,19 @@ class TestJobCompletionPhotoDownloadAccess:
 
     @staticmethod
     def test_agent_cannot_download_images_with_unknown_extension(
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
         bob_agent_user_client: Client,
     ) -> None:
         """Test that agents cannot download images with unknown extensions.
 
         Args:
-            bob_job_completed_by_marnie (Job): The job with a Job Completion Photo.
+            bob_job_with_marnie_final_documentation (Job): The job with Marnies
+                final documentation added to it.
             bob_agent_user_client (Client): The Django test client for the Bob agent
                 user.
         """
         completion_photo = check_type(
-            bob_job_completed_by_marnie.job_completion_photos.first(),
+            bob_job_with_marnie_final_documentation.job_completion_photos.first(),
             JobCompletionPhoto,
         )
         response = bob_agent_user_client.get(

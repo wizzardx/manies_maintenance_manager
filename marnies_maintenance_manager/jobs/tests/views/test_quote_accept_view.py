@@ -130,7 +130,8 @@ def test_fails_for_jobs_in_incorrect_states(  # noqa: PLR0913
     job_created_by_bob: Job,
     job_accepted_by_bob: Job,
     bob_job_with_deposit_pop: Job,
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     bob_job_with_final_payment_pop: Job,
     bob_job_with_quote: Job,
 ) -> None:
@@ -141,7 +142,10 @@ def test_fails_for_jobs_in_incorrect_states(  # noqa: PLR0913
         job_created_by_bob (Job): The job created by Bob.
         job_accepted_by_bob (Job): The job accepted by Bob.
         bob_job_with_deposit_pop (Job): The job with the deposit pop uploaded by Bob.
-        bob_job_completed_by_marnie (Job): The job completed by Marnie.
+        bob_job_with_onsite_work_completed_by_marnie (Job): The job with the onsite work
+            completed by Marnie.
+        bob_job_with_marnie_final_documentation (Job): The job with the final
+            documentation uploaded by Marnie.
         bob_job_with_final_payment_pop (Job): The job with the final payment pop
             uploaded
         bob_job_with_quote (Job): Job where Marnie has uploaded a quote.
@@ -167,8 +171,10 @@ def test_fails_for_jobs_in_incorrect_states(  # noqa: PLR0913
                 job = job_accepted_by_bob
             case Job.Status.DEPOSIT_POP_UPLOADED:
                 job = bob_job_with_deposit_pop
-            case Job.Status.MARNIE_COMPLETED:
-                job = bob_job_completed_by_marnie
+            case Job.Status.MARNIE_COMPLETED_ONSITE_WORK:
+                job = bob_job_with_onsite_work_completed_by_marnie
+            case Job.Status.MARNIE_SUBMITTED_DOCUMENTATION:
+                job = bob_job_with_marnie_final_documentation
             case Job.Status.FINAL_PAYMENT_POP_UPLOADED:
                 job = bob_job_with_final_payment_pop
             case _:  # pragma: no cover

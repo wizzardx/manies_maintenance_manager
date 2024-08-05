@@ -50,7 +50,7 @@ from marnies_maintenance_manager.jobs.forms import FinalPaymentPOPUpdateForm
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.utils import generate_email_body
 from marnies_maintenance_manager.jobs.utils import get_marnie_email
-from marnies_maintenance_manager.jobs.views.utils import send_job_email_with_attachment
+from marnies_maintenance_manager.jobs.views.utils import send_job_email_with_attachments
 from marnies_maintenance_manager.users.models import User
 
 if TYPE_CHECKING:  # pragma: no cover # pylint: disable=consider-ternary-expression
@@ -80,7 +80,7 @@ class FinalPaymentPOPUpdateView(
         user = check_type(self.request.user, User)
 
         # Not allowed to access this view if the job is not in the correct state
-        if job.status != Job.Status.MARNIE_COMPLETED.value:
+        if job.status != Job.Status.MARNIE_SUBMITTED_DOCUMENTATION.value:
             return False
 
         # Not allowed to access this view if the final payment POP has already been
@@ -128,13 +128,13 @@ class FinalPaymentPOPUpdateView(
         email_cc = job.agent.email
         uploaded_file = job.final_payment_pop
 
-        send_job_email_with_attachment(
+        send_job_email_with_attachments(
             email_subject,
             email_body,
             email_from,
             email_to,
             email_cc,
-            uploaded_file,
+            [uploaded_file],
         )
 
         # Send a success flash message to the user:

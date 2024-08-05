@@ -90,17 +90,17 @@ def test_job_detail_view_shows_expected_job_details(
 
 
 def test_fields_only_shown_when_job_complete(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     marnie_user_client: Client,
 ) -> None:
     """Ensure that the "completed"-exclusive fields are shown when the job is complete.
 
     Args:
-        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
-            Marnie that was also accepted by Bob, and marked as complete.
+        bob_job_with_marnie_final_documentation (Job): The job with final documentation
+            uploaded by Marnie.
         marnie_user_client (Client): The Django test client for Marnie.
     """
-    job = bob_job_completed_by_marnie
+    job = bob_job_with_marnie_final_documentation
 
     response = marnie_user_client.get(
         reverse("jobs:job_detail", kwargs={"pk": job.pk}),
@@ -121,17 +121,17 @@ def test_fields_only_shown_when_job_complete(
 
 
 def test_complete_only_fields_not_shown_when_not_complete(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     marnie_user_client: Client,
 ) -> None:
     """Ensure "completed"-exclusive fields are not shown when the job is not complete.
 
     Args:
-        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
-            Marnie that was also accepted by Bob, and marked as complete.
+        bob_job_with_marnie_final_documentation (Job): The job with final documentation
+            uploaded by Marnie.
         marnie_user_client (Client): The Django test client for Marnie.
     """
-    job = bob_job_completed_by_marnie
+    job = bob_job_with_marnie_final_documentation
 
     # Reset the "complete" flag so that the job is not complete, and the
     # "completed"-exclusive fields should not be shown.
@@ -189,18 +189,18 @@ def get_job_detail_page(client: Client, job: Job) -> str:
     return response.content.decode("utf-8")
 
 
-def test_final_payment_pop_upload_link_present_when_marnie_completed_job(
-    bob_job_completed_by_marnie: Job,
+def test_final_payment_pop_upload_link_present_when_marnie_uploaded_final_docs(
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user_client: Client,
 ) -> None:
     """Ensure the link to update the Final Payment Proof of Payment is visible.
 
     Args:
-        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
-            Marnie that was also accepted by Bob, and marked as complete.
+        bob_job_with_marnie_final_documentation (Job): The job created by Bob, with
+            the final documentation uploaded by Marnie.
         bob_agent_user_client (Client): The Django test client for Bob.
     """
-    job = bob_job_completed_by_marnie
+    job = bob_job_with_marnie_final_documentation
     page = get_job_detail_page(bob_agent_user_client, job)
 
     # Make sure that the link to update the Final Payment POP is in the page:
@@ -229,17 +229,17 @@ def test_final_payment_pop_download_link_present_when_agent_submitted_final_pop(
 
 
 def test_final_payment_pop_download_link_missing_when_not_yet_submitted(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user_client: Client,
 ) -> None:
     """Ensure the link to download the Final Payment Proof of Payment is not visible.
 
     Args:
-        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
-            Marnie that was also accepted by Bob, and marked as complete.
+        bob_job_with_marnie_final_documentation (Job): The job created by Bob, with
+            the final documentation uploaded by Marnie.
         bob_agent_user_client (Client): The Django test client for Bob.
     """
-    job = bob_job_completed_by_marnie
+    job = bob_job_with_marnie_final_documentation
     page = get_job_detail_page(bob_agent_user_client, job)
 
     # Make sure that the link to update the Final Payment POP is not in the page:

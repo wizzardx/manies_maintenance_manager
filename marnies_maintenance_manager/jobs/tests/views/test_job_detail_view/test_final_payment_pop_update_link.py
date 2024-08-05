@@ -53,37 +53,40 @@ def _get_final_payment_pop_update_link_or_none(
 
 
 def test_agent_who_created_job_can_see_link(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user_client: Client,
 ) -> None:
     """Ensure the agent who created the job can see the "submit final payment POP" link.
 
     Args:
-        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
-            Marnie that was also accepted by Bob, and marked as complete.
+        bob_job_with_marnie_final_documentation (Job): The job created by Bob, with a
+            quote added by Marnie that was also accepted by Bob, and marked as complete.
         bob_agent_user_client (Client): The Django test client for Bob.
     """
     link = _get_final_payment_pop_update_link_or_none(
-        bob_job_completed_by_marnie,
+        bob_job_with_marnie_final_documentation,
         bob_agent_user_client,
     )
     assert link is not None
 
 
 def test_test_page_with_link_not_accessible_to_agents_who_did_not_create_job(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     alice_agent_user_client: Client,
 ) -> None:
     """Ensure page with link is not accessible to agents who did not create the job.
 
     Args:
-        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
-            Marnie that was also accepted by Bob, and marked as complete.
+        bob_job_with_marnie_final_documentation (Job): The job created by Bob, with a
+            quote added by Marnie that was also accepted by Bob, and marked as complete.
         alice_agent_user_client (Client): The Django test client for Alice. She did not
             create the job.
     """
     response = alice_agent_user_client.get(
-        reverse("jobs:job_detail", kwargs={"pk": bob_job_completed_by_marnie.pk}),
+        reverse(
+            "jobs:job_detail",
+            kwargs={"pk": bob_job_with_marnie_final_documentation.pk},
+        ),
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -107,36 +110,36 @@ def test_link_not_visible_when_job_not_completed(
 
 
 def test_link_not_visible_to_marnie(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     marnie_user_client: Client,
 ) -> None:
     """Ensure the link is not visible to Marnie.
 
     Args:
-        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
-            Marnie that was also accepted by Bob, and marked as complete.
+        bob_job_with_marnie_final_documentation (Job): Job where Marnie has uploaded his
+            final documentation, after completing the onsite work.
         marnie_user_client (Client): The Django test client for Marnie.
     """
     link = _get_final_payment_pop_update_link_or_none(
-        bob_job_completed_by_marnie,
+        bob_job_with_marnie_final_documentation,
         marnie_user_client,
     )
     assert link is None
 
 
 def test_link_is_visible_to_admin(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     admin_client: Client,
 ) -> None:
     """Ensure the link is visible to an admin user.
 
     Args:
-        bob_job_completed_by_marnie (Job): The job created by Bob, with a quote added by
-            Marnie that was also accepted by Bob, and marked as complete.
+        bob_job_with_marnie_final_documentation (Job): Job where Marnie has
+            uploaded his final documentation, after completing the onsite work.
         admin_client (Client): The Django test client for an admin user.
     """
     link = _get_final_payment_pop_update_link_or_none(
-        bob_job_completed_by_marnie,
+        bob_job_with_marnie_final_documentation,
         admin_client,
     )
     assert link is not None

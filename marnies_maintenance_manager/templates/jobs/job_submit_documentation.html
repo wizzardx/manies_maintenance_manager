@@ -3,10 +3,10 @@
 {% load crispy_forms_tags %}
 
 {% block title %}
-  Complete the Job
+  Submit Job Documentation
 {% endblock title %}
 {% block content %}
-  <h1>Complete the Job</h1>
+  <h1>Submit Job Documentation</h1>
   <form method="post" enctype="multipart/form-data" id="maintenanceForm">
     {% csrf_token %}
     {{ form|crispy }}

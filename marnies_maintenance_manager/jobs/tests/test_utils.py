@@ -22,7 +22,7 @@ from marnies_maintenance_manager.jobs import utils
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.tests import utils as test_utils
 from marnies_maintenance_manager.jobs.utils import safe_read
-from marnies_maintenance_manager.jobs.views.utils import send_job_email_with_attachment
+from marnies_maintenance_manager.jobs.views.utils import send_job_email_with_attachments
 from marnies_maintenance_manager.jobs.views.utils import send_quote_update_email
 from marnies_maintenance_manager.users.models import User
 
@@ -324,6 +324,7 @@ def test_send_quote_update_email(
     job.agent.email = "agent@mmm.ar-ciel.org"
     job.agent.username = "agent_username"
     job.quote.name = "quote.pdf"
+    job.quote.path = "/path/to/quote.pdf"
     job.quote.read.return_value = b"PDF content"
 
     email_body = "Initial email body"
@@ -370,16 +371,17 @@ def test_send_job_email_with_attachment_skip_send(
 
     uploaded_file = mock.Mock(spec=FieldFile)
     uploaded_file.name = "test.pdf"
+    uploaded_file.path = "/path/to/test.pdf"
     uploaded_file.read.return_value = b"PDF content"
 
     with caplog.at_level(logging.INFO):
-        send_job_email_with_attachment(
+        send_job_email_with_attachments(
             email_subject,
             email_body,
             email_from,
             email_to,
             email_cc,
-            uploaded_file,
+            [uploaded_file],
             skip_email_send=True,
         )
 

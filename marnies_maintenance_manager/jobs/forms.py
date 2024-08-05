@@ -116,6 +116,22 @@ class JobCompletionPhotoForm(TypedModelForm):
     photo = forms.ImageField()
 
 
+class JobCompleteOnsiteWorkForm(TypedModelForm):
+    """Form for completing the onsite work for a job."""
+
+    class Meta:
+        """Metaclass for the JobCompleteOnsiteWorkForm."""
+
+        model = Job
+        fields = [
+            "job_onsite_work_completion_date",
+        ]
+
+    job_onsite_work_completion_date = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
+
 JobCompletionPhotoFormSet = modelformset_factory(
     JobCompletionPhoto,
     form=JobCompletionPhotoForm,
@@ -123,22 +139,18 @@ JobCompletionPhotoFormSet = modelformset_factory(
 )
 
 
-class JobCompleteForm(TypedModelForm):
-    """Form for completing a job."""
+class JobSubmitDocumentationForm(TypedModelForm):
+    """Form for marnie to submit (his final) documentation for a job."""
 
     class Meta:
-        """Metaclass for the JobCompleteForm."""
+        """Metaclass for the JobSubmitDocumentationForm."""
 
         model = Job
         fields = [
-            "job_date",
             "invoice",
             "comments",
         ]
 
-    job_date = forms.DateField(
-        widget=forms.DateInput(attrs={"type": "date"}),
-    )
     invoice = forms.FileField()
 
 

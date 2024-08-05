@@ -11,8 +11,8 @@ from django.http import HttpResponse
 from django.views.generic import UpdateView
 from typeguard import check_type
 
-from marnies_maintenance_manager.jobs.forms import JobCompleteForm
 from marnies_maintenance_manager.jobs.forms import JobCompletionPhotoFormSet
+from marnies_maintenance_manager.jobs.forms import JobSubmitDocumentationForm
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
 from marnies_maintenance_manager.jobs.views.mixins import JobSuccessUrlMixin
@@ -23,13 +23,13 @@ from marnies_maintenance_manager.users.models import User
 if TYPE_CHECKING:  # pylint: disable=consider-ternary-expression
     TypedUpdateView = UpdateView[  # pragma: no cover
         Job,
-        JobCompleteForm,
+        JobSubmitDocumentationForm,
     ]
 else:
     TypedUpdateView = UpdateView
 
 
-class JobCompleteView(
+class JobSubmitDocumentationView(
     LoginRequiredMixin,
     UserPassesTestMixin,
     JobSuccessUrlMixin,
@@ -38,8 +38,8 @@ class JobCompleteView(
     """Complete a Maintenance Job."""
 
     model = Job
-    form_class = JobCompleteForm  # fields = ["job_date", "invoice", "comments"]
-    template_name = "jobs/job_complete.html"
+    form_class = JobSubmitDocumentationForm  # fields = [""invoice", "comments"]
+    template_name = "jobs/job_submit_documentation.html"
 
     def test_func(self) -> bool:
         """Check if the user can access this view.
@@ -47,20 +47,20 @@ class JobCompleteView(
         Returns:
             bool: True if the user can access this view, False otherwise.
         """
-        # Only Marnie and Admin users can reach this view, and only if the job has
-        # not yet been completed by Marnie.
+        # Only Marnie and Admin users can reach this view, and only if the onsite
+        # work has just been completed by Marnie.
         user = check_type(self.request.user, User)
 
         job = self.get_object()
-        return (job.status == Job.Status.DEPOSIT_POP_UPLOADED.value) and (
+        return (job.status == Job.Status.MARNIE_COMPLETED_ONSITE_WORK.value) and (
             user.is_superuser or user.is_marnie
         )
 
-    def form_valid(self, form: JobCompleteForm) -> HttpResponse:
+    def form_valid(self, form: JobSubmitDocumentationForm) -> HttpResponse:
         """Save the form.
 
         Args:
-            form (JobCompleteForm): The form instance.
+            form (JobSubmitDocumentationForm): The form instance.
 
         Returns:
             HttpResponse: The HTTP response.
@@ -81,8 +81,8 @@ class JobCompleteView(
             photo_form.instance.job = job
         photo_formset.save()
 
-        # Update the Job's state to "marnie completed"
-        job.status = Job.Status.MARNIE_COMPLETED.value
+        # Update the Job's state to "marnie submitted his documentation"
+        job.status = Job.Status.MARNIE_SUBMITTED_DOCUMENTATION.value
         job.complete = True
         job.save()
 
@@ -91,11 +91,17 @@ class JobCompleteView(
         response = super().form_valid(form)
 
         # Email the agent.
-        email_subject = "Marnie completed a maintenance job."
+        email_subject = "Marnie uploaded documentation for a job."
 
         email_body = (
-            f"Marnie completed the maintenance work on {job.job_date} and has "
-            "invoiced you. The invoice is attached to this email.\n\n"
+            "Marnie uploaded documentation for a job. "
+            "The invoice and any photos are attached to this mail.\n\n"
+        )
+
+        if job.comments:
+            email_body += f"Marnies comments on the job: {job.comments}\n\n"
+
+        email_body += (
             "Details of your original request:\n\n"
             "-----\n\n"
             f"Subject: New maintenance request by {job.agent.username}\n\n"
@@ -107,12 +113,15 @@ class JobCompleteView(
             email_body,
             job,
             request,
-            AttachmentType.INVOICE,
+            AttachmentType.INVOICE_AND_PHOTOS,
         )
 
         # Send a success flash message to the user:
         agent = job.agent
-        msg = f"The job has been completed. An email has been sent to {agent.username}."
+        msg = (
+            "Documentation has been submitted. "
+            f"An email has been sent to {agent.username}."
+        )
         messages.success(self.request, msg)
 
         # Return response back to the caller:

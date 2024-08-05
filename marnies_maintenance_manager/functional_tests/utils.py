@@ -800,26 +800,77 @@ def _marnie_completes_the_job(browser: WebDriver) -> None:
     # Marnie logs in and goes to the job details.
     _sign_in_as_marnie_and_navigate_to_job_details(browser)
 
-    # He can see a "Complete Job" link at the bottom of the page.
-    update_link = browser.find_element(By.PARTIAL_LINK_TEXT, "Complete Job")
+    # He can see a "Record Job Date" link at the bottom of the page.
+    record_job_onsite_work_completion_date_link = browser.find_element(
+        By.PARTIAL_LINK_TEXT,
+        "Record Onsite Work Completion",
+    )
 
-    # He clicks on the "Complete Job" link.
-    update_link.click()
+    # He clicks on the "Record Job Date" link.
+    record_job_onsite_work_completion_date_link.click()
 
-    # He is taken to a "Complete the Job" page. He can see that title both
+    # He is taken to a "Record Job Date" page. He can see that title both
     # in the browser tab and on the page itself as its heading.
-    assert "Complete the Job" in browser.title
+    assert "Record Onsite Work Completion" in browser.title, browser.title
     heading = browser.find_element(By.TAG_NAME, "h1")
-    assert "Complete the Job" in heading.text
+    assert "Record Onsite Work Completion" in heading.text, heading.text
 
-    # He sees a field where he can input the Job (completion) Date:
-    job_date_input = browser.find_element(By.NAME, "job_date")
-    assert job_date_input is not None
+    # He sees a field where he can input the Job (physical completion) Date:
+    job_onsite_work_completion_date_input = browser.find_element(
+        By.NAME,
+        "job_onsite_work_completion_date",
+    )
+    assert job_onsite_work_completion_date_input is not None
 
-    # He enters the job completion date:
+    # He enters the job (physical completion) date:
     input_date = datetime.date(2021, 3, 2)
     keys = input_date.strftime(CRISPY_FORMS_DATE_INPUT_FORMAT)
-    job_date_input.send_keys(keys)
+    job_onsite_work_completion_date_input.send_keys(keys)
+
+    # On the current page, none of these inputs should be present:
+    # - comments, invoices, or photos
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.NAME, "comments")
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.NAME, "invoice")
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.ID, "add-photo")
+
+    # He sees a "Submit" button and clicks it:
+    submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
+    submit_button.click()
+
+    # He is taken back to the maintenance jobs page for Bob.
+    assert browser.title == "Maintenance Jobs for bob", browser.title
+    assert browser.find_element(By.TAG_NAME, "h1").text == "Maintenance Jobs for bob"
+
+    # He sees a flash notification that the job has been completed.
+    expected_msg = (
+        "Onsite work has been flagged as completed. An email has been sent to bob."
+    )
+    assert expected_msg in browser.page_source
+
+    # Click on #1 again, and this should take us to the job details again:
+    number_link = browser.find_element(By.LINK_TEXT, "1")
+    number_link.click()
+    assert "Maintenance Job Details" in browser.title, browser.title
+    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # Click on the "Submit Job Documentation" button:
+    submit_documentation_link = browser.find_element(
+        By.PARTIAL_LINK_TEXT,
+        "Submit Job Documentation",
+    )
+    submit_documentation_link.click()
+
+    # He sees the "Submit Job Documentation" page, with the title and header mentioning
+    # the same.
+    assert "Submit Job Documentation" in browser.title
+    assert "Submit Job Documentation" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # There shouldn't be a "Job Date" field on this page:
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.NAME, "job_onsite_work_completion_date")
 
     # He sees a field where he can input comments on the job.
     comments_input = browser.find_element(By.NAME, "comments")
@@ -863,7 +914,7 @@ def _marnie_completes_the_job(browser: WebDriver) -> None:
     assert browser.find_element(By.TAG_NAME, "h1").text == "Maintenance Jobs for bob"
 
     # He sees a flash notification that the job has been completed.
-    expected_msg = "The job has been completed. An email has been sent to bob."
+    expected_msg = "Documentation has been submitted. An email has been sent to bob."
     assert expected_msg in browser.page_source
 
     # He checks the job-listing page in detail, that his there and in the expected
@@ -898,9 +949,9 @@ def _marnie_completes_the_job(browser: WebDriver) -> None:
     assert "Do you want me to fix that too?" in comments.text
 
     # He sees the job completion date he entered earlier:
-    job_date = browser.find_element(By.CLASS_NAME, "job-date")
-    assert job_date is not None
-    assert "2021-03-02" in job_date.text
+    job_onsite_work_completion_date = browser.find_element(By.CLASS_NAME, "job-date")
+    assert job_onsite_work_completion_date is not None
+    assert "2021-03-02" in job_onsite_work_completion_date.text
 
     # He sees the link to the invoice he uploaded earlier:
     invoice_link = browser.find_element(By.LINK_TEXT, "Download Invoice")

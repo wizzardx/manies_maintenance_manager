@@ -140,34 +140,63 @@ BOB_JOB_COMPLETED_BY_MARNIE_NUM_PHOTOS = 2
 
 
 @pytest.fixture()
-def bob_job_completed_by_marnie(
+def bob_job_with_onsite_work_completed_by_marnie(
     bob_job_with_deposit_pop: Job,
-    test_pdf: SimpleUploadedFile,
-    test_image: SimpleUploadedFile,
 ) -> Job:
-    """Return a job where Marnie has completed the job.
+    """Return a job where Marnie has completed the onsite work.
 
     Args:
         bob_job_with_deposit_pop (Job): The job where Bob has uploaded the deposit proof
             of payment.
-        test_pdf (SimpleUploadedFile): The test PDF file.
-        test_image (SimpleUploadedFile): The test image file.
 
     Returns:
-        Job: The job where Marnie has completed the job.
+        Job: The job where Marnie has completed the onsite work for the job.
     """
     job = bob_job_with_deposit_pop
 
     # Check that the Job is in the correct initial state:
     assert job.status == Job.Status.DEPOSIT_POP_UPLOADED.value
-    assert job.job_date is None
+    assert job.job_onsite_work_completion_date is None
+
+    # Update Job to the completed state:
+    job.status = Job.Status.MARNIE_COMPLETED_ONSITE_WORK.value
+    job.job_onsite_work_completion_date = datetime.date(2022, 1, 1)
+
+    # Save to db.
+    job.save()
+
+    # Return the updated job:
+    return job
+
+
+@pytest.fixture()
+def bob_job_with_marnie_final_documentation(
+    bob_job_with_onsite_work_completed_by_marnie: Job,
+    test_pdf: SimpleUploadedFile,
+    test_image: SimpleUploadedFile,
+) -> Job:
+    """Return a job where Marnie has uploaded his final documentation.
+
+    Args:
+        bob_job_with_onsite_work_completed_by_marnie (Job): A job where Marnie has
+            completed the onsite work.
+        test_pdf (SimpleUploadedFile): The test PDF file.
+        test_image (SimpleUploadedFile): The test image file.
+
+    Returns:
+        Job: The job where Marnie has uploaded his final documentation.
+    """
+    job = bob_job_with_onsite_work_completed_by_marnie
+
+    # Check that the Job is in the correct initial state:
+    assert job.status == Job.Status.MARNIE_COMPLETED_ONSITE_WORK.value
+    assert job.job_onsite_work_completion_date is not None
     assert job.comments == ""
     assert job.complete is False
     assert job.invoice.name == ""
 
-    # Update Job to the completed state:
-    job.status = Job.Status.MARNIE_COMPLETED.value
-    job.job_date = datetime.date(2022, 1, 1)
+    # Update Job to the "final documentation uploaded by Marnie" state:
+    job.status = Job.Status.MARNIE_SUBMITTED_DOCUMENTATION.value
     job.comments = "Job completed successfully"
     job.complete = True
     job.invoice = test_pdf
@@ -187,19 +216,20 @@ def bob_job_completed_by_marnie(
 
 @pytest.fixture()
 def bob_job_with_final_payment_pop(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     test_pdf: SimpleUploadedFile,
 ) -> Job:
     """Return a job where Bob has uploaded the final payment proof of payment.
 
     Args:
-        bob_job_completed_by_marnie (Job): The job where Marnie has completed the job.
+        bob_job_with_marnie_final_documentation (Job): The job where Marnie has uploaded
+            his final documentation.
         test_pdf (SimpleUploadedFile): The test PDF file.
 
     Returns:
         Job: The job where Bob has uploaded the final payment proof of payment.
     """
-    job = bob_job_completed_by_marnie
+    job = bob_job_with_marnie_final_documentation
     job.final_payment_pop = test_pdf
     job.status = Job.Status.FINAL_PAYMENT_POP_UPLOADED.value
 

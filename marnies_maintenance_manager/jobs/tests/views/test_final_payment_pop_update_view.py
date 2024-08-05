@@ -26,20 +26,21 @@ from .utils import check_basic_page_html_structure
 
 
 def test_view_has_correct_basic_structure(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user_client: Client,
 ) -> None:
     """Ensure that the "Download Deposit POP" view has the correct basic structure.
 
     Args:
-        bob_job_completed_by_marnie (Job): A Job instance completed by Marnie.
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie has
+            uploaded his final documentation, after performing the onsite work.
         bob_agent_user_client (Client): The Django test client for Bob.
     """
     check_basic_page_html_structure(
         client=bob_agent_user_client,
         url=reverse(
             "jobs:final_payment_pop_update",
-            kwargs={"pk": bob_job_completed_by_marnie.pk},
+            kwargs={"pk": bob_job_with_marnie_final_documentation.pk},
         ),
         expected_title="Upload Final Payment Proof of Payment",
         expected_template_name="jobs/final_payment_pop_update.html",
@@ -78,21 +79,21 @@ def test_anonymous_user_cannot_access_view(
 
 
 def test_marnie_user_cannot_access_view(
-    job_accepted_by_bob: Job,
+    bob_job_with_marnie_final_documentation: Job,
     marnie_user_client: Client,
 ) -> None:
     """Ensure Marnie cannot access the "Upload Final Payment POP" view.
 
     Args:
-        job_accepted_by_bob (Job): A Job instance created by Bob, with an accepted
-            quote.
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie has
+            uploaded his final documentation, after performing the onsite work.
         marnie_user_client (Client): The Django test client for Marnie.
     """
     response = check_type(
         marnie_user_client.get(
             reverse(
                 "jobs:final_payment_pop_update",
-                kwargs={"pk": job_accepted_by_bob.pk},
+                kwargs={"pk": bob_job_with_marnie_final_documentation.pk},
             ),
         ),
         HttpResponseRedirect | TemplateResponse | HttpResponseForbidden,
@@ -101,74 +102,80 @@ def test_marnie_user_cannot_access_view(
 
 
 def test_superuser_can_access_view(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     superuser_client: Client,
 ) -> None:
     """Ensure a superuser can access the "Upload Final Payment POP" view.
 
     Args:
-        bob_job_completed_by_marnie (Job): A Job instance completed by Marnie.
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie has
+            uploaded his final documentation, after performing the onsite work.
         superuser_client (Client): The Django test client for the superuser.
     """
     response = superuser_client.get(
         reverse(
             "jobs:final_payment_pop_update",
-            kwargs={"pk": bob_job_completed_by_marnie.pk},
+            kwargs={"pk": bob_job_with_marnie_final_documentation.pk},
         ),
     )
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_agent_who_created_job_can_access_view(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user_client: Client,
 ) -> None:
     """Deny access to agents who did not create the job.
 
     Args:
-        bob_job_completed_by_marnie (Job): A Job instance completed by Marnie.
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie has
+            uploaded his final documentation, after performing the onsite work.
         bob_agent_user_client (Client): The Django test client for Bob.
     """
     response = bob_agent_user_client.get(
         reverse(
             "jobs:final_payment_pop_update",
-            kwargs={"pk": bob_job_completed_by_marnie.pk},
+            kwargs={"pk": bob_job_with_marnie_final_documentation.pk},
         ),
     )
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_agent_who_did_not_create_job_cannot_access_view(
-    job_accepted_by_bob: Job,
+    bob_job_with_marnie_final_documentation: Job,
     alice_agent_user_client: Client,
 ) -> None:
     """Deny access to agents who did not create the job.
 
     Args:
-        job_accepted_by_bob (Job): A Job instance created by Bob, with an accepted
-            quote.
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie has
+            uploaded his final documentation, after performing the onsite work.
         alice_agent_user_client (Client): The Django test client for Alice.
     """
     response = alice_agent_user_client.get(
-        reverse("jobs:final_payment_pop_update", kwargs={"pk": job_accepted_by_bob.pk}),
+        reverse(
+            "jobs:final_payment_pop_update",
+            kwargs={"pk": bob_job_with_marnie_final_documentation.pk},
+        ),
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test_view_accessible_if_job_in_marnie_completed_state(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user_client: Client,
 ) -> None:
     """Block view if job isn't in the "Completed by Marnie" state.
 
     Args:
-        bob_job_completed_by_marnie (Job): A Job instance completed by Marnie.
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie has
+            uploaded his final documentation, after performing the onsite work.
         bob_agent_user_client (Client): The Django test client for agent Bob.
     """
     response = bob_agent_user_client.get(
         reverse(
             "jobs:final_payment_pop_update",
-            kwargs={"pk": bob_job_completed_by_marnie.pk},
+            kwargs={"pk": bob_job_with_marnie_final_documentation.pk},
         ),
     )
     assert response.status_code == status.HTTP_200_OK
@@ -191,17 +198,18 @@ def test_view_not_accessible_if_job_not_in_completed_state(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_view_accessible_if_job_in_completed_state(
-    bob_job_completed_by_marnie: Job,
+def test_view_accessible_if_job_in_marnie_uploaded_final_documentation_state(
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user_client: Client,
 ) -> None:
-    """Ensure view access if job is in the "Completed" state.
+    """Ensure view access if job is in the "Marnie uploaded final documentation" state.
 
     Args:
-        bob_job_completed_by_marnie (Job): A Job instance completed by Marnie.
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie has
+            uploaded his final documentation, after performing the onsite work.
         bob_agent_user_client (Client): The Django test client for agent Bob.
     """
-    job = bob_job_completed_by_marnie
+    job = bob_job_with_marnie_final_documentation
     response = bob_agent_user_client.get(
         reverse("jobs:final_payment_pop_update", kwargs={"pk": job.pk}),
     )
@@ -209,22 +217,23 @@ def test_view_accessible_if_job_in_completed_state(
 
 
 def test_view_not_accessible_if_final_payment_pop_already_uploaded(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user_client: Client,
     test_pdf: SimpleUploadedFile,
 ) -> None:
-    """Check if view blocks access when final payment POP is uploaded.
+    """Check if view blocks access when the final payment POP is uploaded.
 
     Args:
-        bob_job_completed_by_marnie (Job): A Job instance completed by Marnie
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie
+            has uploaded his final documentation, after performing the onsite work.
         bob_agent_user_client (Client): The Django test client for agent Bob.
         test_pdf (SimpleUploadedFile): A test PDF file.
     """
     # An update here to help put the job in the correct state
-    job = bob_job_completed_by_marnie
+    job = bob_job_with_marnie_final_documentation
     job.final_payment_pop = test_pdf
     with safe_read(test_pdf):
-        bob_job_completed_by_marnie.save()
+        bob_job_with_marnie_final_documentation.save()
 
     response = bob_agent_user_client.get(
         reverse("jobs:final_payment_pop_update", kwargs={"pk": job.pk}),
@@ -233,18 +242,19 @@ def test_view_not_accessible_if_final_payment_pop_already_uploaded(
 
 
 def test_changes_state_to_final_payment_pop_uploaded(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user_client: Client,
     test_pdf: SimpleUploadedFile,
 ) -> None:
     """Ensure job's state changes to "Final Payment POP Uploaded" after upload.
 
     Args:
-        bob_job_completed_by_marnie (Job): A Job instance completed by Marnie.
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie
+            has uploaded his final documentation, after performing the onsite work.
         bob_agent_user_client (Client): The Django test client for Bob.
         test_pdf (SimpleUploadedFile): A test PDF file.
     """
-    job = bob_job_completed_by_marnie
+    job = bob_job_with_marnie_final_documentation
     upload_final_payment_pop(bob_agent_user_client, job, test_pdf)
 
     job.refresh_from_db()
@@ -278,7 +288,7 @@ def upload_final_payment_pop(
 
 
 def test_sends_an_email(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user_client: Client,
     test_pdf: SimpleUploadedFile,
     marnie_user: User,
@@ -287,13 +297,14 @@ def test_sends_an_email(
     """Ensure that an email is sent when the form is submitted.
 
     Args:
-        bob_job_completed_by_marnie (Job): A Job instance completed by Marnie.
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie has
+            uploaded his final documentation, after performing the onsite work.
         bob_agent_user_client (Client): The Django test client for Bob.
         test_pdf (SimpleUploadedFile): A test PDF file.
         marnie_user (User): Marnie's user account.
         bob_agent_user (User): Bob's user account.
     """
-    job = bob_job_completed_by_marnie
+    job = bob_job_with_marnie_final_documentation
     # Clear records of any already-sent emails:
     mail.outbox.clear()
 
@@ -330,19 +341,20 @@ def test_sends_an_email(
 
 
 def test_sends_a_success_flash_message(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user_client: Client,
     test_pdf: SimpleUploadedFile,
 ) -> None:
     """Ensure that a success flash message is sent when the form is submitted.
 
     Args:
-        bob_job_completed_by_marnie (Job): A Job instance completed by Marnie.
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie has
+            uploaded his final documentation, after performing the onsite work.
         bob_agent_user_client (Client): The Django test client for Bob.
         test_pdf (SimpleUploadedFile): A test PDF file.
     """
     # Submit the form:
-    job = bob_job_completed_by_marnie
+    job = bob_job_with_marnie_final_documentation
     response = upload_final_payment_pop(bob_agent_user_client, job, test_pdf)
 
     messages = response.context["messages"]

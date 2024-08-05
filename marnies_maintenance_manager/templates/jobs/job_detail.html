@@ -102,16 +102,22 @@
        href="{% url 'jobs:deposit_pop_update' pk=job.pk %}"
        role="button">Upload Deposit POP</a>
   {% endif %}
-  {# Display a "Complete Job" link if the backend wants it #}
-  {% if complete_job_link_present %}
+  {# Display a "Record Onsite Work Completion" link if the backend wants it #}
+  {% if complete_onsite_work_link_present %}
     <a class="btn btn-primary"
-       href="{% url 'jobs:job_complete' pk=job.pk %}"
-       role="button">Complete Job</a>
+       href="{% url 'jobs:job_complete_onsite_work' pk=job.pk %}"
+       role="button">Record Onsite Work Completion</a>
+  {% endif %}
+  {# Display a "Submit Job Documentation" link if the backend wants it #}
+  {% if submit_job_documentation_link_present %}
+    <a class="btn btn-primary"
+       href="{% url 'jobs:job_submit_documentation' pk=job.pk %}"
+       role="button">Submit Job Documentation</a>
   {% endif %}
   {# Some things to show, only if the job is complete #}
   {% if job.complete %}
     <p>
-      <strong>Job Date:</strong> <span class="job-date">{{ job.job_date|date:"Y-m-d" }}</span>
+      <strong>Job Date:</strong> <span class="job-date">{{ job.job_onsite_work_completion_date|date:"Y-m-d" }}</span>
     </p>
     {% if job.job_completion_photos %}
       <p>

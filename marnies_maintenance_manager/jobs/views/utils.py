@@ -4,12 +4,14 @@
 # pylint: disable=too-many-arguments
 
 import logging
+import mimetypes
 from enum import Enum
 
 import environ
 from django.core.mail import EmailMessage
 from django.db.models.fields.files import FieldFile
 from django.http import HttpRequest
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.constants import DEFAULT_FROM_EMAIL
 from marnies_maintenance_manager.jobs.models import Job
@@ -27,7 +29,8 @@ class AttachmentType(Enum):
     """Enum for possible attachment types to pass to prepare_and_send_email()."""
 
     QUOTE = "quote"
-    INVOICE = "invoice"
+    INVOICE_AND_PHOTOS = "invoice_and_photos"
+    NONE = "none"
 
 
 def send_quote_update_email(
@@ -85,31 +88,49 @@ def prepare_and_send_email(
     email_cc = get_marnie_email()
     match what_to_attach:
         case AttachmentType.QUOTE:
-            uploaded_file = job.quote
-        case AttachmentType.INVOICE:
-            uploaded_file = job.invoice
+            attachments = [job.quote]
+        case AttachmentType.NONE:
+            attachments = []
+        case AttachmentType.INVOICE_AND_PHOTOS:
+            attachments = [job.invoice] + [
+                photo.photo for photo in job.job_completion_photos.all()
+            ]
         case _:
             msg = f"Invalid value for 'what_to_attach': {what_to_attach!r}"
             raise ValueError(msg)
 
     # Create the email message:
-    send_job_email_with_attachment(
+    send_job_email_with_attachments(
         email_subject,
         email_body,
         email_from,
         email_to,
         email_cc,
-        uploaded_file,
+        attachments,
     )
 
 
-def send_job_email_with_attachment(
+def get_content_type(attachment: FieldFile) -> str:
+    """Get the content type of the attachment.
+
+    Args:
+        attachment (FieldFile): The attachment.
+
+    Returns:
+        str: The content type of the attachment.
+    """
+    file_path = attachment.path
+    mime_type, _ = mimetypes.guess_type(file_path)
+    return check_type(mime_type, str)
+
+
+def send_job_email_with_attachments(
     email_subject: str,
     email_body: str,
     email_from: str,
     email_to: str,
     email_cc: str,
-    uploaded_file: FieldFile,
+    attachments: list[FieldFile],
     *,
     skip_email_send: bool = SKIP_EMAIL_SEND,
 ) -> None:
@@ -121,7 +142,7 @@ def send_job_email_with_attachment(
         email_from (str): The email from address.
         email_to (str): The email to address.
         email_cc (str): The email cc address.
-        uploaded_file (FieldFile): The file to be attached to the email.
+        attachments (list[FieldFile]): The files to be attached to the email.
         skip_email_send (bool): Flag to indicate if the email should not be sent.
     """
     email = EmailMessage(
@@ -132,8 +153,10 @@ def send_job_email_with_attachment(
         cc=[email_cc],
     )
 
-    with safe_read(uploaded_file):
-        email.attach(uploaded_file.name, uploaded_file.read(), "application/pdf")
+    for attachment in attachments:
+        content_type = get_content_type(attachment)
+        with safe_read(attachment):
+            email.attach(attachment.name, attachment.read(), content_type)
 
     if not skip_email_send:
         email.send()

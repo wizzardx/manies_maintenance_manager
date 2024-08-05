@@ -2,8 +2,6 @@
 
 # pylint: disable=magic-value-comparison
 
-import datetime
-
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpResponseRedirect
@@ -26,130 +24,119 @@ from marnies_maintenance_manager.jobs.tests.views.utils import (
 )
 from marnies_maintenance_manager.jobs.tests.views.utils import verify_email_attachment
 from marnies_maintenance_manager.jobs.utils import safe_read
-from marnies_maintenance_manager.jobs.views.job_complete_view import JobCompleteView
+from marnies_maintenance_manager.jobs.views.job_submit_documentation_view import (
+    JobSubmitDocumentationView,
+)
 from marnies_maintenance_manager.users.models import User
 
 
 def test_anonymous_users_are_redirected_to_login_page(
     client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
 ) -> None:
     """Ensure anonymous users are redirected to the login page.
 
     Args:
         client (Client): The Django test client.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
     """
+    job = bob_job_with_onsite_work_completed_by_marnie
     response = check_type(
         client.get(
-            reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk}),
+            reverse("jobs:job_submit_documentation", kwargs={"pk": job.pk}),
         ),
-        HttpResponseRedirect,
+        HttpResponseRedirect | TemplateResponse,
     )
     assert response.status_code == status.HTTP_302_FOUND
-    assert (
-        response.url
-        == f"/accounts/login/?next=/jobs/{bob_job_with_deposit_pop.pk}/complete/"
-    )
+    assert response.url == f"/accounts/login/?next=/jobs/{job.pk}/submit_documentation/"
 
 
-def test_view_is_accessible_by_marnie_when_pop_has_been_uploaded(
-    bob_job_with_deposit_pop: Job,
+def test_view_is_accessible_by_marnie_when_onsite_work_done(
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     marnie_user_client: Client,
 ) -> None:
     """Ensure Marnie can access the view after the admin uploaded the POP.
 
     Args:
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
         marnie_user_client (Client): The Django test client for Marnie.
     """
     response = marnie_user_client.get(
-        reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk}),
+        reverse(
+            "jobs:job_submit_documentation",
+            kwargs={"pk": bob_job_with_onsite_work_completed_by_marnie.pk},
+        ),
     )
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_view_is_inaccessible_by_agents(
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     bob_agent_user_client: Client,
 ) -> None:
     """Ensure agents cannot access the view.
 
     Args:
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
         bob_agent_user_client (Client): The Django test client for Bob.
     """
     response = bob_agent_user_client.get(
-        reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk}),
+        reverse(
+            "jobs:job_submit_documentation",
+            kwargs={"pk": bob_job_with_onsite_work_completed_by_marnie.pk},
+        ),
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test_view_is_accessible_by_admins(
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     admin_client: Client,
 ) -> None:
     """Ensure admins can access the view.
 
     Args:
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
         admin_client (Client): The Django test client for the admin user.
     """
     response = admin_client.get(
-        reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk}),
+        reverse(
+            "jobs:job_submit_documentation",
+            kwargs={"pk": bob_job_with_onsite_work_completed_by_marnie.pk},
+        ),
     )
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_page_has_basic_correct_structure(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
 ) -> None:
     """Test that the job update page has the correct basic structure.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
     """
-    url = reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk})
+    url = reverse(
+        "jobs:job_submit_documentation",
+        kwargs={"pk": bob_job_with_onsite_work_completed_by_marnie.pk},
+    )
     check_basic_page_html_structure(
         client=marnie_user_client,
         url=url,
-        expected_title="Complete the Job",
-        expected_template_name="jobs/job_complete.html",
-        expected_h1_text="Complete the Job",
+        expected_title="Submit Job Documentation",
+        expected_template_name="jobs/job_submit_documentation.html",
+        expected_h1_text="Submit Job Documentation",
         expected_func_name="view",
-        expected_url_name="job_complete",
-        expected_view_class=JobCompleteView,
+        expected_url_name="job_submit_documentation",
+        expected_view_class=JobSubmitDocumentationView,
     )
-
-
-def test_view_has_job_date_field(
-    marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
-    test_pdf: SimpleUploadedFile,
-) -> None:
-    """Ensure the view has a field for the job date.
-
-    Args:
-        marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
-        test_pdf (SimpleUploadedFile): The test PDF file.
-    """
-    response = submit_job_completion_form_and_assert_no_errors(
-        marnie_user_client,
-        bob_job_with_deposit_pop,
-        test_pdf,
-    )
-
-    # Check the redirect chain that leads things up to here:
-    expected_chain = [("/jobs/?agent=bob", status.HTTP_302_FOUND)]
-    assert response.redirect_chain == expected_chain  # type: ignore[attr-defined]
-
-    # Refresh the Maintenance Job from the database, and then check the updated
-    # record:
-    bob_job_with_deposit_pop.refresh_from_db()
-    assert bob_job_with_deposit_pop.job_date == datetime.date(2022, 3, 4)
 
 
 def submit_job_completion_form_and_assert_no_errors(
@@ -171,11 +158,10 @@ def submit_job_completion_form_and_assert_no_errors(
         response = check_type(
             client.post(
                 reverse(
-                    "jobs:job_complete",
+                    "jobs:job_submit_documentation",
                     kwargs={"pk": job.pk},
                 ),
                 data={
-                    "job_date": "2022-03-04",
                     "invoice": test_pdf,
                     "comments": "This job is now complete.",
                     "form-TOTAL_FORMS": "0",
@@ -198,26 +184,27 @@ def submit_job_completion_form_and_assert_no_errors(
 
 def test_view_has_invoice_field(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     test_pdf: SimpleUploadedFile,
 ) -> None:
     """Ensure the view has a field for the invoice.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
+    job = bob_job_with_onsite_work_completed_by_marnie
     with safe_read(test_pdf):
         response = check_type(
             marnie_user_client.post(
                 reverse(
-                    "jobs:job_complete",
-                    kwargs={"pk": bob_job_with_deposit_pop.pk},
+                    "jobs:job_submit_documentation",
+                    kwargs={"pk": job.pk},
                 ),
                 data={
                     "invoice": test_pdf,
-                    "job_date": "2022-03-04",
                     "comments": "This job is now complete.",
                     "form-TOTAL_FORMS": "0",
                     "form-INITIAL_FORMS": "0",
@@ -241,34 +228,35 @@ def test_view_has_invoice_field(
 
     # Refresh the Maintenance Job from the database, and then check the updated
     # record:
-    bob_job_with_deposit_pop.refresh_from_db()
-    name = bob_job_with_deposit_pop.invoice.name  # eg: "invoices/test_me0lP9l.pdf"
+    job.refresh_from_db()
+    name = job.invoice.name  # eg: "invoices/test_me0lP9l.pdf"
     assert name.startswith("invoices/test")
     assert name.endswith(".pdf")
 
 
 def test_view_has_comments_field(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     test_pdf: SimpleUploadedFile,
 ) -> None:
     """Ensure the view has a field for the comments.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
+    job = bob_job_with_onsite_work_completed_by_marnie
     with safe_read(test_pdf):
         response = check_type(
             marnie_user_client.post(
                 reverse(
-                    "jobs:job_complete",
-                    kwargs={"pk": bob_job_with_deposit_pop.pk},
+                    "jobs:job_submit_documentation",
+                    kwargs={"pk": job.pk},
                 ),
                 data={
                     "comments": "This job is now complete.",
-                    "job_date": "2022-03-04",
                     "invoice": test_pdf,
                     "form-TOTAL_FORMS": "0",
                     "form-INITIAL_FORMS": "0",
@@ -292,61 +280,26 @@ def test_view_has_comments_field(
 
     # Refresh the Maintenance Job from the database, and then check the updated
     # record:
-    bob_job_with_deposit_pop.refresh_from_db()
-    assert bob_job_with_deposit_pop.comments == "This job is now complete."
-
-
-# job date field is required
-def test_job_date_field_is_required(
-    marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
-    test_pdf: SimpleUploadedFile,
-) -> None:
-    """Ensure the job date field is required.
-
-    Args:
-        marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
-        test_pdf (SimpleUploadedFile): The test PDF file.
-    """
-    with safe_read(test_pdf):
-        response = check_type(
-            marnie_user_client.post(
-                reverse(
-                    "jobs:job_complete",
-                    kwargs={"pk": bob_job_with_deposit_pop.pk},
-                ),
-                data={
-                    "invoice": test_pdf,
-                    "comments": "This job is now complete.",
-                },
-                follow=True,
-            ),
-            TemplateResponse,
-        )
-
-    # Assert the response status code is 200
-    assert response.status_code == status.HTTP_200_OK
-
-    # There should be form errors:
-    assert response.context["form"].errors == {"job_date": ["This field is required."]}
+    job.refresh_from_db()
+    assert job.comments == "This job is now complete."
 
 
 def test_invoice_field_is_required(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
 ) -> None:
     """Ensure the invoice field is required.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
     """
+    job = bob_job_with_onsite_work_completed_by_marnie
     response = check_type(
         marnie_user_client.post(
-            reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk}),
+            reverse("jobs:job_submit_documentation", kwargs={"pk": job.pk}),
             data={
-                "job_date": "2022-03-04",
                 "comments": "This job is now complete.",
             },
             follow=True,
@@ -363,25 +316,26 @@ def test_invoice_field_is_required(
 
 def test_comments_field_is_not_required(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     test_pdf: SimpleUploadedFile,
 ) -> None:
     """Ensure the "comments" field is not required.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
+    job = bob_job_with_onsite_work_completed_by_marnie
     with safe_read(test_pdf):
         response = check_type(
             marnie_user_client.post(
                 reverse(
-                    "jobs:job_complete",
-                    kwargs={"pk": bob_job_with_deposit_pop.pk},
+                    "jobs:job_submit_documentation",
+                    kwargs={"pk": job.pk},
                 ),
                 data={
-                    "job_date": "2022-03-04",
                     "invoice": test_pdf,
                     "form-TOTAL_FORMS": "0",
                     "form-INITIAL_FORMS": "0",
@@ -400,61 +354,64 @@ def test_comments_field_is_not_required(
     assert "form" not in response.context
 
 
-def test_updating_job_changes_status_to_completed(
+def test_updating_job_changes_status(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     test_pdf: SimpleUploadedFile,
 ) -> None:
     """Ensure updating the job changes the status to complete.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
-    # Check status before updating
-    assert bob_job_with_deposit_pop.status == Job.Status.DEPOSIT_POP_UPLOADED.value
-    assert bob_job_with_deposit_pop.complete is False
+    job = bob_job_with_onsite_work_completed_by_marnie
+    # Check the status before updating
+    assert job.status == Job.Status.MARNIE_COMPLETED_ONSITE_WORK.value
+    assert job.complete is False
 
     # Update the job
     submit_job_completion_form_and_assert_no_errors(
         marnie_user_client,
-        bob_job_with_deposit_pop,
+        job,
         test_pdf,
     )
 
     # Refresh the Maintenance Job from the database, and then check the updated
     # record:
-    bob_job_with_deposit_pop.refresh_from_db()
+    job.refresh_from_db()
 
     # Check the job status, after the update
-    assert bob_job_with_deposit_pop.status == Job.Status.MARNIE_COMPLETED.value
-    assert bob_job_with_deposit_pop.complete is True
+    assert job.status == Job.Status.MARNIE_SUBMITTED_DOCUMENTATION.value
+    assert job.complete is True
 
 
 def test_should_not_allow_txt_extension_file_for_invoice(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
 ) -> None:
     """Test that the view doesn't allow a .txt file extension for the 'invoice' field.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
     """
+    job = bob_job_with_onsite_work_completed_by_marnie
     # New TXT file to upload
     test_txt = SimpleUploadedFile(
         "test.txt",
         BASIC_TEST_PDF_FILE.read_bytes(),
         content_type="application/pdf",
     )
-    url = reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk})
+    url = reverse("jobs:job_submit_documentation", kwargs={"pk": job.pk})
     with safe_read(test_txt):
         post_update_request_and_check_errors(
             client=marnie_user_client,
             url=url,
             data={
-                "job_date": "2022-03-04",
                 "invoice": test_txt,
                 "comments": "This job is now complete.",
             },
@@ -465,28 +422,29 @@ def test_should_not_allow_txt_extension_file_for_invoice(
 
 
 def test_validates_pdf_contents(
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     marnie_user_client: Client,
 ) -> None:
     """Test that the view should validate the contents of the PDF file.
 
     Args:
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): Job with Marnie completing
+            the onsite work.
         marnie_user_client (Client): The Django test client for Marnie.
     """
+    job = bob_job_with_onsite_work_completed_by_marnie
     # New PDF file to upload
     new_pdf = SimpleUploadedFile(
         "new.pdf",
         b"invalid_file_content",
         content_type="application/pdf",
     )
-    url = reverse("jobs:job_complete", kwargs={"pk": bob_job_with_deposit_pop.pk})
+    url = reverse("jobs:job_submit_documentation", kwargs={"pk": job.pk})
     with safe_read(new_pdf):
         post_update_request_and_check_errors(
             client=marnie_user_client,
             url=url,
             data={
-                "job_date": "2022-03-04",
                 "invoice": new_pdf,
                 "comments": "This job is now complete.",
             },
@@ -496,52 +454,57 @@ def test_validates_pdf_contents(
 
 
 def test_marnie_cannot_access_view_after_completing_the_job(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     marnie_user_client: Client,
 ) -> None:
     """Ensure Marnie can't access the update view after completing the job.
 
     Args:
-        bob_job_completed_by_marnie (Job): Job that's already been completed by Marnie.
+        bob_job_with_marnie_final_documentation (Job): Job with Marnies final
+            documentationf added to it.
         marnie_user_client (Client): The Django test client for Marnie.
     """
-    url = reverse("jobs:job_complete", kwargs={"pk": bob_job_completed_by_marnie.pk})
+    job = bob_job_with_marnie_final_documentation
+    url = reverse("jobs:job_submit_documentation", kwargs={"pk": job.pk})
     response = marnie_user_client.get(url)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test_admin_cannot_access_view_after_marnie_completes_job(
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     admin_client: Client,
 ) -> None:
     """Ensure admin users can't access the update view after Marnie completes the job.
 
     Args:
-        bob_job_completed_by_marnie (Job): Job that's already been completed by Marnie.
+        bob_job_with_marnie_final_documentation (Job): Job with Marnies final
+            documentationf added to it.
         admin_client (Client): The Django test client for the admin user.
     """
-    url = reverse("jobs:job_complete", kwargs={"pk": bob_job_completed_by_marnie.pk})
+    job = bob_job_with_marnie_final_documentation
+    url = reverse("jobs:job_submit_documentation", kwargs={"pk": job.pk})
     response = admin_client.get(url)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test_redirects_to_job_listing_page_after_saving(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     test_pdf: SimpleUploadedFile,
 ) -> None:
     """Ensure the view redirects to the job listing page after saving the form.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): The job where Marnie has
+            completed the onsite work.
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
+    job = bob_job_with_onsite_work_completed_by_marnie
     response = submit_job_completion_form(
         marnie_user_client,
-        bob_job_with_deposit_pop,
+        job,
         test_pdf,
-        "2022-03-04",
         "This job is now complete.",
     )
 
@@ -554,7 +517,6 @@ def submit_job_completion_form(
     client: Client,
     job: Job,
     test_pdf: SimpleUploadedFile,
-    job_date: str,
     comments: str,
 ) -> TemplateResponse:
     """Submit the job completion form.
@@ -563,7 +525,6 @@ def submit_job_completion_form(
         client (Client): The Django test client.
         job (Job): The job instance to be updated.
         test_pdf (SimpleUploadedFile): The test PDF file.
-        job_date (str): The date of the job.
         comments (str): The comments for the job completion.
 
     Returns:
@@ -573,11 +534,10 @@ def submit_job_completion_form(
         response = check_type(
             client.post(
                 reverse(
-                    "jobs:job_complete",
+                    "jobs:job_submit_documentation",
                     kwargs={"pk": job.pk},
                 ),
                 data={
-                    "job_date": job_date,
                     "invoice": test_pdf,
                     "comments": comments,
                     "form-TOTAL_FORMS": "0",
@@ -596,21 +556,22 @@ def submit_job_completion_form(
 
 def test_flash_message_displayed_after_saving(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     test_pdf: SimpleUploadedFile,
 ) -> None:
     """Ensure a flash message is displayed after saving the form.
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): The job where Marnie has
+            completed the onsite work.
         test_pdf (SimpleUploadedFile): The test PDF file.
     """
+    job = bob_job_with_onsite_work_completed_by_marnie
     response = submit_job_completion_form(
         marnie_user_client,
-        bob_job_with_deposit_pop,
+        job,
         test_pdf,
-        "2022-03-04",
         "This job is now complete.",
     )
 
@@ -618,13 +579,14 @@ def test_flash_message_displayed_after_saving(
     messages = list(response.context["messages"])
     assert len(messages) == 1
     assert (
-        str(messages[0]) == "The job has been completed. An email has been sent to bob."
+        str(messages[0])
+        == "Documentation has been submitted. An email has been sent to bob."
     )
 
 
 def test_marnie_clicking_save_sends_an_email_to_agent(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     test_pdf: SimpleUploadedFile,
     marnie_user: User,
     bob_agent_user: User,
@@ -633,23 +595,23 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): The job where Marnie has
+            completed the onsite work.
         test_pdf (SimpleUploadedFile): The test PDF file.
         marnie_user (User): The Marnie user instance.
         bob_agent_user (User): The Bob agent user instance.
     """
     mail.outbox.clear()
 
-    job = bob_job_with_deposit_pop
+    job = bob_job_with_onsite_work_completed_by_marnie
     with safe_read(test_pdf):
         response = check_type(
             marnie_user_client.post(
                 reverse(
-                    "jobs:job_complete",
+                    "jobs:job_submit_documentation",
                     kwargs={"pk": job.pk},
                 ),
                 data={
-                    "job_date": "2022-03-04",
                     "invoice": test_pdf,
                     "comments": "This job is now complete.",
                     "form-TOTAL_FORMS": "0",
@@ -675,16 +637,18 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
     # Check various details of the mail here.
 
     # Check mail metadata:
-    assert email.subject == "Marnie completed a maintenance job."
+    assert email.subject == "Marnie uploaded documentation for a job."
     assert bob_agent_user.email in email.to
     assert marnie_user.email in email.cc
     assert constants.DEFAULT_FROM_EMAIL in email.from_email
 
     # Check mail contents:
     assert (
-        "Marnie completed the maintenance work on 2022-03-04 and has invoiced you. "
-        "The invoice is attached to this email." in email.body
-    )
+        "Marnie uploaded documentation for a job. The invoice and any photos are "
+        "attached to this mail.\n\n"
+    ) in email.body
+
+    assert "Marnies comments on the job: This job is now complete.\n\n" in email.body
 
     # There should now be exactly one job in the database. Fetch it so that we can
     # use it to check the email body.
@@ -699,7 +663,7 @@ def test_marnie_clicking_save_sends_an_email_to_agent(
 
 def test_submitting_a_photo_causes_a_photo_to_be_associated_with_the_job(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     test_pdf: SimpleUploadedFile,
     test_image: SimpleUploadedFile,
 ) -> None:
@@ -707,19 +671,20 @@ def test_submitting_a_photo_causes_a_photo_to_be_associated_with_the_job(
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): The job where Marnie has
+            completed the onsite work.
         test_pdf (SimpleUploadedFile): The test PDF file.
         test_image (SimpleUploadedFile): The test image file.
     """
+    job = bob_job_with_onsite_work_completed_by_marnie
     with safe_read(test_pdf), safe_read(test_image):
         response = check_type(
             marnie_user_client.post(
                 reverse(
-                    "jobs:job_complete",
-                    kwargs={"pk": bob_job_with_deposit_pop.pk},
+                    "jobs:job_submit_documentation",
+                    kwargs={"pk": job.pk},
                 ),
                 data={
-                    "job_date": "2022-03-04",
                     "invoice": test_pdf,
                     "comments": "This job is now complete.",
                     "form-TOTAL_FORMS": "1",
@@ -741,23 +706,23 @@ def test_submitting_a_photo_causes_a_photo_to_be_associated_with_the_job(
 
     # Refresh the Maintenance Job from the database, and then check the updated
     # record:
-    bob_job_with_deposit_pop.refresh_from_db()
+    job.refresh_from_db()
 
     # Check that the photo has been associated with the job:
-    assert bob_job_with_deposit_pop.job_completion_photos.count() == 1
+    assert job.job_completion_photos.count() == 1
     photo = check_type(
-        bob_job_with_deposit_pop.job_completion_photos.first(),
+        job.job_completion_photos.first(),
         JobCompletionPhoto,
     )
     with safe_read(test_image):
         assert photo.photo.read() == test_image.read()
-    assert photo.job == bob_job_with_deposit_pop
-    assert photo.job_id == bob_job_with_deposit_pop.id
+    assert photo.job == job
+    assert photo.job_id == job.id
 
 
 def test_submitting_pdf_as_photo_causes_error_to_be_returned(
     marnie_user_client: Client,
-    bob_job_with_deposit_pop: Job,
+    bob_job_with_onsite_work_completed_by_marnie: Job,
     test_pdf: SimpleUploadedFile,
     test_pdf_2: SimpleUploadedFile,
 ) -> None:
@@ -765,19 +730,20 @@ def test_submitting_pdf_as_photo_causes_error_to_be_returned(
 
     Args:
         marnie_user_client (Client): The Django test client for Marnie.
-        bob_job_with_deposit_pop (Job): The job created by Bob with the deposit POP.
+        bob_job_with_onsite_work_completed_by_marnie (Job): The job where Marnie has
+            completed the onsite work.
         test_pdf (SimpleUploadedFile): The test PDF file.
         test_pdf_2 (SimpleUploadedFile): The test PDF file.
     """
+    job = bob_job_with_onsite_work_completed_by_marnie
     with safe_read(test_pdf, test_pdf_2):
         response = check_type(
             marnie_user_client.post(
                 reverse(
-                    "jobs:job_complete",
-                    kwargs={"pk": bob_job_with_deposit_pop.pk},
+                    "jobs:job_submit_documentation",
+                    kwargs={"pk": job.pk},
                 ),
                 data={
-                    "job_date": "2022-03-04",
                     "invoice": test_pdf,
                     "comments": "This job is now complete.",
                     "form-TOTAL_FORMS": "1",

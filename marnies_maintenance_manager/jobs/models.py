@@ -79,7 +79,8 @@ class Job(UUIDModel, TimeStampedModel):
         QUOTE_REJECTED_BY_AGENT = "quote_rejected_by_agent"
         QUOTE_ACCEPTED_BY_AGENT = "quote_accepted_by_agent"
         DEPOSIT_POP_UPLOADED = "deposit_pop_uploaded"
-        MARNIE_COMPLETED = "marnie_completed"
+        MARNIE_COMPLETED_ONSITE_WORK = "marnie_completed_onsite_work"
+        MARNIE_SUBMITTED_DOCUMENTATION = "marnie_submitted_documentation"
         FINAL_PAYMENT_POP_UPLOADED = "final_payment_pop_uploaded"
 
     # STATUS is populated from the values seen in the Status Enum above.
@@ -90,7 +91,14 @@ class Job(UUIDModel, TimeStampedModel):
         (Status.QUOTE_REJECTED_BY_AGENT.value, _("Quote Rejected By Agent")),
         (Status.QUOTE_ACCEPTED_BY_AGENT.value, _("Quote Accepted By Agent")),
         (Status.DEPOSIT_POP_UPLOADED.value, _("Deposit POP Uploaded")),
-        (Status.MARNIE_COMPLETED.value, _("Marnie has completed the job")),
+        (
+            Status.MARNIE_COMPLETED_ONSITE_WORK.value,
+            _("Marnie has completed the onsite work"),
+        ),
+        (
+            Status.MARNIE_SUBMITTED_DOCUMENTATION.value,
+            _("Marnie submitted final documentation"),
+        ),
         (
             Status.FINAL_PAYMENT_POP_UPLOADED.value,
             _("Agent uploaded the final payment POP"),
@@ -138,10 +146,10 @@ class Job(UUIDModel, TimeStampedModel):
         verbose_name=_("Deposit Proof of Payment"),
     )
 
-    job_date = models.DateField(
+    job_onsite_work_completion_date = models.DateField(
         blank=True,
         null=True,
-        help_text=_("Date when the job was completed."),
+        help_text=_("Date when onsite work was completed."),
         verbose_name=_("Job Date"),
     )
 

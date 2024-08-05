@@ -420,13 +420,14 @@ class TestSuperUserAccessingJobListView:
 
 def test_job_list_view_contains_basic_usage_advice(
     superuser_client: Client,
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
 ) -> None:
     """Ensure the job list view contains basic usage advice.
 
     Args:
         superuser_client (Client): A test client with superuser permissions.
-        bob_job_completed_by_marnie (Job): A job created by Marnie.
+        bob_job_with_marnie_final_documentation (Job): A job created by Bob with the
+            final documentation uploaded by Marnie.
     """
     response = superuser_client.get(reverse("jobs:job_list"))
     assert response.status_code == status.HTTP_200_OK
@@ -583,23 +584,24 @@ def get_job_list_response(
 
 def test_download_link_is_not_present_when_final_payment_pop_is_not_set(
     marnie_user_client: Client,
-    bob_job_completed_by_marnie: Job,
+    bob_job_with_marnie_final_documentation: Job,
     bob_agent_user: User,
 ) -> None:
-    """Ensure no download link without final payment proof.
+    """Ensure no download link without the final proof of payment.
 
     Args:
         marnie_user_client (Client): A test client used by Marnie.
-        bob_job_completed_by_marnie (Job): A job created by Bob with the final payment
-            proof of payment not set.
+        bob_job_with_marnie_final_documentation (Job): A job created by Bob with the
+            final documentation uploaded by Marnie.
         bob_agent_user (User): The agent user Bob.
     """
+    job = bob_job_with_marnie_final_documentation
     response, job_list = get_job_list_response(
         marnie_user_client,
         bob_agent_user.username,
     )
-    assert bob_job_completed_by_marnie in job_list
-    assert not bob_job_completed_by_marnie.final_payment_pop
+    assert job in job_list
+    assert not job.final_payment_pop
     assert (
         HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE_END
         not in response.content.decode()
@@ -614,15 +616,15 @@ class TestTipShownForAllUsersIfThereAreAnyJobsListed:
     def test_msg_shown_if_there_is_at_least_one_job(
         self,
         marnie_user_client: Client,
-        bob_job_completed_by_marnie: Job,
+        bob_job_with_marnie_final_documentation: Job,
         bob_agent_user: User,
     ) -> None:
         """Ensure the correct message is shown if there is at least one job.
 
         Args:
             marnie_user_client (Client): A test client used by Marnie.
-            bob_job_completed_by_marnie (Job): A job created by Bob and completed by
-                Marnie.
+            bob_job_with_marnie_final_documentation (Job): A job where Marnie has
+                uploaded the final documentation.
             bob_agent_user (User): The agent user Bob.
         """
         response, job_list = get_job_list_response(

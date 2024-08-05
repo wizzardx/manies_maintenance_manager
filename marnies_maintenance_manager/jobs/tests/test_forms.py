@@ -10,10 +10,11 @@ from django.core.files.uploadedfile import UploadedFile
 from django.utils.datastructures import MultiValueDict
 
 from marnies_maintenance_manager.jobs.forms import FinalPaymentPOPUpdateForm
-from marnies_maintenance_manager.jobs.forms import JobCompleteForm
 from marnies_maintenance_manager.jobs.forms import JobCompleteInspectionForm
+from marnies_maintenance_manager.jobs.forms import JobCompleteOnsiteWorkForm
 from marnies_maintenance_manager.jobs.forms import JobCompletionPhotoForm
 from marnies_maintenance_manager.jobs.forms import JobCompletionPhotoFormSet
+from marnies_maintenance_manager.jobs.forms import JobSubmitDocumentationForm
 from marnies_maintenance_manager.jobs.forms import QuoteUpdateForm
 from marnies_maintenance_manager.jobs.forms import QuoteUploadForm
 from marnies_maintenance_manager.jobs.models import Job
@@ -146,48 +147,61 @@ class TestQuoteUpdateForm:
         assert "You must provide a new quote" in form.errors["quote"]
 
 
-class TestJobCompleteForm:
-    """Tests for the JobCompleteForm form."""
+class TestJobCompleteOnsiteWorkForm:
+    """Tests for the JobCompleteOnsiteWorkForm class."""
 
     @staticmethod
     def test_model_class_is_job() -> None:
-        """Test that the JobCompleteForm is for the Job model."""
-        assert JobCompleteForm.Meta.model == Job
+        """Test that the JobCompleteOnsiteWorkForm class is for the Job model."""
+        assert JobCompleteOnsiteWorkForm.Meta.model == Job
 
     @staticmethod
-    def test_has_job_date_field() -> None:
-        """Test that the JobCompleteForm has a job_date field."""
-        assert "job_date" in JobCompleteForm.Meta.fields
+    def test_has_job_onsite_work_completion_date_field() -> None:
+        """Test that our class has a a job_onsite_work_completion_date field."""
+        assert (
+            "job_onsite_work_completion_date" in JobCompleteOnsiteWorkForm.Meta.fields
+        )
+
+    @staticmethod
+    def test_job_onsite_work_completion_date_field_is_setup_correctly() -> None:
+        """Test that the job_onsite_work_completion_date field is required."""
+        data = {"job_onsite_work_completion_date": ""}
+        form = JobCompleteOnsiteWorkForm(data=data)
+        assert not form.is_valid()
+        assert "job_onsite_work_completion_date" in form.errors
+        assert (
+            "This field is required." in form.errors["job_onsite_work_completion_date"]
+        )
+
+        # Make sure that the Job Date field will render correctly as a date input
+        widget = form.fields["job_onsite_work_completion_date"].widget
+        assert isinstance(widget, forms.DateInput)
+        assert widget.input_type == "date"
+
+
+class TestJobSubmitDocumentationForm:
+    """Tests for the JobSubmitDocumentationForm class."""
+
+    @staticmethod
+    def test_model_class_is_job() -> None:
+        """Test that the JobCompleteForm class is for the Job model."""
+        assert JobSubmitDocumentationForm.Meta.model == Job
 
     @staticmethod
     def test_has_invoice_field() -> None:
-        """Test that the JobCompleteForm has an invoice field."""
-        assert "invoice" in JobCompleteForm.Meta.fields
+        """Test that the JobCompleteForm class has an invoice field."""
+        assert "invoice" in JobSubmitDocumentationForm.Meta.fields
 
     @staticmethod
     def test_has_comments_field() -> None:
-        """Test that the JobCompleteForm has a comments field."""
-        assert "comments" in JobCompleteForm.Meta.fields
-
-    @staticmethod
-    def test_job_date_field_is_setup_correctly() -> None:
-        """Test that the job_date field is required."""
-        data = {"job_date": ""}
-        form = JobCompleteForm(data=data)
-        assert not form.is_valid()
-        assert "job_date" in form.errors
-        assert "This field is required." in form.errors["job_date"]
-
-        # Make sure that the Job Date field will render correctly as a date input
-        widget = form.fields["job_date"].widget
-        assert isinstance(widget, forms.DateInput)
-        assert widget.input_type == "date"
+        """Test that the JobSubmitDocumentationForm class has a "comments" field."""
+        assert "comments" in JobSubmitDocumentationForm.Meta.fields
 
     @staticmethod
     def test_invoice_field_is_required() -> None:
         """Test that the invoice field is required."""
         data = {"invoice": ""}
-        form = JobCompleteForm(data=data)
+        form = JobSubmitDocumentationForm(data=data)
         assert not form.is_valid()
         assert "invoice" in form.errors
         assert "This field is required." in form.errors["invoice"]
@@ -196,7 +210,7 @@ class TestJobCompleteForm:
     def test_comments_field_is_not_required() -> None:
         """Test that the "comments" field is not required."""
         data = {"comments": ""}
-        form = JobCompleteForm(data=data)
+        form = JobSubmitDocumentationForm(data=data)
         assert not form.is_valid()
         assert "comments" not in form.errors
 
@@ -216,7 +230,7 @@ class TestFinalPaymentPOPUpdateForm:
 
     @staticmethod
     def test_final_payment_pop_field_is_required() -> None:
-        """Test that the final_payment_pop  field is required."""
+        """Test that the final_payment_pop field is required."""
         data = {"final_payment_pop": ""}
         form = FinalPaymentPOPUpdateForm(data=data)
         assert not form.is_valid()

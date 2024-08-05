@@ -81,17 +81,23 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
             and (user.is_superuser or (user.is_agent and user == job.agent))
         )
 
-        # There's a "Complete Job" link present, used by Marnie when completing
-        # the job. This link only shows up when the agent has uploaded a proof of
-        # payment for the deposit.
-        complete_job_link_present = (
+        # There's a "Mark Onsite Work Completed" link present, used by Marnie when he's
+        # done at the job site. This link only shows up when the agent has uploaded a
+        # proof of payment for the deposit.
+        complete_onsite_work_link_present = (
             job.status == Job.Status.DEPOSIT_POP_UPLOADED.value
             and user.is_marnie
             or user.is_superuser
         )
 
+        submit_job_documentation_link_present = (
+            job.status == Job.Status.MARNIE_COMPLETED_ONSITE_WORK.value
+            and user.is_marnie
+            or user.is_superuser
+        )
+
         upload_final_payment_pop_link_present = (
-            job.status == Job.Status.MARNIE_COMPLETED.value
+            job.status == Job.Status.MARNIE_SUBMITTED_DOCUMENTATION.value
             and (user.is_superuser or (user.is_agent and user == job.agent))
         )
 
@@ -104,7 +110,10 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         context["submit_deposit_proof_of_payment_link_present"] = (
             submit_deposit_proof_of_payment_link_present
         )
-        context["complete_job_link_present"] = complete_job_link_present
+        context["complete_onsite_work_link_present"] = complete_onsite_work_link_present
+        context["submit_job_documentation_link_present"] = (
+            submit_job_documentation_link_present
+        )
         context["upload_final_payment_pop_link_present"] = (
             upload_final_payment_pop_link_present
         )

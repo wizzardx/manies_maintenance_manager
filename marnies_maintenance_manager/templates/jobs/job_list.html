@@ -56,7 +56,7 @@
             <td>
               {% if job.deposit_proof_of_payment %}<a href="{{ job.deposit_proof_of_payment.url }}">Download POP</a>{% endif %}
             </td>
-            <td>{{ job.job_date|date:"Y-m-d" }}</td>
+            <td>{{ job.job_onsite_work_completion_date|date:"Y-m-d" }}</td>
             <td>
               {% for photo in job.job_completion_photos.all %}
                 <a href="{{ photo.photo.url }}">Download Photo {{ forloop.counter }}</a>

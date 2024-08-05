@@ -14,7 +14,7 @@ from marnies_maintenance_manager.jobs.forms import DepositPOPUpdateForm
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.utils import generate_email_body
 from marnies_maintenance_manager.jobs.utils import get_marnie_email
-from marnies_maintenance_manager.jobs.views.utils import send_job_email_with_attachment
+from marnies_maintenance_manager.jobs.views.utils import send_job_email_with_attachments
 from marnies_maintenance_manager.users.models import User
 
 if TYPE_CHECKING:  # pragma: no cover # pylint: disable=consider-ternary-expression
@@ -91,13 +91,13 @@ class DepositPOPUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateViewTy
         email_cc = instance.agent.email
         uploaded_file = instance.deposit_proof_of_payment
 
-        send_job_email_with_attachment(
+        send_job_email_with_attachments(
             email_subject,
             email_body,
             email_from,
             email_to,
             email_cc,
-            uploaded_file,
+            [uploaded_file],
         )
 
         # Send a success flash message to the user:

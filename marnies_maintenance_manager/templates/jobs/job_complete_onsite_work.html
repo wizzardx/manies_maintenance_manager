@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}
+  Record Onsite Work Completion
+{% endblock title %}
+{% block content %}
+  <h1>Record Onsite Work Completion</h1>
+  <form method="post" enctype="multipart/form-data" id="maintenanceForm">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button class="btn btn-primary" type="submit" id="saveChangesButton">Save changes</button>
+  </form>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      handleFormSubmission('maintenanceForm', 'saveChangesButton');
+    });
+  </script>
+{% endblock content %}

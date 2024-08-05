@@ -21,10 +21,11 @@ from .views.agent_list_view import agent_list
 from .views.deposit_pop_update_view import DepositPOPUpdateView
 from .views.final_payment_pop_update_view import FinalPaymentPOPUpdateView
 from .views.job_complete_inspection import JobCompleteInspectionView
-from .views.job_complete_view import JobCompleteView
+from .views.job_complete_onsite_work_view import JobCompleteOnsiteWorkView
 from .views.job_create_view import JobCreateView
 from .views.job_detail_view import JobDetailView
 from .views.job_list_view import JobListView
+from .views.job_submit_documentation_view import JobSubmitDocumentationView
 from .views.quote_accept_view import quote_accept
 from .views.quote_reject_view import quote_reject
 from .views.quote_update_view import QuoteUpdateView
@@ -36,11 +37,20 @@ urlpatterns = [
     path("agents/", agent_list, name="agent_list"),
     path("create/", JobCreateView.as_view(), name="job_create"),
     path("<uuid:pk>/", JobDetailView.as_view(), name="job_detail"),
-    path("<uuid:pk>/complete/", JobCompleteView.as_view(), name="job_complete"),
     path(
         "<uuid:pk>/complete_inspection/",
         JobCompleteInspectionView.as_view(),
         name="job_complete_inspection",
+    ),
+    path(
+        "<uuid:pk>/complete_onsite_work/",
+        JobCompleteOnsiteWorkView.as_view(),
+        name="job_complete_onsite_work",
+    ),
+    path(
+        "<uuid:pk>/submit_documentation/",
+        JobSubmitDocumentationView.as_view(),
+        name="job_submit_documentation",
     ),
     path("<uuid:pk>/quote/upload/", QuoteUploadView.as_view(), name="quote_upload"),
     path("<uuid:pk>/quote/accept/", quote_accept, name="quote_accept"),
