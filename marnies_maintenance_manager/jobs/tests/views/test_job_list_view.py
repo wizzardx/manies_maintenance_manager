@@ -319,8 +319,8 @@ class TestMarnieAccessingJobListView:
             "Photos",
             "Invoice",
             "Comments on the job",
-            "Job Complete",
             "Final Payment POP",
+            "Job Complete",
         ]
 
         # Grab the first row, it contains our Job details:
@@ -344,8 +344,8 @@ class TestMarnieAccessingJobListView:
             "",  # Photos
             "",  # Invoice
             "",  # Comments
-            "No",  # Job Complete
             "",  # Final Payment POP
+            "No",  # Job Complete
         ]
         assert first_row_text_list == expected_row_text_list
 

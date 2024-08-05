@@ -135,9 +135,6 @@
     <p>
       <strong>Comments:</strong> <span class="comments">{{ job.comments }}</span>
     </p>
-    <p>
-      <strong>Job complete:</strong> {{ job.complete|yesno:"Yes,No" }}
-    </p>
   {% endif %}
   {# Display the "Upload Final Payment POP" link if our backend wants it #}
   {% if upload_final_payment_pop_link_present %}
@@ -149,6 +146,12 @@
   {% if job.final_payment_pop %}
     <p>
       <strong>Final Payment POP:</strong> <a href="{{ job.final_payment_pop.url }}">Download Final Payment POP</a>
+    </p>
+  {% endif %}
+  {# More things to show, only if the job is complete #}
+  {% if job.complete %}
+    <p>
+      <strong>Job complete:</strong> {{ job.complete|yesno:"Yes,No" }}
     </p>
   {% endif %}
 {% endblock content %}
