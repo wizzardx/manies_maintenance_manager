@@ -143,7 +143,8 @@ echo "Check for outdated packages..."
 # - An older "filelock" is needed by the latest "safety" package
 # - An older "regex" is needed by the latest "djlint" package.
 # - Ansible and ansible-core held back fpr compatibility with mitogen 0.3.7
-scripts/check_outdated_packages.py --ignore filelock,regex,ansible,ansible-core || handle_error
+# - astroid is currently held back by the latest "pylint" package.
+scripts/check_outdated_packages.py --ignore filelock,regex,ansible,ansible-core,astroid || handle_error
 
 # Done with tools from under the python venv, so deactivate that now.
 echo "Deactivate python virtualenv."
