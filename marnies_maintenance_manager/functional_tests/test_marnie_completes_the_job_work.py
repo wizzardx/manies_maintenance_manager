@@ -33,7 +33,7 @@ Note:
 
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from marnies_maintenance_manager.functional_tests.utils import (
+from marnies_maintenance_manager.functional_tests.utils.workflows import (
     _workflow_from_new_job_to_completed_by_marnie,
 )
 from marnies_maintenance_manager.users.models import User

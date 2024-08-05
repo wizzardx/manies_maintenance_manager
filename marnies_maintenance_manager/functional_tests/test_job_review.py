@@ -12,11 +12,13 @@ from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from marnies_maintenance_manager.functional_tests.utils import (
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
+    _create_new_job,
+)
+from marnies_maintenance_manager.functional_tests.utils.login import _sign_into_website
+from marnies_maintenance_manager.functional_tests.utils.page_checks import (
     _check_maintenance_jobs_page_table_after_job_creation,
 )
-from marnies_maintenance_manager.functional_tests.utils import _create_new_job
-from marnies_maintenance_manager.functional_tests.utils import _sign_into_website
 from marnies_maintenance_manager.users.models import User
 
 

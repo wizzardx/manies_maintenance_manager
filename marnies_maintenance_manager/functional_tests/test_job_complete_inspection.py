@@ -9,8 +9,10 @@ a user's perspective in the Marnie's Maintenance Manager application.
 
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from marnies_maintenance_manager.functional_tests.utils import _create_new_job
-from marnies_maintenance_manager.functional_tests.utils import (
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
+    _create_new_job,
+)
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
     _update_job_with_inspection_date_and_quote,
 )
 from marnies_maintenance_manager.users.models import User

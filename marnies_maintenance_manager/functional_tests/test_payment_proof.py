@@ -10,22 +10,26 @@ Manager application.
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from marnies_maintenance_manager.functional_tests.utils import (
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
     _bob_accepts_marnies_quote,
 )
-from marnies_maintenance_manager.functional_tests.utils import _bob_submits_deposit_pop
-from marnies_maintenance_manager.functional_tests.utils import (
-    _check_maintenance_jobs_table,
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
+    _bob_submits_deposit_pop,
 )
-from marnies_maintenance_manager.functional_tests.utils import _create_new_job
-from marnies_maintenance_manager.functional_tests.utils import (
-    _marnie_logs_in_and_navigates_to_bob_jobs,
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
+    _create_new_job,
 )
-from marnies_maintenance_manager.functional_tests.utils import (
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
+    _update_job_with_inspection_date_and_quote,
+)
+from marnies_maintenance_manager.functional_tests.utils.login import (
     _sign_out_of_website_and_clean_up,
 )
-from marnies_maintenance_manager.functional_tests.utils import (
-    _update_job_with_inspection_date_and_quote,
+from marnies_maintenance_manager.functional_tests.utils.navigation import (
+    _marnie_logs_in_and_navigates_to_bob_jobs,
+)
+from marnies_maintenance_manager.functional_tests.utils.page_checks import (
+    _check_maintenance_jobs_table,
 )
 from marnies_maintenance_manager.users.models import User
 

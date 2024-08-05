@@ -1,44 +1,60 @@
-"""Test user story: Agent uploads final payment proof of payment."""
+"""Utility functions for simulating complete user workflows in functional tests.
 
-# pylint: disable=magic-value-comparison,unused-argument,disable=too-many-locals
+This module contains functions that string together multiple actions to simulate
+entire user journeys, from job creation to completion, including interactions
+from both the client and contractor perspectives.
+"""
 
-from pathlib import Path
+# pylint: disable=magic-value-comparison,too-many-locals
 
-import environ
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from marnies_maintenance_manager.functional_tests.utils import (
+from .constants import FUNCTIONAL_TESTS_DATA_DIR
+from .job_creation import _bob_accepts_marnies_quote
+from .job_creation import _bob_submits_deposit_pop
+from .job_creation import _create_new_job
+from .job_creation import _marnie_does_onsite_work_then_uploads_his_final_docs
+from .job_creation import _update_job_with_inspection_date_and_quote
+from .login import _sign_into_website
+from .login import _sign_out_of_website_and_clean_up
+from .page_checks import (
     _check_maintenance_jobs_page_table_after_final_payment_pop_submission,
 )
-from marnies_maintenance_manager.functional_tests.utils import _sign_into_website
-from marnies_maintenance_manager.functional_tests.utils import (
-    _sign_out_of_website_and_clean_up,
-)
-from marnies_maintenance_manager.functional_tests.utils.workflows import (
-    _workflow_from_new_job_to_final_pop_added_by_bob,
-)
-from marnies_maintenance_manager.users.models import User
-
-env = environ.Env()
-
-FUNCTIONAL_TESTS_DATA_DIR = Path(__file__).resolve().parent
 
 
-def test_agent_uploads_final_payment_pop(
+def _workflow_from_new_job_to_completed_by_marnie(
     browser: WebDriver,
     live_server_url: str,
-    marnie_user: User,
-    bob_agent_user: User,
 ) -> None:
-    """Test that Bob can upload the final payment proof of payment.
+    """Run through the initial job workflow steps.
 
     Args:
         browser (WebDriver): The Selenium WebDriver.
         live_server_url (str): The URL of the live server.
-        marnie_user (User): The user instance for Marnie.
-        bob_agent_user (User): The user instance for Bob, who is an agent.
     """
+    ## Run through our shared workflow that starts with a new job and then
+    ## takes it all the way through to Marnie having done the work and assigned
+    ## an invoice.
+    _create_new_job(browser, live_server_url)
+
+    ## Next, Marnie does an inspection, and updates the inspection date and quote.
+    _update_job_with_inspection_date_and_quote(browser)
+
+    ## After this, quickly accept the quote:
+    _bob_accepts_marnies_quote(browser)
+
+    ## And then, Bob submits the Deposit Proof of Payment:
+    _bob_submits_deposit_pop(browser)
+
+    ## After that, Marnie completes the job and uploads a final invoice.
+    _marnie_does_onsite_work_then_uploads_his_final_docs(browser)
+
+
+def _workflow_from_new_job_to_final_pop_added_by_bob(
+    browser: WebDriver,
+    live_server_url: str,
+) -> None:
     # Let's run through the previous steps first, to get to the point where our agent
     # Bob can upload the final payment proof of payment:
     _workflow_from_new_job_to_completed_by_marnie(browser, live_server_url)
@@ -139,7 +155,7 @@ def test_agent_uploads_final_payment_pop(
     # link in the table.
     _check_maintenance_jobs_page_table_after_final_payment_pop_submission(
         browser,
-    )  # FT reached this point.
+    )
 
     # Happy with this, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)

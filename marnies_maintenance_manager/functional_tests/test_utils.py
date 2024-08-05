@@ -8,10 +8,10 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockerFixture
 
-from marnies_maintenance_manager.functional_tests.utils import (
+from marnies_maintenance_manager.functional_tests.utils.date_utils import (
     get_crispy_forms_date_input_format,
 )
-from marnies_maintenance_manager.functional_tests.utils import (
+from marnies_maintenance_manager.functional_tests.utils.date_utils import (
     get_date_format_from_locale,
 )
 
@@ -97,7 +97,7 @@ def test_get_crispy_forms_date_input_format_ddmmyyyy(mocker: MockerFixture) -> N
         mocker (MockerFixture): Pytest-mock mocker fixture.
     """
     mocker.patch(
-        "marnies_maintenance_manager.functional_tests.utils.get_date_format_from_locale",
+        "marnies_maintenance_manager.functional_tests.utils.date_utils.get_date_format_from_locale",
         return_value="%d/%m/%Y",
     )
     assert get_crispy_forms_date_input_format() == "%d%m%Y"
@@ -111,7 +111,7 @@ def test_get_crispy_forms_date_input_format_mmddyyyy(mocker: MockerFixture) -> N
         mocker (MockerFixture): Pytest-mock mocker fixture.
     """
     mocker.patch(
-        "marnies_maintenance_manager.functional_tests.utils.get_date_format_from_locale",
+        "marnies_maintenance_manager.functional_tests.utils.date_utils.get_date_format_from_locale",
         return_value="%m/%d/%y",
     )
     assert get_crispy_forms_date_input_format() == "%m%d%Y"
@@ -127,7 +127,7 @@ def test_get_crispy_forms_date_input_format_unexpected_format(
         mocker (MockerFixture): Pytest-mock mocker fixture.
     """
     mocker.patch(
-        "marnies_maintenance_manager.functional_tests.utils.get_date_format_from_locale",
+        "marnies_maintenance_manager.functional_tests.utils.date_utils.get_date_format_from_locale",
         return_value="%Y/%m/%d",
     )
     with pytest.raises(AssertionError):

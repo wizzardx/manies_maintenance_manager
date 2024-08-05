@@ -15,21 +15,23 @@ from rest_framework import status
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from marnies_maintenance_manager.functional_tests.utils import (
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
     _bob_accepts_marnies_quote,
 )
-from marnies_maintenance_manager.functional_tests.utils import (
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
     _bob_rejects_marnies_quote,
 )
-from marnies_maintenance_manager.functional_tests.utils import _create_new_job
-from marnies_maintenance_manager.functional_tests.utils import (
-    _sign_in_as_marnie_and_navigate_to_job_details,
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
+    _create_new_job,
 )
-from marnies_maintenance_manager.functional_tests.utils import (
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
+    _update_job_with_inspection_date_and_quote,
+)
+from marnies_maintenance_manager.functional_tests.utils.login import (
     _sign_out_of_website_and_clean_up,
 )
-from marnies_maintenance_manager.functional_tests.utils import (
-    _update_job_with_inspection_date_and_quote,
+from marnies_maintenance_manager.functional_tests.utils.navigation import (
+    _sign_in_as_marnie_and_navigate_to_job_details,
 )
 from marnies_maintenance_manager.users.models import User
 

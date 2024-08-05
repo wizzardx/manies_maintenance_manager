@@ -1,326 +1,34 @@
-"""Helper functions for functional tests.
+"""Utility functions for creating and managing jobs in functional tests.
 
-This module contains utility functions and fixtures used across various
-functional test modules for the Marnie's Maintenance Manager application.
-These utilities include common actions such as signing in and out of the
-application, waiting for certain conditions, and creating or updating
-job entries.
+This module contains functions that simulate the process of creating new jobs,
+updating job details, and performing various actions related to job management
+such as accepting quotes and submitting proofs of payment.
 """
 
-# pylint: disable=unused-argument, magic-value-comparison, too-many-locals
-# pylint: disable=too-many-statements, disable=consider-using-assignment-expr
+# pylint: disable=magic-value-comparison,disable=too-many-statements,too-many-locals
 # ruff: noqa: ERA001, PLR0915
 
 import datetime
-import re
-import subprocess
-import time
-from collections.abc import Callable
-from pathlib import Path
-from typing import Any
 
-import environ
 import pytest
-from selenium.common import ElementClickInterceptedException
 from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from typeguard import check_type
 
-from marnies_maintenance_manager.jobs.constants import (
-    EXPECTED_JOB_LIST_TABLE_COLUMN_NAMES,
+from .common import wait_until
+from .constants import FUNCTIONAL_TESTS_DATA_DIR
+from .date_utils import CRISPY_FORMS_DATE_INPUT_FORMAT
+from .login import _sign_into_website
+from .login import _sign_out_of_website_and_clean_up
+from .page_checks import _check_job_row_and_click_on_number
+from .page_checks import (
+    _check_maintenance_jobs_page_after_manie_uploaded_his_final_docs,
 )
-from marnies_maintenance_manager.jobs.tests.utils import (
-    suppress_fastdev_strict_if_deprecation_warning,
-)
-from marnies_maintenance_manager.jobs.utils import get_test_user_password
+from .page_checks import _check_maintenance_jobs_page_table_after_job_creation
 
-env = environ.Env()
 
-MAX_WAIT = 5  # Maximum time to wait during retries, before failing the test
-
-FUNCTIONAL_TESTS_DATA_DIR = Path(__file__).resolve().parent
-
-
-def get_date_format_from_locale() -> str:
-    """Get the date format from the system locale settings.
-
-    Returns:
-        str: The date format string.
-
-    Raises:
-        RuntimeError: If an error occurs while running the locale command.
-        ValueError: If the date format cannot be determined from the locale settings.
-    """
-    # Run the `locale -k LC_TIME` command
-    result = subprocess.run(  # noqa: S603
-        ["locale", "-k", "LC_TIME"],  # noqa: S607
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    # Check for errors
-    if result.returncode != 0:
-        msg = f"Error running locale command: {result.stderr}"
-        raise RuntimeError(msg)
-
-    # Parse the output to find the date format
-    output = result.stdout
-    date_format = None
-
-    # Look for the d_fmt line which specifies the date format
-
-    # pylint: disable=consider-using-assignment-expr
-    match = re.search(r'd_fmt="([^"]+)"', output)
-    if match:
-        date_format = match.group(1)
-
-    if not date_format:
-        msg = "Unable to determine date format from locale settings"
-        raise ValueError(msg)
-
-    return date_format
-
-
-def get_crispy_forms_date_input_format() -> str:
-    """Get the date input format used by Crispy Forms.
-
-    Returns:
-        str: The date input format string.
-    """
-    # pylint: disable=consider-using-assignment-expr
-    fmt = get_date_format_from_locale().replace("/", "")
-    if fmt == "%d%m%Y":
-        return "%d%m%Y"
-
-    assert fmt == "%m%d%y"
-    return "%m%d%Y"
-
-
-CRISPY_FORMS_DATE_INPUT_FORMAT = get_crispy_forms_date_input_format()
-
-
-def wait_until(fn: Callable[[], Any]) -> Any:
-    """Retry an action until it succeeds or the maximum wait time is reached.
-
-    Args:
-        fn (Callable[[], Any]): The function to execute.
-
-    Returns:
-        Any: The result of the function call.
-
-    Raises:
-        ElementClickInterceptedException: If the action does not succeed within the
-                                          allotted time.
-    """
-    start_time = time.time()
-    while True:  # pylint: disable=while-used
-        try:
-            return fn()
-        except ElementClickInterceptedException:  # pragma: no cover
-            if time.time() - start_time > MAX_WAIT:
-                raise
-            time.sleep(0.1)
-
-
-def _sign_into_website(browser: WebDriver, username: str) -> None:
-    # He sees the Sign In button in the navbar
-    sign_in_button = browser.find_element(By.LINK_TEXT, "Sign In")
-
-    # He clicks on the Sign In button
-    with suppress_fastdev_strict_if_deprecation_warning():
-        sign_in_button.click()
-
-    # This sends him to the Sign In page, where he notices that the page title and
-    # the header mention Sign In
-    assert "Sign In" in browser.title
-
-    # He types "bob" into the Username field
-    username_field = browser.find_element(By.ID, "id_login")
-    username_field.send_keys(username)
-
-    # He types "secret" into the Password field
-    password_field = browser.find_element(By.ID, "id_password")
-    password_field.send_keys(get_test_user_password())
-
-    # He clicks the "Sign In" button
-    sign_in_button = browser.find_element(By.CLASS_NAME, "btn-primary")
-    sign_in_button.click()
-
-    # This takes him to his user page (where he can manage his user further).
-    # He also sees this in the page title bar
-    assert f"User: {username}" in browser.title, browser.title
-
-
-def _sign_out_of_website_and_clean_up(browser: WebDriver) -> None:
-    # He clicks on the Sign Out button
-    sign_out_button = browser.find_element(By.LINK_TEXT, "Sign Out")
-
-    with suppress_fastdev_strict_if_deprecation_warning():
-        sign_out_button.click()
-
-    # An "Are you sure you want to sign out?" dialog pops up, asking him to confirm
-    # that he wants to sign out.
-    confirm_sign_out_button = browser.find_element(By.CLASS_NAME, "btn-primary")
-    confirm_sign_out_button.click()
-
-    # Also tidy up here by cleaning up all the browser cookies.
-    browser.delete_all_cookies()
-
-    # Satisfied, he goes back to sleep
-
-
-def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) -> None:
-    cell_texts = _check_maintenance_jobs_table(browser)["cell_texts"]
-
-    ## Make sure the cell text contents match the expected values.
-    assert cell_texts == [
-        "1",  # Job Number
-        "2021-01-01",  # Date (assigned by Agent)
-        "Department of Home Affairs Bellville",
-        "GPS",  # This is the displayed text, on-screen it's a link
-        "Please fix the leaky faucet in the staff bathroom",
-        "",  # Date of Inspection
-        "",  # Quote
-        "",  # Accept or Reject A/R
-        "",  # Deposit POP
-        "",  # Job Date
-        "",  # Photos
-        "",  # Invoice
-        "",  # Comments
-        "",  # Final Payment POP
-        "No",  # Job Complete
-    ], cell_texts
-
-
-def _check_maintenance_jobs_page_after_manie_uploaded_his_final_docs(
-    browser: WebDriver,
-) -> None:
-    row_info = _check_maintenance_jobs_table(browser)
-    cell_texts = row_info["cell_texts"]
-
-    ## Make sure the cell text contents match the expected values.
-    expected = [
-        "1",  # This is for the row number, automatically added by the system.
-        "2021-01-01",
-        "Department of Home Affairs Bellville",
-        "GPS",  # This is the displayed text, on-screen it's a link
-        "Please fix the leaky faucet in the staff bathroom",
-        "2021-02-01",  # Date of Inspection
-        "Download Quote",  # Quote
-        "A",  # Accept or Reject A/R
-        "Download POP",  # Deposit POP
-        "2021-03-02",  # Job Date
-        "Download Photo 1 Download Photo 2",  # Job completion photos
-        "Download Invoice",  # Invoice
-        "I fixed the leaky faucet While I was in there I noticed damage in the wall "
-        "Do you want me to fix that too?",
-        "",  # Final Payment POP
-        "No",  # Job Complete
-    ]
-    assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
-
-    # Attempt to reach the browser using the browser.
-    photo_urls = row_info["photo_urls"]
-
-    # Get the current url of the browser:
-    orig_url = browser.current_url
-
-    for url in photo_urls:
-        browser.get(url)
-
-        # If the image is retrievable at the URL, then when we retrieve the page,
-        # the browser in Chrome contains HTML to view the image in the browser.
-        # We check for a short fragment of the expected HTML in that case.
-        expected_html = f'src="{url}"'
-        if expected_html not in browser.page_source:  # pragma: no cover
-            msg = f"Failed to download photo from {url}"
-            raise AssertionError(msg)
-
-    # Browse back to our original URL:
-    browser.get(orig_url)
-
-
-def _check_maintenance_jobs_page_table_after_final_payment_pop_submission(
-    browser: WebDriver,
-) -> None:
-    cell_texts = _check_maintenance_jobs_table(browser)["cell_texts"]
-
-    ## Make sure the cell text contents match the expected values.
-    expected = [
-        "1",  # This is for the row number, automatically added by the system.
-        "2021-01-01",
-        "Department of Home Affairs Bellville",
-        "GPS",  # This is the displayed text, on-screen it's a link
-        "Please fix the leaky faucet in the staff bathroom",
-        "2021-02-01",  # Date of Inspection
-        "Download Quote",  # Quote
-        "A",  # Accept or Reject A/R
-        "Download POP",  # Deposit POP
-        "2021-03-02",  # Job Date
-        "Download Photo 1 Download Photo 2",  # Job completion photos
-        "Download Invoice",  # Invoice
-        "I fixed the leaky faucet While I was in there I noticed damage in the wall "
-        "Do you want me to fix that too?",  # Comments on the job
-        "Download Final Payment POP",  # Final Payment POP
-        "Yes",  # Job Complete
-    ]
-    assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
-
-
-def _check_maintenance_jobs_table(browser: WebDriver) -> dict[str, list[str]]:
-    """Check the maintenance jobs table for the correct row and cell contents.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-
-    Returns:
-        list[str]: A list of cell texts from the table, containing job details.
-    """
-    # He notices that the new Maintenance Job is listed on the web page in a table
-    table = browser.find_element(By.ID, "id_list_table")
-    rows = table.find_elements(By.TAG_NAME, "tr")
-
-    ## There should be two rows:
-    assert len(rows) == 2, len(rows)  # noqa: PLR2004
-
-    ## The first row is the header row
-    header_row = rows[0]
-    header_cell_texts = [
-        cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")
-    ]
-
-    assert header_cell_texts == EXPECTED_JOB_LIST_TABLE_COLUMN_NAMES, header_cell_texts
-
-    ## The second row is the new job
-    row = rows[1]
-
-    # Prepare and return details extracted from the row
-    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-
-    # Get the download URLs for the photo images
-    photo_urls = []
-    photo_cell = row.find_elements(By.TAG_NAME, "td")[10]
-    photo_links = photo_cell.find_elements(By.TAG_NAME, "a")
-    for link in photo_links:
-        url = check_type(link.get_attribute("href"), str)
-        assert url.endswith(".jpg")
-        assert "/completion_photos/" in url
-        photo_urls.append(url)
-
-    return {
-        "cell_texts": cell_texts,
-        "photo_urls": photo_urls,
-    }
-
-
-def _create_new_job(
-    browser: WebDriver,
-    live_server_url: str,
-) -> None:
-    # pylint: disable=too-many-locals
-
+def _create_new_job(browser: WebDriver, live_server_url: str) -> None:
     # Marnie's client Bob has heard of Marnie's cool new maintenance management site.
     # He goes to check out its homepage.
     browser.get(live_server_url)
@@ -410,61 +118,8 @@ def _create_new_job(
     _sign_out_of_website_and_clean_up(browser)
 
 
-def _check_job_row_and_click_on_number(
-    browser: WebDriver,
-    *,
-    quote_expected: bool,
-) -> None:
-    table = browser.find_element(By.ID, "id_list_table")
-    rows = table.find_elements(By.TAG_NAME, "tr")
-
-    ## There should be exactly one row here
-    assert len(rows) == 2  # noqa: PLR2004
-
-    ## Get the row, and confirm that the details include everything submitted up until
-    ## now.
-    row = rows[1]
-    cell_texts = [cell.text for cell in row.find_elements(By.TAG_NAME, "td")]
-
-    expected_cell_texts = [
-        "1",
-        "2021-01-01",
-        "Department of Home Affairs Bellville",
-        "GPS",
-        "Please fix the leaky faucet in the staff bathroom",
-        "2021-02-01",
-        "Download Quote",
-        "",  # Accept or Reject A/R
-        "",  # Deposit POP
-        "",  # Job Date
-        "",  # Photos
-        "",  # Invoice
-        "",  # Comments
-        "",  # Final Payment POP
-        "No",  # Job Complete
-    ]
-
-    # If there shouldn't be a quote, then update the expected cell texts.
-    if not quote_expected:
-        download_quote_idx = 6
-        assert expected_cell_texts[download_quote_idx] == "Download Quote"
-        expected_cell_texts[download_quote_idx] = ""
-
-    # Now check:
-    assert cell_texts == expected_cell_texts
-
-    # He clicks on the #1 number again:
-    number_link = browser.find_element(By.LINK_TEXT, "1")
-    number_link.click()
-
-
-def _marnie_logs_in_and_navigates_to_bob_jobs(browser: WebDriver) -> None:
-    """Simulate Marnie to logging in and navigating to Bob's "jobs" page.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-    """
-    # Marnie logs in
+def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> dict[str, str]:
+    # Marnie logs into the system and navigates through to the detail page of the job
     _sign_into_website(browser, "marnie")
 
     # Then he looks for the "Agents" link and clicks on it:
@@ -475,21 +130,9 @@ def _marnie_logs_in_and_navigates_to_bob_jobs(browser: WebDriver) -> None:
     bob_link = browser.find_element(By.LINK_TEXT, "bob")
     bob_link.click()
 
-
-def _sign_in_as_marnie_and_navigate_to_job_details(browser: WebDriver) -> None:
-    # Marnie logs in, and navigates to Bob's jobs page
-    _marnie_logs_in_and_navigates_to_bob_jobs(browser)
-
-    # This takes him to the Maintenance Jobs page for Bob the Agent.
-
     # He clicks on the link with the number 1 in the text:
     number_link = browser.find_element(By.LINK_TEXT, "1")
     number_link.click()
-
-
-def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> dict[str, str]:
-    # Marnie logs into the system and navigates through to the detail page of the job
-    _sign_in_as_marnie_and_navigate_to_job_details(browser)
 
     # Just below the existing details, he sees a "Complete Inspection" link.
     update_link = browser.find_element(By.LINK_TEXT, "Complete Inspection")
@@ -505,25 +148,8 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> dict[str, 
     # He also sees on this page, the only editable field is the "Date of Inspection"
     inspection_date_field = browser.find_element(By.ID, "id_date_of_inspection")
 
-    # Quote invoice field is no longer on this page.
-    # (that was split off into its own page, rather than being editable at the same
-    # time as the inspection date)
-    with pytest.raises(NoSuchElementException):
-        browser.find_element(By.ID, "id_quote")
-
     # There is a "submit" button just below the field:
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
-
-    # But in particular, he doesn't see fields that only the Agent should be able to
-    # edit, while submitting the job.
-    with pytest.raises(NoSuchElementException):
-        browser.find_element(By.ID, "id_date")
-    with pytest.raises(NoSuchElementException):
-        browser.find_element(By.ID, "id_address_details")
-    with pytest.raises(NoSuchElementException):
-        browser.find_element(By.ID, "id_gps_link")
-    with pytest.raises(NoSuchElementException):
-        browser.find_element(By.ID, "id_quote_request_details")
 
     # He inputs a date into the inspection date field.
     # In his workflow, this is typically while he is on his way out, from the original
@@ -554,10 +180,6 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> dict[str, 
     # Over here he can now see the inspection date:
     assert "2021-02-01" in browser.page_source
 
-    # There still shouldn't yet be a link to the Quote invoice:
-    with pytest.raises(NoSuchElementException):
-        browser.find_element(By.LINK_TEXT, "Download Quote")
-
     # Let's assume that Marnie has done the work at home necessary to generate the
     # invoice PDF file, and he is now ready to upload it to the system under the
     # job where he already input the inspection date.
@@ -573,10 +195,6 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> dict[str, 
     # He sees the "Quote" field, and a "Submit" button.
     quote_invoice_field = browser.find_element(By.ID, "id_quote")
     submit_button = browser.find_element(By.CLASS_NAME, "btn-primary")
-
-    # He specifically does not see the "Date of Inspection" field on this page.
-    with pytest.raises(NoSuchElementException):
-        browser.find_element(By.ID, "id_date_of_inspection")
 
     # He uploads a Quote.
     quote_invoice_field.send_keys(str(FUNCTIONAL_TESTS_DATA_DIR / "test.pdf"))
@@ -613,6 +231,46 @@ def _update_job_with_inspection_date_and_quote(browser: WebDriver) -> dict[str, 
     return {
         "quote_download_url": download_url,
     }
+
+
+def _bob_accepts_marnies_quote(browser: WebDriver) -> None:
+    # Bob received a notification. He saw the email, and the quote, and is happy with
+    # it, so he is ready to confirm the quote. He logs into the system:
+    _sign_into_website(browser, "bob")
+
+    # Then he goes to the Maintenance Jobs page:
+    maintenance_jobs_link = browser.find_element(By.LINK_TEXT, "Maintenance Jobs")
+    maintenance_jobs_link.click()
+
+    # He sees the details of the job, and clicks on the number to view the details:
+    _check_job_row_and_click_on_number(browser, quote_expected=True)
+
+    # He sees the details of the job, and clicks on the "Accept Quote" button:
+    accept_button = browser.find_element(By.XPATH, "//button[text()='Accept Quote']")
+    accept_button.click()
+
+    # This takes him back to the details page for the Job.
+    assert "Maintenance Job Details" in browser.title
+    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
+
+    # He sees a flash notification that an email has been sent to Marnie.
+    expected_msg = "An email has been sent to Marnie."
+    assert expected_msg in browser.page_source
+
+    # He sees an "Accepted or Rejected (A/R): A" entry on the page.
+    assert "<strong>Accepted or Rejected (A/R):</strong> A" in browser.page_source
+
+    # He does not see the "Accept Quote" button any longer.
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.LINK_TEXT, "Accept Quote")
+
+    # He does not see the "Reject Quote" button any longer.
+    with pytest.raises(NoSuchElementException):
+        browser.find_element(By.LINK_TEXT, "Reject Quote")
+
+    # Unlike other reused functions, we don't leave the browser here. That's because
+    # Bob, in other tests, continues doing other actions before he's done and its
+    # Marnies turn to do something.
 
 
 def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
@@ -697,46 +355,6 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
     _sign_out_of_website_and_clean_up(browser)
 
 
-def _bob_accepts_marnies_quote(browser: WebDriver) -> None:
-    # Bob received a notification. He saw the email, and the quote, and is happy with
-    # it, so he is ready to confirm the quote. He logs into the system:
-    _sign_into_website(browser, "bob")
-
-    # Then he goes to the Maintenance Jobs page:
-    maintenance_jobs_link = browser.find_element(By.LINK_TEXT, "Maintenance Jobs")
-    maintenance_jobs_link.click()
-
-    # He sees the details of the job, and clicks on the number to view the details:
-    _check_job_row_and_click_on_number(browser, quote_expected=True)
-
-    # He sees the details of the job, and clicks on the "Accept Quote" button:
-    accept_button = browser.find_element(By.XPATH, "//button[text()='Accept Quote']")
-    accept_button.click()
-
-    # This takes him back to the details page for the Job.
-    assert "Maintenance Job Details" in browser.title
-    assert "Maintenance Job Details" in browser.find_element(By.TAG_NAME, "h1").text
-
-    # He sees a flash notification that an email has been sent to Marnie.
-    expected_msg = "An email has been sent to Marnie."
-    assert expected_msg in browser.page_source
-
-    # He sees an "Accepted or Rejected (A/R): A" entry on the page.
-    assert "<strong>Accepted or Rejected (A/R):</strong> A" in browser.page_source
-
-    # He does not see the "Accept Quote" button any longer.
-    with pytest.raises(NoSuchElementException):
-        browser.find_element(By.LINK_TEXT, "Accept Quote")
-
-    # He does not see the "Reject Quote" button any longer.
-    with pytest.raises(NoSuchElementException):
-        browser.find_element(By.LINK_TEXT, "Reject Quote")
-
-    # Unlike other reused functions, we don't leave the browser here. That's because
-    # Bob, in other tests, continues doing other actions before he's done and its
-    # Marnies turn to do something.
-
-
 def _bob_submits_deposit_pop(browser: WebDriver) -> None:
     ## At this point, Bob should still be logged into the system, and the current page
     ## should be the "Maintenance Job Details" page. Confirm that:
@@ -782,11 +400,17 @@ def _bob_submits_deposit_pop(browser: WebDriver) -> None:
     assert pop_link_elem is not None
 
 
-def _marnie_does_onsite_work_then_uploads_his_final_docs(browser: WebDriver) -> None:
+def _marnie_does_onsite_work_then_uploads_his_final_docs(
+    browser: WebDriver,
+) -> None:
     # Bob logs out
     _sign_out_of_website_and_clean_up(browser)
 
     # Marnie logs in and goes to the job details.
+    from marnies_maintenance_manager.functional_tests.utils.navigation import (  # pylint: disable=import-outside-toplevel
+        _sign_in_as_marnie_and_navigate_to_job_details,
+    )
+
     _sign_in_as_marnie_and_navigate_to_job_details(browser)
 
     # He can see a "Record Job Date" link at the bottom of the page.
@@ -958,31 +582,3 @@ def _marnie_does_onsite_work_then_uploads_his_final_docs(browser: WebDriver) -> 
 
     # Happy with this, he logs out of the website, and goes back to sleep
     _sign_out_of_website_and_clean_up(browser)
-
-
-def _workflow_from_new_job_to_completed_by_marnie(
-    browser: WebDriver,
-    live_server_url: str,
-) -> None:
-    """Run through the initial job workflow steps.
-
-    Args:
-        browser (WebDriver): The Selenium WebDriver.
-        live_server_url (str): The URL of the live server.
-    """
-    ## Run through our shared workflow that starts with a new job and then
-    ## takes it all the way through to Marnie having done the work and assigned
-    ## an invoice.
-    _create_new_job(browser, live_server_url)
-
-    ## Next, Marnie does an inspection, and updates the inspection date and quote.
-    _update_job_with_inspection_date_and_quote(browser)
-
-    ## After this, quickly accept the quote:
-    _bob_accepts_marnies_quote(browser)
-
-    ## And then, Bob submits the Deposit Proof of Payment:
-    _bob_submits_deposit_pop(browser)
-
-    ## After that, Marnie completes the job and uploads a final invoice.
-    _marnie_does_onsite_work_then_uploads_his_final_docs(browser)

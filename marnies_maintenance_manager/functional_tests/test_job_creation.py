@@ -9,7 +9,9 @@ from a user's perspective in the Marnie's Maintenance Manager application.
 import pytest
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from marnies_maintenance_manager.functional_tests.utils import _create_new_job
+from marnies_maintenance_manager.functional_tests.utils.job_creation import (
+    _create_new_job,
+)
 from marnies_maintenance_manager.users.models import User
 
 
