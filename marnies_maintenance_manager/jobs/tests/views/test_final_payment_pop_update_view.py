@@ -261,6 +261,27 @@ def test_changes_state_to_final_payment_pop_uploaded(
     assert job.status == Job.Status.FINAL_PAYMENT_POP_UPLOADED.value
 
 
+def test_sets_complete_property_to_true(
+    bob_job_with_marnie_final_documentation: Job,
+    bob_agent_user_client: Client,
+    test_pdf: SimpleUploadedFile,
+) -> None:
+    """Ensure job's complete status changes to True after upload.
+
+    Args:
+        bob_job_with_marnie_final_documentation (Job): A Job instance where Marnie
+            has uploaded his final documentation, after performing the onsite work.
+        bob_agent_user_client (Client): The Django test client for Bob.
+        test_pdf (SimpleUploadedFile): A test PDF file.
+    """
+    job = bob_job_with_marnie_final_documentation
+    assert not job.complete
+    upload_final_payment_pop(bob_agent_user_client, job, test_pdf)
+
+    job.refresh_from_db()
+    assert job.complete
+
+
 def upload_final_payment_pop(
     client: Client,
     job: Job,

@@ -83,7 +83,6 @@ class JobSubmitDocumentationView(
 
         # Update the Job's state to "marnie submitted his documentation"
         job.status = Job.Status.MARNIE_SUBMITTED_DOCUMENTATION.value
-        job.complete = True
         job.save()
 
         # Call validations/etc on parent classes

@@ -15,6 +15,7 @@ from model_utils.models import TimeStampedModel
 from model_utils.models import UUIDModel
 from private_storage.fields import PrivateFileField
 from private_storage.fields import PrivateImageField
+from typeguard import check_type
 
 from marnies_maintenance_manager.jobs.validators import validate_pdf_contents
 from marnies_maintenance_manager.users.models import User
@@ -169,12 +170,6 @@ class Job(UUIDModel, TimeStampedModel):
         verbose_name=_("Comments"),
     )
 
-    complete = models.BooleanField(
-        default=False,
-        verbose_name=_("Job Complete"),
-        help_text=_("Has the job been completed?"),
-    )
-
     final_payment_pop = PrivateFileField(
         upload_to="final_payment_pops/",
         blank=True,
@@ -250,6 +245,18 @@ class Job(UUIDModel, TimeStampedModel):
 
         # Now we can save the model:
         super().save(*args, **kwargs)  # type: ignore[no-untyped-call]
+
+    @property
+    def complete(self) -> bool:
+        """Return True if the job is complete, False otherwise.
+
+        Returns:
+            bool: True if the job is complete, False otherwise.
+        """
+        return check_type(
+            self.status == self.Status.FINAL_PAYMENT_POP_UPLOADED.value,
+            bool,
+        )
 
 
 class JobCompletionPhoto(UUIDModel, TimeStampedModel):

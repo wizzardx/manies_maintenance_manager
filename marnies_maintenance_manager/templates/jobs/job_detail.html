@@ -114,24 +114,28 @@
        href="{% url 'jobs:job_submit_documentation' pk=job.pk %}"
        role="button">Submit Job Documentation</a>
   {% endif %}
-  {# Some things to show, only if the job is complete #}
-  {% if job.complete %}
+  {# Some things to show, only if they have been populated by Manie #}
+  {% if job.job_onsite_work_completion_date %}
     <p>
       <strong>Job Date:</strong> <span class="job-date">{{ job.job_onsite_work_completion_date|date:"Y-m-d" }}</span>
     </p>
-    {% if job.job_completion_photos %}
-      <p>
-        <strong>Photos:</strong>
-        <span class="photos">
-          {% for photo in job.job_completion_photos.all %}
-            <a href="{{ photo.photo.url }}">Download Photo {{ forloop.counter }}</a>
-          {% endfor %}
-        </span>
-      </p>
-    {% endif %}
+  {% endif %}
+  {% if job.job_completion_photos %}
+    <p>
+      <strong>Photos:</strong>
+      <span class="photos">
+        {% for photo in job.job_completion_photos.all %}
+          <a href="{{ photo.photo.url }}">Download Photo {{ forloop.counter }}</a>
+        {% endfor %}
+      </span>
+    </p>
+  {% endif %}
+  {% if job.invoice %}
     <p>
       <strong>Invoice:</strong>  <a href="{{ job.invoice.url }}">Download Invoice</a>
     </p>
+  {% endif %}
+  {% if job.comments %}
     <p>
       <strong>Comments:</strong> <span class="comments">{{ job.comments }}</span>
     </p>
@@ -148,8 +152,8 @@
       <strong>Final Payment POP:</strong> <a href="{{ job.final_payment_pop.url }}">Download Final Payment POP</a>
     </p>
   {% endif %}
-  {# More things to show, only if the job is complete #}
-  {% if job.complete %}
+  {# If the final payment pop is uploaded, then show the job complete status #}
+  {% if job.final_payment_pop %}
     <p>
       <strong>Job complete:</strong> {{ job.complete|yesno:"Yes,No" }}
     </p>

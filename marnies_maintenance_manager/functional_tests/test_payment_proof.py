@@ -49,8 +49,8 @@ def _check_maintenance_jobs_page_table_after_pop_submission(browser: WebDriver) 
         "",  # Job Date
         "",  # Job Completion Photos
         "",  # Comments on the job
-        "No",  # Job Complete
         "",  # Final Payment POP
+        "No",  # Job Complete
     ]
 
 

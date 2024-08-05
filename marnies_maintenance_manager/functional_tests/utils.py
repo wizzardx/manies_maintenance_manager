@@ -27,6 +27,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from typeguard import check_type
 
+from marnies_maintenance_manager.jobs.constants import (
+    EXPECTED_JOB_LIST_TABLE_COLUMN_NAMES,
+)
 from marnies_maintenance_manager.jobs.tests.utils import (
     suppress_fastdev_strict_if_deprecation_warning,
 )
@@ -186,12 +189,14 @@ def _check_maintenance_jobs_page_table_after_job_creation(browser: WebDriver) ->
         "",  # Photos
         "",  # Invoice
         "",  # Comments
-        "No",  # Job Complete
         "",  # Final Payment POP
+        "No",  # Job Complete
     ], cell_texts
 
 
-def _check_maintenance_jobs_page_table_after_job_completion(browser: WebDriver) -> None:
+def _check_maintenance_jobs_page_after_manie_uploaded_his_final_docs(
+    browser: WebDriver,
+) -> None:
     row_info = _check_maintenance_jobs_table(browser)
     cell_texts = row_info["cell_texts"]
 
@@ -211,8 +216,8 @@ def _check_maintenance_jobs_page_table_after_job_completion(browser: WebDriver) 
         "Download Invoice",  # Invoice
         "I fixed the leaky faucet While I was in there I noticed damage in the wall "
         "Do you want me to fix that too?",
-        "Yes",  # Job Complete
         "",  # Final Payment POP
+        "No",  # Job Complete
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 
@@ -258,8 +263,8 @@ def _check_maintenance_jobs_page_table_after_final_payment_pop_submission(
         "Download Invoice",  # Invoice
         "I fixed the leaky faucet While I was in there I noticed damage in the wall "
         "Do you want me to fix that too?",  # Comments on the job
-        "Yes",  # Job Complete
         "Download Final Payment POP",  # Final Payment POP
+        "Yes",  # Job Complete
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 
@@ -286,23 +291,7 @@ def _check_maintenance_jobs_table(browser: WebDriver) -> dict[str, list[str]]:
         cell.text for cell in header_row.find_elements(By.TAG_NAME, "th")
     ]
 
-    assert header_cell_texts == [
-        "Number",
-        "Date",
-        "Address Details",
-        "GPS Link",
-        "Quote Request Details",
-        "Date of Inspection",
-        "Quote",
-        "Accept or Reject A/R",
-        "Deposit POP",
-        "Job Date",
-        "Photos",
-        "Invoice",
-        "Comments on the job",
-        "Job Complete",
-        "Final Payment POP",
-    ], header_cell_texts
+    assert header_cell_texts == EXPECTED_JOB_LIST_TABLE_COLUMN_NAMES, header_cell_texts
 
     ## The second row is the new job
     row = rows[1]
@@ -451,8 +440,8 @@ def _check_job_row_and_click_on_number(
         "",  # Photos
         "",  # Invoice
         "",  # Comments
-        "No",  # Job Complete
         "",  # Final Payment POP
+        "No",  # Job Complete
     ]
 
     # If there shouldn't be a quote, then update the expected cell texts.
@@ -699,8 +688,8 @@ def _bob_rejects_marnies_quote(browser: WebDriver) -> None:
         "",  # Job Completion Photos
         "",  # Invoice
         "",  # Comments
-        "No",  # Job Complete
         "",  # Final Payment POP
+        "No",  # Job Complete
     ]
     assert cell_texts == expected, f"Expected: {expected}, got: {cell_texts}"
 
@@ -793,7 +782,7 @@ def _bob_submits_deposit_pop(browser: WebDriver) -> None:
     assert pop_link_elem is not None
 
 
-def _marnie_completes_the_job(browser: WebDriver) -> None:
+def _marnie_does_onsite_work_then_uploads_his_final_docs(browser: WebDriver) -> None:
     # Bob logs out
     _sign_out_of_website_and_clean_up(browser)
 
@@ -919,7 +908,7 @@ def _marnie_completes_the_job(browser: WebDriver) -> None:
 
     # He checks the job-listing page in detail, that his there and in the expected
     # state.
-    _check_maintenance_jobs_page_table_after_job_completion(browser)
+    _check_maintenance_jobs_page_after_manie_uploaded_his_final_docs(browser)
 
     # He clicks on the job number link to view the job details.
     job_number_link = browser.find_element(By.LINK_TEXT, "1")
@@ -996,4 +985,4 @@ def _workflow_from_new_job_to_completed_by_marnie(
     _bob_submits_deposit_pop(browser)
 
     ## After that, Marnie completes the job and uploads a final invoice.
-    _marnie_completes_the_job(browser)
+    _marnie_does_onsite_work_then_uploads_his_final_docs(browser)

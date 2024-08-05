@@ -370,7 +370,6 @@ def test_updating_job_changes_status(
     job = bob_job_with_onsite_work_completed_by_marnie
     # Check the status before updating
     assert job.status == Job.Status.MARNIE_COMPLETED_ONSITE_WORK.value
-    assert job.complete is False
 
     # Update the job
     submit_job_completion_form_and_assert_no_errors(
@@ -385,7 +384,6 @@ def test_updating_job_changes_status(
 
     # Check the job status, after the update
     assert job.status == Job.Status.MARNIE_SUBMITTED_DOCUMENTATION.value
-    assert job.complete is True
 
 
 def test_should_not_allow_txt_extension_file_for_invoice(

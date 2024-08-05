@@ -198,7 +198,6 @@ def bob_job_with_marnie_final_documentation(
     # Update Job to the "final documentation uploaded by Marnie" state:
     job.status = Job.Status.MARNIE_SUBMITTED_DOCUMENTATION.value
     job.comments = "Job completed successfully"
-    job.complete = True
     job.invoice = test_pdf
 
     # Add two photos to the completed job.

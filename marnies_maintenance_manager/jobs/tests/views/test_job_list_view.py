@@ -13,6 +13,9 @@ from django.urls import reverse
 from rest_framework import status
 from typeguard import check_type
 
+from marnies_maintenance_manager.jobs.constants import (
+    EXPECTED_JOB_LIST_TABLE_COLUMN_NAMES,
+)
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
 
@@ -305,23 +308,7 @@ class TestMarnieAccessingJobListView:
         assert header_row
         header_cells = header_row.find_all("th")
         header_cells_text_list = [cell.text for cell in header_cells]
-        assert header_cells_text_list == [
-            "Number",
-            "Date",
-            "Address Details",
-            "GPS Link",
-            "Quote Request Details",
-            "Date of Inspection",
-            "Quote",
-            "Accept or Reject A/R",
-            "Deposit POP",
-            "Job Date",
-            "Photos",
-            "Invoice",
-            "Comments on the job",
-            "Final Payment POP",
-            "Job Complete",
-        ]
+        assert header_cells_text_list == EXPECTED_JOB_LIST_TABLE_COLUMN_NAMES
 
         # Grab the first row, it contains our Job details:
         first_row = table.find_all("tr")[1]

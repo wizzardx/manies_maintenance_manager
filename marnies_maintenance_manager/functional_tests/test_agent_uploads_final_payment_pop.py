@@ -79,8 +79,8 @@ def test_agent_uploads_final_payment_pop(
         "Download Invoice",  # Invoice
         "I fixed the leaky faucet While I was in there I noticed damage in the "
         "wall Do you want me to fix that too?",  # Comments
-        "Yes",  # Job Complete
         "",  # Final Payment POP
+        "No",  # Job Complete
     ]
     assert cell_texts == expected
 
