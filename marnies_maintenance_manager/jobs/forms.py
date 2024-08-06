@@ -6,7 +6,6 @@ from django import forms
 from django.core.files.base import File
 from django.forms import modelformset_factory
 from typeguard import check_type
-from typeguard import typechecked
 
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.jobs.models import JobCompletionPhoto
@@ -64,7 +63,6 @@ class QuoteUpdateForm(TypedModelForm):
 
     quote = forms.FileField()
 
-    @typechecked
     def clean_quote(self) -> TypedFile:
         """Ensure that the quote is different from the current quote.
 
