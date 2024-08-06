@@ -108,7 +108,7 @@ def _create_new_job(browser: WebDriver, live_server_url: str) -> None:
 
     # This sends him back to the "Maintenance Jobs" page, where he notices that the
     # page title and the header mention Maintenance Jobs like before.
-    assert "Maintenance Jobs" in browser.title
+    assert "Maintenance Jobs" in browser.title, browser.title
     assert "Maintenance Jobs" in browser.find_element(By.TAG_NAME, "h1").text
 
     ## Thoroughly check that the table has the correct headings and row contents.
