@@ -1,4 +1,4 @@
-"""Django local development settings for Marnie's Maintenance Manager project."""
+"""Django local development settings for Manie's Maintenance Manager project."""
 
 # ruff: noqa: E501
 # pylint: disable=wildcard-import, unused-wildcard-import

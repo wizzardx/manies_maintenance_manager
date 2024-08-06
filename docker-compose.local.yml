@@ -1,14 +1,14 @@
 volumes:
-  marnies_maintenance_manager_local_postgres_data: {}
-  marnies_maintenance_manager_local_postgres_data_backups: {}
+  manies_maintenance_manager_local_postgres_data: {}
+  manies_maintenance_manager_local_postgres_data_backups: {}
 
 services:
   django:
     build:
       context: .
       dockerfile: ./compose/local/django/Dockerfile
-    image: marnies_maintenance_manager_local_django
-    container_name: marnies_maintenance_manager_local_django
+    image: manies_maintenance_manager_local_django
+    container_name: manies_maintenance_manager_local_django
     depends_on:
       - postgres
       - mailpit
@@ -30,11 +30,11 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/postgres/Dockerfile
-    image: marnies_maintenance_manager_production_postgres
-    container_name: marnies_maintenance_manager_local_postgres
+    image: manies_maintenance_manager_production_postgres
+    container_name: manies_maintenance_manager_local_postgres
     volumes:
-      - marnies_maintenance_manager_local_postgres_data:/var/lib/postgresql/data
-      - marnies_maintenance_manager_local_postgres_data_backups:/backups
+      - manies_maintenance_manager_local_postgres_data:/var/lib/postgresql/data
+      - manies_maintenance_manager_local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres
     ports:
@@ -42,7 +42,7 @@ services:
 
   mailpit:
     image: docker.io/axllent/mailpit:latest
-    container_name: marnies_maintenance_manager_local_mailpit
+    container_name: manies_maintenance_manager_local_mailpit
     ports:
       - "8025:8025"
 

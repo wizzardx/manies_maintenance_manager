@@ -3,7 +3,7 @@
 """Configuration file for the Sphinx documentation builder.
 
 This file sets up the configuration for building the Sphinx documentation for
-the "Marnie's Maintenance Manager" project. It includes path setup, project
+the "Manie's Maintenance Manager" project. It includes path setup, project
 information, and general configuration options.
 
 - For a full list of configuration options, see:
@@ -15,7 +15,7 @@ Path Setup:
 - Sets up Django environment variables and initializes Django settings.
 
 Project Information:
-- Project: "Marnie's Maintenance Manager"
+- Project: "Manie's Maintenance Manager"
 - Author: David
 - Copyright: 2024, David
 
@@ -79,7 +79,7 @@ django.setup()
 # -- Project information -----------------------------------------------------
 
 # pylint: disable=invalid-name
-project = "Marnie's Maintenance Manager"
+project = "Manie's Maintenance Manager"
 copyright = """2024, David"""  # pylint: disable=redefined-builtin
 author = "David"
 

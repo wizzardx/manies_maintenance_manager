@@ -49,8 +49,8 @@ export TEST_USER_PASSWORD
 log "Preparing pytest command..."
 CMD=(
     pytest
-        marnies_maintenance_manager/jobs
-        marnies_maintenance_manager/users
+        manies_maintenance_manager/jobs
+        manies_maintenance_manager/users
         --doctest-modules
         --reuse-db
 )

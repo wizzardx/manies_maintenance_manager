@@ -31,7 +31,7 @@ RETCODE=0
 # port 5900, with password 'secret'.
 CMD=(
     docker compose -f docker-compose.local.yml exec django pytest
-        marnies_maintenance_manager/functional_tests --doctest-modules
+        manies_maintenance_manager/functional_tests --doctest-modules
         --save_screenshots
 )
 

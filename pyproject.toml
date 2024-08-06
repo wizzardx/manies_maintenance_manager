@@ -9,7 +9,7 @@ python_files = [
 
 # ==== Coverage ====
 [tool.coverage.run]
-include = ["marnies_maintenance_manager/**"]
+include = ["manies_maintenance_manager/**"]
 omit = ["*/migrations/*", "*/tests/*"]
 plugins = ["django_coverage_plugin"]
 

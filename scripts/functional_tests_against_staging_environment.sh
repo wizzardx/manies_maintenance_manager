@@ -47,7 +47,7 @@ export TEST_USER_PASSWORD
 
 CMD=(
     pytest
-        marnies_maintenance_manager/functional_tests
+        manies_maintenance_manager/functional_tests
         --doctest-modules
         --reuse-db
         --no-migrations

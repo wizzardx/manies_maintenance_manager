@@ -1,6 +1,6 @@
 // For format details, see https://containers.dev/implementors/json_reference/
 {
-    "name": "marnies_maintenance_manager_dev",
+    "name": "manies_maintenance_manager_dev",
     "dockerComposeFile": [
         "../docker-compose.local.yml"
     ],

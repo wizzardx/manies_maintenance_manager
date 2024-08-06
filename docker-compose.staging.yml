@@ -10,9 +10,9 @@ services:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
 
-    image: marnies_maintenance_manager_staging_django
+    image: manies_maintenance_manager_staging_django
     volumes:
-      - staging_django_private_media:/app/marnies_maintenance_manager/private-media
+      - staging_django_private_media:/app/manies_maintenance_manager/private-media
     depends_on:
       - postgres
     env_file:
@@ -28,7 +28,7 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/postgres/Dockerfile
-    image: marnies_maintenance_manager_staging_postgres
+    image: manies_maintenance_manager_staging_postgres
     volumes:
       - staging_postgres_data:/var/lib/postgresql/data
       - staging_postgres_data_backups:/backups
@@ -41,7 +41,7 @@ services:
     build:
       context: .
       dockerfile: ./compose/staging/traefik/Dockerfile
-    image: marnies_maintenance_manager_staging_traefik
+    image: manies_maintenance_manager_staging_traefik
     depends_on:
       - django
     volumes:

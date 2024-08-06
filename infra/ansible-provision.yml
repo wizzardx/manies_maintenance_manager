@@ -3,11 +3,11 @@
   hosts: localhost
   vars:
     images:
-      - name: marnies_maintenance_manager_{{ deploy_env }}_django
+      - name: manies_maintenance_manager_{{ deploy_env }}_django
         dockerfile: ./compose/{{ deploy_env }}/django/Dockerfile
-      - name: marnies_maintenance_manager_{{ deploy_env }}_postgres
+      - name: manies_maintenance_manager_{{ deploy_env }}_postgres
         dockerfile: ./compose/{{ deploy_env }}/postgres/Dockerfile
-      - name: marnies_maintenance_manager_{{ deploy_env }}_traefik
+      - name: manies_maintenance_manager_{{ deploy_env }}_traefik
         dockerfile: ./compose/{{ deploy_env }}/traefik/Dockerfile
 
   tasks:
@@ -106,9 +106,9 @@
   hosts: "{{ deploy_env }}"
   vars:
     images:
-      - name: marnies_maintenance_manager_{{ deploy_env }}_django
-      - name: marnies_maintenance_manager_{{ deploy_env }}_postgres
-      - name: marnies_maintenance_manager_{{ deploy_env }}_traefik
+      - name: manies_maintenance_manager_{{ deploy_env }}_django
+      - name: manies_maintenance_manager_{{ deploy_env }}_postgres
+      - name: manies_maintenance_manager_{{ deploy_env }}_traefik
 
   tasks:
     - name: Install Docker, Docker Compose, zstd, rsync, rsyslog, logrotate, fail2ban, and ufw

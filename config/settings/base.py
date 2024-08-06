@@ -7,8 +7,8 @@ from pathlib import Path
 import environ
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
-# marnies_maintenance_manager/
-APPS_DIR = BASE_DIR / "marnies_maintenance_manager"
+# manies_maintenance_manager/
+APPS_DIR = BASE_DIR / "manies_maintenance_manager"
 env = environ.Env()
 
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
@@ -81,9 +81,9 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "marnies_maintenance_manager.users",
+    "manies_maintenance_manager.users",
     # Your stuff: custom apps go here
-    "marnies_maintenance_manager.jobs",  # Maintenance Jobs
+    "manies_maintenance_manager.jobs",  # Maintenance Jobs
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -91,7 +91,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIGRATIONS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
-MIGRATION_MODULES = {"sites": "marnies_maintenance_manager.contrib.sites.migrations"}
+MIGRATION_MODULES = {"sites": "manies_maintenance_manager.contrib.sites.migrations"}
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ MEDIA_URL = "/media/"
 INSTALLED_APPS += ("private_storage",)
 PRIVATE_STORAGE_ROOT = str(APPS_DIR / "private-media")
 PRIVATE_STORAGE_AUTH_FUNCTION = (
-    "marnies_maintenance_manager.jobs.permissions.private_media_permissions"
+    "manies_maintenance_manager.jobs.permissions.private_media_permissions"
 )
 
 
@@ -195,7 +195,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "marnies_maintenance_manager.users.context_processors.allauth_settings",
+                "manies_maintenance_manager.users.context_processors.allauth_settings",
             ],
         },
     },
@@ -278,16 +278,14 @@ ACCOUNT_EMAIL_REQUIRED = True
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # https://docs.allauth.org/en/latest/account/configuration.html
-ACCOUNT_ADAPTER = "marnies_maintenance_manager.users.adapters.AccountAdapter"
+ACCOUNT_ADAPTER = "manies_maintenance_manager.users.adapters.AccountAdapter"
 # https://docs.allauth.org/en/latest/account/forms.html
-ACCOUNT_FORMS = {"signup": "marnies_maintenance_manager.users.forms.UserSignupForm"}
+ACCOUNT_FORMS = {"signup": "manies_maintenance_manager.users.forms.UserSignupForm"}
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_ADAPTER = (
-    "marnies_maintenance_manager.users.adapters.SocialAccountAdapter"
-)
+SOCIALACCOUNT_ADAPTER = "manies_maintenance_manager.users.adapters.SocialAccountAdapter"
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
 SOCIALACCOUNT_FORMS = {
-    "signup": "marnies_maintenance_manager.users.forms.UserSocialSignupForm",
+    "signup": "manies_maintenance_manager.users.forms.UserSocialSignupForm",
 }
 
 

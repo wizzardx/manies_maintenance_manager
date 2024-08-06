@@ -142,7 +142,7 @@ for name in changed_files:
     original_file = new_template_project_dir / name2
     current_file = CURRENT_PROJECT_DIR / name2
 
-    current_file = Path(str(current_file).replace("manie", "marnie"))
+    current_file = Path(str(current_file).replace("manie", "manie"))
 
     skip = False
 
@@ -154,7 +154,7 @@ for name in changed_files:
 
             # eg output by this point:
             # File missing: /tmp/new_template_project_ip22jq5s/manies_maintenance_manager/Procfile
-            # File present: /home/david/dev/misc/marnies_maintenance_manager_project/Procfile
+            # File present: /home/david/dev/misc/manies_maintenance_manager_project/Procfile
 
             # This means that in the just-generated cookiecutter output, a file was not generated,
             # But that same file was present in our git history. In this case, it can mean that
@@ -169,7 +169,7 @@ for name in changed_files:
             # print(f"File present: {original_file}")
 
             # eg output by this point:
-            # File missing: /home/david/dev/misc/marnies_maintenance_manager_project/config/api_router.py
+            # File missing: /home/david/dev/misc/manies_maintenance_manager_project/config/api_router.py
             # File present: /tmp/new_template_project_xl708yjv/manies_maintenance_manager/config/api_router.py
 
             # This means that in the just-generated cookiecutter output, a file was generated,
@@ -182,10 +182,10 @@ for name in changed_files:
     # /tmp/new_template_project_eru33bhi/manies_maintenance_manager/.devcontainer/devcontainer.json
 
     if not skip:
-        # Replace instances of "manie" with "marnie" in it, to help remove false positives:
-        run_command(["sed", "-i", "s/manie/marnie/g", str(original_file)])
-        run_command(["sed", "-i", "s/Manie/Marnie/g", str(original_file)])
-        run_command(["sed", "-i", "s/Marnies/Marnie's/g", str(original_file)])
+        # Replace instances of "manie" with "manie" in it, to help remove false positives:
+        run_command(["sed", "-i", "s/manie/manie/g", str(original_file)])
+        run_command(["sed", "-i", "s/Manie/Manie/g", str(original_file)])
+        run_command(["sed", "-i", "s/Manies/Manie's/g", str(original_file)])
 
         # If after this, the files contain the same content, then need to meld.
         if md5sum_end_stripped(original_file) == md5sum_end_stripped(current_file):

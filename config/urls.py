@@ -9,7 +9,7 @@ from django.urls import include
 from django.urls import path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
-from marnies_maintenance_manager.jobs.views.home_page_view import home_page
+from manies_maintenance_manager.jobs.views.home_page_view import home_page
 
 
 urlpatterns = [
@@ -22,12 +22,10 @@ urlpatterns = [
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
-    path(
-        "users/", include("marnies_maintenance_manager.users.urls", namespace="users")
-    ),
+    path("users/", include("manies_maintenance_manager.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
-    path("jobs/", include("marnies_maintenance_manager.jobs.urls", namespace="jobs")),
+    path("jobs/", include("manies_maintenance_manager.jobs.urls", namespace="jobs")),
     # Media files:
     path("private-media/", include(private_storage.urls)),
 ]

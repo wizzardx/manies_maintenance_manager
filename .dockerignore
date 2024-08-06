@@ -17,7 +17,7 @@ htmlcov/
 .ipython/
 .ruff_cache/
 .pytest_cache/
-marnies_maintenance_manager/private-media/
+manies_maintenance_manager/private-media/
 test_results.json
 build_context_files.txt
 screenshots/

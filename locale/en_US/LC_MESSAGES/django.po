@@ -1,4 +1,4 @@
-# Translations for the Marnie's Maintenance Manager project
+# Translations for the Manie's Maintenance Manager project
 # Copyright (C) 2024 David
 # David <wizzardx@gmail.com>, 2024.
 #
