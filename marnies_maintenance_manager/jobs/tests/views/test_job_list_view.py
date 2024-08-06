@@ -13,9 +13,7 @@ from django.urls import reverse
 from rest_framework import status
 from typeguard import check_type
 
-from marnies_maintenance_manager.jobs.constants import (
-    EXPECTED_JOB_LIST_TABLE_COLUMN_NAMES,
-)
+from marnies_maintenance_manager.jobs.constants import JOB_LIST_TABLE_COLUMN_NAMES
 from marnies_maintenance_manager.jobs.models import Job
 from marnies_maintenance_manager.users.models import User
 
@@ -308,7 +306,7 @@ class TestMarnieAccessingJobListView:
         assert header_row
         header_cells = header_row.find_all("th")
         header_cells_text_list = [cell.text for cell in header_cells]
-        assert header_cells_text_list == EXPECTED_JOB_LIST_TABLE_COLUMN_NAMES
+        assert header_cells_text_list == JOB_LIST_TABLE_COLUMN_NAMES
 
         # Grab the first row, it contains our Job details:
         first_row = table.find_all("tr")[1]
@@ -646,3 +644,55 @@ class TestTipShownForAllUsersIfThereAreAnyJobsListed:
 
         # Check that the tip is there:
         assert self.TIP not in page_text
+
+
+class TestExportToSpreadsheetLink:
+    """Test the "Export to Spreadsheet" link on the job list page."""
+
+    def test_visible_for_agent(
+        self,
+        bob_agent_user_client: Client,
+        bob_job_with_marnie_final_documentation: Job,
+    ) -> None:
+        """Test that the "Export to Spreadsheet" link is visible for Bob.
+
+        Args:
+            bob_agent_user_client (Client): A test client for agent user Bob.
+            bob_job_with_marnie_final_documentation (Job): A job created by Bob with
+                final documentation uploaded by Marnie.
+        """
+        response = bob_agent_user_client.get(reverse("jobs:job_list"))
+        assert response.status_code == status.HTTP_200_OK
+        assert "Export to Spreadsheet" in response.content.decode()
+
+    def test_not_visible_for_manie(
+        self,
+        marnie_user_client: Client,
+        bob_job_with_marnie_final_documentation: Job,
+    ) -> None:
+        """Test that the "Export to Spreadsheet" link is not visible for Marnie.
+
+        Args:
+            marnie_user_client (Client): A test client for Marnie.
+            bob_job_with_marnie_final_documentation (Job): A job created by Bob with
+                final documentation uploaded by Marnie.
+        """
+        response = marnie_user_client.get(
+            reverse("jobs:job_list")
+            + f"?agent={bob_job_with_marnie_final_documentation.agent.username}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert "Export to Spreadsheet" not in response.content.decode()
+
+    def test_not_visible_when_no_jobs_to_export(
+        self,
+        bob_agent_user_client: Client,
+    ) -> None:
+        """Test "Export to Spreadsheet" link hidden when no jobs exist.
+
+        Args:
+            bob_agent_user_client (Client): A test client for agent user Bob.
+        """
+        response = bob_agent_user_client.get(reverse("jobs:job_list"))
+        assert response.status_code == status.HTTP_200_OK
+        assert "Export to Spreadsheet" not in response.content.decode()

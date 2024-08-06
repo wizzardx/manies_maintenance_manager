@@ -17,6 +17,9 @@ Access the job list with `/jobs/` and the creation page with `/jobs/create/`.
 
 from django.urls import path
 
+from .views.agent_export_jobs_to_spreadsheet_view import (
+    agent_export_jobs_to_spreadsheet_view,
+)
 from .views.agent_list_view import agent_list
 from .views.deposit_pop_update_view import DepositPOPUpdateView
 from .views.final_payment_pop_update_view import FinalPaymentPOPUpdateView
@@ -35,6 +38,11 @@ app_name = "jobs"
 urlpatterns = [
     path("", JobListView.as_view(), name="job_list"),
     path("agents/", agent_list, name="agent_list"),
+    path(
+        "agents/<uuid:pk>/export_jobs_to_spreadsheet/",
+        agent_export_jobs_to_spreadsheet_view,
+        name="agent_export_jobs_to_spreadsheet_view",
+    ),
     path("create/", JobCreateView.as_view(), name="job_create"),
     path("<uuid:pk>/", JobDetailView.as_view(), name="job_detail"),
     path(

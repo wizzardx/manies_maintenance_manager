@@ -3,7 +3,7 @@
 DEFAULT_FROM_EMAIL = "noreply@mmm.ar-ciel.org"
 POST_METHOD_NAME = "POST"
 
-EXPECTED_JOB_LIST_TABLE_COLUMN_NAMES = [
+JOB_LIST_TABLE_COLUMN_NAMES = [
     "Number",
     "Date",
     "Address Details",

@@ -11,6 +11,13 @@
     <a href="{% url 'jobs:job_create' %}"
        class="btn btn-primary mb-3"
        role="button">Create Maintenance Job</a>
+    {# Only show the export button to the agent if there are any jobs for the agent #}
+    {% if job_list.count > 0 %}
+      <a href="{% url 'jobs:agent_export_jobs_to_spreadsheet_view' pk=request.user.id %}"
+         class="btn btn-secondary mb-3"
+         id="export-to-spreadsheet-button"
+         role="button">Export to Spreadsheet</a>
+    {% endif %}
   {% endif %}
   {% if job_list.count > 0 %}<p>Click on the number in each row to go to the Job details.</p>{% endif %}
   <div class="table-responsive">
