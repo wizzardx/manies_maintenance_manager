@@ -103,10 +103,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "is_manie",
+                    "is_marnie",
                     models.BooleanField(
                         default=False,
-                        help_text="Designates whether this user is Manie Ferreira.",
+                        help_text="Designates whether this user is Marnie Ferreira.",
                         verbose_name="User is Manie",
                     ),
                 ),
