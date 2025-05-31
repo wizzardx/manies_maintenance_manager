@@ -1,6 +1,6 @@
 """Define URL patterns for the Django project."""
 
-# ruff: noqa
+# ruff: noqa: E402
 
 import private_storage.urls
 from django.conf import settings
@@ -9,8 +9,8 @@ from django.urls import include
 from django.urls import path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
-from manies_maintenance_manager.jobs.views.home_page_view import home_page
 
+from manies_maintenance_manager.jobs.views.home_page_view import home_page
 
 urlpatterns = [
     path("", home_page, name="home"),
@@ -56,4 +56,4 @@ if settings.DEBUG:
     if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
 
-        urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
+        urlpatterns = [path("__debug__/", include(debug_toolbar.urls)), *urlpatterns]

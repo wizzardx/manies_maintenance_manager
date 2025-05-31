@@ -1,4 +1,4 @@
-# ruff: noqa
+# ruff: noqa: E402
 
 """Merge dotenv files for production into a single .env file.
 

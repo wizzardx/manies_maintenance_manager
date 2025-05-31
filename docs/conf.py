@@ -1,4 +1,4 @@
-# ruff: noqa
+# ruff: noqa: E402
 
 """Configuration file for the Sphinx documentation builder.
 
@@ -60,6 +60,8 @@ Example:
 
 import os
 import sys
+from pathlib import Path
+
 import django
 
 # pylint: disable=magic-value-comparison
@@ -67,11 +69,11 @@ import django
 if (
     os.getenv("READTHEDOCS", default="False") == "True"
 ):  # pylint: disable=magic-value-comparison
-    sys.path.insert(0, os.path.abspath(".."))
+    sys.path.insert(0, str(Path("..").resolve()))
     os.environ["DJANGO_READ_DOT_ENV_FILE"] = "True"
     os.environ["USE_DOCKER"] = "no"
 else:
-    sys.path.insert(0, os.path.abspath("/app"))
+    sys.path.insert(0, str(Path("/app").resolve()))
 os.environ["DATABASE_URL"] = "sqlite:///readthedocs.db"
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
 django.setup()
@@ -80,7 +82,7 @@ django.setup()
 
 # pylint: disable=invalid-name
 project = "Manie's Maintenance Manager"
-copyright = """2024, David"""  # pylint: disable=redefined-builtin
+copyright_info = """2024, David"""  # pylint: disable=redefined-builtin
 author = "David"
 
 
@@ -95,7 +97,6 @@ extensions = [
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-# templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -111,4 +112,3 @@ html_theme = "alabaster"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ["_static"]

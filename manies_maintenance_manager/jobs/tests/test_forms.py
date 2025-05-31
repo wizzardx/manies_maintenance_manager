@@ -1,13 +1,10 @@
 """Tests for the forms in the "jobs" app."""
 
-# pylint: disable=magic-value-comparison
+# pylint: disable=magic-value-comparison,unused-import
 
-from typing import cast
 
 from django import forms
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.files.uploadedfile import UploadedFile
-from django.utils.datastructures import MultiValueDict
 
 from manies_maintenance_manager.jobs.forms import FinalPaymentPOPUpdateForm
 from manies_maintenance_manager.jobs.forms import JobCompleteInspectionForm
@@ -84,13 +81,13 @@ class TestQuoteUploadForm:
             test_pdf (SimpleUploadedFile): A test PDF file.
             bob_job_with_initial_manie_inspection (Job): A job instance.
         """
-        # Check Job before saving.
+        # Check Job before saving.job
         job = bob_job_with_initial_manie_inspection
         assert not job.quote
         assert job.quote.name == ""
 
-        file_data = cast("MultiValueDict[str, UploadedFile]", {"quote": test_pdf})
-        form = QuoteUploadForm(instance=job, files=file_data)
+        file_data = {"quote": test_pdf}
+        form = QuoteUploadForm(instance=job, files=file_data)  # type: ignore[arg-type]
         assert form.is_valid(), form.errors
         with safe_read(test_pdf):
             form.save()
