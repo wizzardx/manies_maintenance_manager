@@ -85,7 +85,7 @@ class Job(UUIDModel, TimeStampedModel):
         FINAL_PAYMENT_POP_UPLOADED = "final_payment_pop_uploaded"
 
     # STATUS is populated from the values seen in the Status Enum above.
-    STATUS = Choices(  # type: ignore[no-untyped-call]
+    STATUS = Choices(
         (Status.PENDING_INSPECTION.value, _("Pending Inspection")),
         (Status.INSPECTION_COMPLETED.value, _("Inspection Completed")),
         (Status.QUOTE_UPLOADED.value, _("Quote Uploaded")),
@@ -105,7 +105,7 @@ class Job(UUIDModel, TimeStampedModel):
             _("Agent uploaded the final payment POP"),
         ),
     )
-    status = StatusField()  # type: ignore[no-untyped-call]
+    status = StatusField()
 
     # Manie populates these fields in the UI later on, after doing the initial
     # requested on-site inspection. The Agent can then see the details of the quote
@@ -244,7 +244,7 @@ class Job(UUIDModel, TimeStampedModel):
         self.full_clean()
 
         # Now we can save the model:
-        super().save(*args, **kwargs)  # type: ignore[no-untyped-call]
+        super().save(*args, **kwargs)
 
     @property
     def complete(self) -> bool:
@@ -292,4 +292,4 @@ class JobCompletionPhoto(UUIDModel, TimeStampedModel):
         self.full_clean()
 
         # Now we can save the model:
-        super().save(*args, **kwargs)  # type: ignore[no-untyped-call]
+        super().save(*args, **kwargs)

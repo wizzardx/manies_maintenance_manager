@@ -121,7 +121,7 @@ def _get_reject_quote_button_or_none(
         BeautifulSoup | None: The reject quote button, or None if it couldn't be found.
     """
     soup = _get_page_soup(job, user_client)
-    return soup.find("button", string="Reject Quote")
+    return soup.find("button", string="Reject Quote")  # type: ignore[return-value]
 
 
 def _get_accept_quote_button_or_none(
@@ -138,7 +138,7 @@ def _get_accept_quote_button_or_none(
         BeautifulSoup | None: The accept quote button, or None if it couldn't be found.
     """
     soup = _get_page_soup(job, user_client)
-    return soup.find("button", string="Accept Quote")
+    return soup.find("button", string="Accept Quote")  # type: ignore[return-value]
 
 
 def assert_agent_cannot_access_job_detail(client: Client, job: Job) -> None:

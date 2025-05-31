@@ -99,7 +99,7 @@ def _create_new_job(browser: WebDriver, live_server_url: str) -> None:
     )
 
     # Scroll the page down to bring the Submit button into view if it is not already:
-    browser.execute_script(  # type: ignore[no-untyped-call]
+    browser.execute_script(
         "window.scrollTo(0, document.body.scrollHeight);",
     )
 

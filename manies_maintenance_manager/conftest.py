@@ -47,7 +47,7 @@ def user(db: None) -> User:  # pylint: disable=unused-argument
     Returns:
         User: A new User instance created by the UserFactory.
     """
-    return UserFactory()
+    return UserFactory()  # type: ignore[return-value, no-untyped-call]
 
 
 @pytest.fixture()

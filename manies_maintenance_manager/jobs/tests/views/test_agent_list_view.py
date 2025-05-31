@@ -111,7 +111,7 @@ def test_agent_names_are_links_to_their_created_maintenance_jobs(
     )
 
 
-def _get_agent_list_items(manie_user_client: Client) -> bs4.element.ResultSet:
+def _get_agent_list_items(manie_user_client: Client) -> bs4.element.ResultSet:  # type: ignore[type-arg]
     response = manie_user_client.get(reverse("jobs:agent_list"))
     assert response.status_code == status.HTTP_200_OK
 
@@ -123,7 +123,7 @@ def _get_agent_list_items(manie_user_client: Client) -> bs4.element.ResultSet:
     assert agent_list is not None
 
     # Grab the LI elements from there:
-    return agent_list.find_all("li")
+    return agent_list.find_all("li")  # type: ignore[attr-defined,no-any-return]
 
 
 def test_agents_are_listed_in_alphanumeric_order_by_username(

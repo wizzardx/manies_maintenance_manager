@@ -86,7 +86,7 @@ def get_final_payment_pop_link(user: User, job: Job) -> BeautifulSoup:
         BeautifulSoup: The link to download the final payment POP.
     """
     soup = fetch_job_detail_view_response(user, job)
-    return soup.find("a", string="Download Final Payment POP")
+    return soup.find("a", string="Download Final Payment POP")  # type: ignore[return-value]
 
 
 def test_agent_who_created_job_can_see_link(

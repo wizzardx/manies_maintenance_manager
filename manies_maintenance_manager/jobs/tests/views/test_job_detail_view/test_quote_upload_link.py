@@ -28,7 +28,7 @@ def _get_upload_quote_link_or_none(
         BeautifulSoup | None: The Upload Quote link, or None if it couldn't be found.
     """
     soup = _get_page_soup(job, user_client)
-    return soup.find("a", string="Upload Quote")
+    return soup.find("a", string="Upload Quote")  # type: ignore[return-value]
 
 
 class TestUploadQuoteLinkVisibility:

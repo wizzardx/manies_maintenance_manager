@@ -2,19 +2,19 @@
 
 from collections.abc import Sequence
 
-from factory import Faker
-from factory import post_generation
+from factory import Faker  # type: ignore[attr-defined]
+from factory import post_generation  # type: ignore[attr-defined]
 from factory.django import DjangoModelFactory
 
 from manies_maintenance_manager.users.models import User
 
 
-class UserFactory(DjangoModelFactory):  # type: ignore[misc]
+class UserFactory(DjangoModelFactory):  # type: ignore[type-arg]
     """Factory for generating User model instances."""
 
-    username = Faker("user_name")
-    email = Faker("email")
-    name = Faker("name")
+    username = Faker("user_name")  # type: ignore[no-untyped-call]
+    email = Faker("email")  # type: ignore[no-untyped-call]
+    name = Faker("name")  # type: ignore[no-untyped-call]
 
     # pylint: disable=unused-argument
     # noinspection PyUnusedLocal
@@ -35,7 +35,7 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
         password = (
             extracted
             if extracted
-            else Faker(
+            else Faker(  # type: ignore[no-untyped-call]
                 "password",
                 length=42,
                 special_chars=True,
@@ -45,11 +45,11 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
             ).evaluate(None, None, extra={"locale": None})
         )
         # pylint: disable=no-member
-        self.set_password(password)
+        self.set_password(password)  # type: ignore[attr-defined]
 
     # pylint: disable=signature-differs
     @classmethod
-    def _after_postgeneration(
+    def _after_postgeneration(  # type: ignore[override]
         cls: type["UserFactory"],
         instance: User,
         create: bool,  # noqa: FBT001
@@ -67,7 +67,7 @@ class UserFactory(DjangoModelFactory):  # type: ignore[misc]
 
         """
         # pylint: disable=no-member
-        if create and results and not cls._meta.skip_postgeneration_save:
+        if create and results and not cls._meta.skip_postgeneration_save:  # type: ignore[attr-defined]
             # Some post-generation hooks ran, and may have modified us.
             instance.save()
 

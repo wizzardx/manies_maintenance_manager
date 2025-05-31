@@ -71,4 +71,4 @@ def test_points_to_complete_the_jop_page(
         "jobs:job_complete_onsite_work",
         kwargs={"pk": bob_job_with_deposit_pop.pk},
     )
-    assert link["href"] == expected_url
+    assert link["href"] == expected_url  # type: ignore[index]

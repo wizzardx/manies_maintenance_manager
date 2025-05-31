@@ -82,4 +82,4 @@ def test_link_points_to_submit_job_documentation_page(
         "jobs:job_submit_documentation",
         kwargs={"pk": job.pk},
     )
-    assert link["href"] == expected_url
+    assert link["href"] == expected_url  # type: ignore[index]

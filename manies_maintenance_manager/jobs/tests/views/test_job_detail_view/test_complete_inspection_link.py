@@ -38,7 +38,7 @@ class TestUpdateLinkVisibility:
             "jobs:job_complete_inspection",
             kwargs={"pk": job_created_by_bob.pk},
         )
-        assert link["href"] == expected_url
+        assert link["href"] == expected_url  # type: ignore[index]
 
     @staticmethod
     def test_update_link_is_visible_for_admin(

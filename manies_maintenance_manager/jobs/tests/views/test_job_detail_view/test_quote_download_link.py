@@ -29,7 +29,7 @@ def _ensure_can_see_link(user_client: Client, job: Job) -> None:
 
     # Confirm that the link goes to the correct URL.
     expected_url = job.quote.url
-    assert link["href"] == expected_url
+    assert link["href"] == expected_url  # type: ignore[index]
 
 
 class TestQuoteDownloadLinkVisibility:

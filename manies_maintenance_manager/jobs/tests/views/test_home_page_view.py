@@ -891,7 +891,7 @@ def test_agents_link_points_to_agents_page(
     agents_link = soup.find("a", string="Agents")
 
     # The link should point to the 'agents' page
-    assert agents_link["href"] == reverse("jobs:agent_list")
+    assert agents_link["href"] == reverse("jobs:agent_list")  # type: ignore[index]
 
 
 def _maintenance_jobs_link_in_navbar_is_present(client: Client) -> bool:

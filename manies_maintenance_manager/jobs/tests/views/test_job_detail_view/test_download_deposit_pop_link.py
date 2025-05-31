@@ -60,7 +60,7 @@ def get_deposit_pop_link(user: User, job: Job) -> BeautifulSoup:
         BeautifulSoup: The BeautifulSoup object representing the link.
     """
     soup = fetch_job_detail_view_response(user, job)
-    return soup.find("a", string="Download Deposit POP")
+    return soup.find("a", string="Download Deposit POP")  # type: ignore[return-value]
 
 
 def test_agent_who_created_job_can_see_link(

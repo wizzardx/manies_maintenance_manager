@@ -168,7 +168,7 @@ class TestUserDetailView:
         Test the user_detail_view function for an authenticated user.
         """
         request = rf.get("/fake-url/")
-        request.user = UserFactory()
+        request.user = UserFactory()  # type: ignore[assignment,no-untyped-call]
         response = user_detail_view(request, username=user.username)
 
         assert response.status_code == HTTPStatus.OK

@@ -432,7 +432,7 @@ def test_maintenance_jobs_page_returns_correct_html(
     assert table, "Table element should exist in the HTML"
 
     # Check the table headers
-    headers = table.find_all("th")
+    headers = table.find_all("th")  # type: ignore[attr-defined]
     assert headers, "Table headers should exist in the HTML"
     assert [header.get_text(strip=True) for header in headers] == [
         "Number",

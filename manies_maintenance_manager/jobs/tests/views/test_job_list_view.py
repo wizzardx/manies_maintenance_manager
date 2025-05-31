@@ -302,14 +302,14 @@ class TestManieAccessingJobListView:
         table = soup.find("table")
 
         # Confirm the header row in the table has the expected columns:
-        header_row = table.find("tr")
+        header_row = table.find("tr")  # type: ignore[union-attr]
         assert header_row
         header_cells = header_row.find_all("th")
         header_cells_text_list = [cell.text for cell in header_cells]
         assert header_cells_text_list == JOB_LIST_TABLE_COLUMN_NAMES
 
         # Grab the first row, it contains our Job details:
-        first_row = table.find_all("tr")[1]
+        first_row = table.find_all("tr")[1]  # type: ignore[union-attr]
 
         # Grab the text from the cells in the row:
         first_row_text_list = [cell.text.strip() for cell in first_row.find_all("td")]
