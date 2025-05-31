@@ -1,0 +1,27 @@
+{
+  "output": {
+    "filePath": "repomix-output.xml",
+    "style": "xml",
+    "headerText": "This repository contains the source code for the project, excluding large navigation and test files.\n\nKey Files Excluded:\n- navigation_structure.yaml\n- test.html\n- test.json\n- navigation_structure_history\n\nPlease refer to the README.md file for more detailed information on the project structure and contents.\n",
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "topFilesLength": 10,
+    "showLineNumbers": false
+  },
+  "include": [
+    "**/*"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "manies_maintenance_manager/jobs/tests",
+      "manies_maintenance_manager/functional_tests",
+      ".pylintrc",
+      "**/django.po"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}
