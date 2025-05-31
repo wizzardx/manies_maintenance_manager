@@ -1,6 +1,6 @@
 """Fixtures for the functional tests of the Manie's Maintenance Manager project."""
 
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument,unnecessary-default-type-args
 
 import importlib
 from collections.abc import Generator

@@ -1,6 +1,6 @@
 """Tests for the accept_quote view."""
 
-# pylint: disable=magic-value-comparison,too-many-arguments
+# pylint: disable=magic-value-comparison,too-many-arguments,too-many-positional-arguments
 
 from uuid import UUID
 

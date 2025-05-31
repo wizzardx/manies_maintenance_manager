@@ -4,6 +4,8 @@ By other tests, I mean the unit tests and the integration tests.
 
 """
 
+# pylint: disable=unnecessary-default-type-args
+
 from collections.abc import Generator
 from contextlib import contextmanager
 

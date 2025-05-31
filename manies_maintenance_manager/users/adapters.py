@@ -1,5 +1,7 @@
 """Provide adapters for account and social account handling."""
 
+# pylint: disable=abstract-method
+
 from __future__ import annotations
 
 import typing

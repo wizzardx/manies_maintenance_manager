@@ -1,7 +1,7 @@
 """Tests for the utility functions in the "jobs" app."""
 
 # pylint: disable=no-self-use, magic-value-comparison, redefined-outer-name
-# pylint: disable=unused-argument, too-many-arguments
+# pylint: disable=unused-argument, too-many-arguments, too-many-positional-arguments
 # ruff: noqa: PLR0913
 
 import logging

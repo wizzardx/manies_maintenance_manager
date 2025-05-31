@@ -1,6 +1,6 @@
 """Unit tests for the Agent List view."""
 
-# pylint: disable=magic-value-comparison,unused-argument
+# pylint: disable=magic-value-comparison,unused-argument,line-too-long
 
 import bs4
 import pytest

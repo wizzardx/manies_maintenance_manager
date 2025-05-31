@@ -1,6 +1,6 @@
 """Unit tests for the job create view."""
 
-# pylint: disable=magic-value-comparison,no-self-use,unused-argument,too-many-arguments
+# pylint: disable=magic-value-comparison,no-self-use,unused-argument,too-many-arguments,too-many-positional-arguments
 
 from unittest.mock import patch
 

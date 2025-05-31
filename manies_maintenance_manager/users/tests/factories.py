@@ -1,5 +1,7 @@
 """Factory module for creating user instances for testing purposes."""
 
+# pylint: disable=line-too-long
+
 from collections.abc import Sequence
 
 from factory import Faker  # type: ignore[attr-defined]

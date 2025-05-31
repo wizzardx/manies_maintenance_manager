@@ -14,7 +14,7 @@ To execute these tests, run the following command:
     manies_maintenance_manager/jobs/tests/utils.py`
 """
 
-# pylint: disable=unused-argument,too-many-locals
+# pylint: disable=unused-argument,too-many-locals,too-many-positional-arguments
 
 from typing import Any
 

@@ -1,7 +1,7 @@
 """Utility functions for the "jobs" app views."""
 
 # ruff: noqa: PLR0913
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments,too-many-positional-arguments,unnecessary-default-type-args
 
 import logging
 import mimetypes

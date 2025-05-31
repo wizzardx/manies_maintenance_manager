@@ -1,5 +1,7 @@
 """Utility functions for the "jobs" app."""
 
+# pylint: disable=unnecessary-default-type-args
+
 import logging
 import os
 from collections.abc import Generator
