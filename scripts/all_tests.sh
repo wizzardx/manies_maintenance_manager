@@ -12,7 +12,8 @@ NC='\033[0m' # No Color
 
 # Initialize the global variables
 NUM_ERRORS=0
-STOP_ON_FIRST_ERROR="no"
+# STOP_ON_FIRST_ERROR="no"
+STOP_ON_FIRST_ERROR="yes"
 
 # Check for --stop-on-first-error or -s argument
 for arg in "$@";
