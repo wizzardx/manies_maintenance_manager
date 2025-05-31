@@ -47,3 +47,16 @@ if [[ ! -f "$LOCAL_ALREADY_INSTALLED_MARKER_FILE" || ! -f "$BASE_ALREADY_INSTALL
     touch "$BASE_ALREADY_INSTALLED_MARKER_FILE"
     touch "$PRODUCTION_ALREADY_INSTALLED_MARKER_FILE"
 fi
+
+# Use some tooling to capture the exact hashes.
+pip freeze > auto-generated-venv-requrements.txt
+pip install pip-tools
+
+# Later on these can supposedly be exactly restored like this:
+#
+#    ```
+#    python3 -m venv new_venv
+#    source new_venv/bin/activate
+#    pip install -r auto-generated-venv-requrements.txt
+#    ```
+#
