@@ -40,7 +40,7 @@ def test_creating_a_new_job_sets_an_agent_from_the_request(
 class TestOnlyLoggedInUsersCanAccessJobCreateView:
     """Ensure only logged-in users can access the job create view."""
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_anonymous_login_fails_to_access_job_create_view(
         self,
         client: Client,
@@ -70,7 +70,7 @@ class TestOnlyLoggedInUsersCanAccessJobCreateView:
 class TestJobCreateViewCanOnlyBeReachedByAgentsAndSuperuser:
     """Ensure job create view access is restricted to agents and superusers."""
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_access_by_anonymous_user_is_denied(self, client: Client) -> None:
         """Verify that anonymous users cannot access the job create view.
 
@@ -261,8 +261,7 @@ class TestAgentCreatingAJobShowsThemFlashMessages:
             "Please contact the system administrator at " + get_sysadmin_email()
         )
         expected_logged_error = (
-            "User manie has no email address. "
-            "Unable to send maintenance request email."
+            "User manie has no email address. Unable to send maintenance request email."
         )
 
         _check_creating_a_job_flashes_and_logs_errors(
@@ -403,7 +402,7 @@ def _check_one_error_logged_with_message(
     assert caplog.records[0].message == message
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_maintenance_jobs_page_returns_correct_html(
     bob_agent_user_client: Client,
 ) -> None:
@@ -453,7 +452,7 @@ def test_maintenance_jobs_page_returns_correct_html(
     ]
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_create_maintenance_job_page_returns_correct_html(
     bob_agent_user_client: Client,
 ) -> None:

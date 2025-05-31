@@ -35,7 +35,7 @@ UUID_REGEX = (
 BASIC_TEST_JPG_FILE_SIZE = 138782
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_job_id_field_is_uuid(bob_agent_user: User) -> None:
     """Ensure the 'id' field of a Job instance is a valid UUID.
 
@@ -318,7 +318,7 @@ def _create_three_test_jobs(
 class TestJobModelPerAgentAutoIncrementingNumberField:
     """Define tests for the Job model's auto-incrementing 'number' field per agent."""
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_number_field_auto_increment_per_agent(
         self,
         bob_agent_user: User,
@@ -336,7 +336,7 @@ class TestJobModelPerAgentAutoIncrementingNumberField:
         assert job2.number == 2  # noqa: PLR2004
         assert job3.number == 1
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_number_field_is_readonly(self) -> None:
         """Ensure the 'number' field is read-only in the Job model form."""
 
@@ -350,7 +350,7 @@ class TestJobModelPerAgentAutoIncrementingNumberField:
         form = JobForm()
         assert "number" not in form.fields
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_number_field_increment_only_within_agent(
         self,
         bob_agent_user: User,
@@ -595,7 +595,7 @@ class TestFinalPaymentPOPField:
         assert_pdf_field_validators(field)
 
 
-@pytest.fixture()
+@pytest.fixture
 def job_completion_photo(
     job_created_by_bob: Job,
     test_image: SimpleUploadedFile,
@@ -616,7 +616,7 @@ def job_completion_photo(
         )
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestJobCompletionPhoto:
     """Tests for the JobCompletionPhoto model."""
 

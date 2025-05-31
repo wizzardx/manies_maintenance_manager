@@ -61,7 +61,7 @@ def _get_full_window_chrome_browser() -> WebDriver:
     return driver
 
 
-@pytest.fixture()
+@pytest.fixture
 def browser() -> Iterator[WebDriver]:
     """Provide a configured Selenium WebDriver for testing in a Docker environment.
 
@@ -135,13 +135,13 @@ def _tidy_test_records(
     _clear_local_media_dir()
 
 
-TEST_SERVER = cast(str | None, env.str("TEST_SERVER", None))
+TEST_SERVER = cast("str | None", env.str("TEST_SERVER", None))
 
 # pylint: disable=consider-using-assignment-expr
 if TEST_SERVER:
     # pragma: no cover
 
-    @pytest.fixture()  # pragma: no cover
+    @pytest.fixture  # pragma: no cover
     # pylint: disable=redefined-outer-name
     def live_server_url(_tidy_test_records: None) -> str:  # pragma: no cover
         """Return the URL of the test server.
@@ -154,7 +154,7 @@ if TEST_SERVER:
 
 else:
 
-    @pytest.fixture()
+    @pytest.fixture
     # pylint: disable=redefined-outer-name
     def live_server_url(  # type: ignore[misc]
         live_server: LiveServer,
@@ -177,7 +177,7 @@ DATABASE_IS_EXISTING_EXTERNAL = env.bool("DATABASE_IS_EXISTING_EXTERNAL", False)
 if DATABASE_IS_EXISTING_EXTERNAL:
 
     @pytest.fixture(scope="session")  # pragma: no cover
-    def django_db_setup() -> None:  # noqa: PT004  # pragma: no cover
+    def django_db_setup() -> None:  # pragma: no cover
         """Ensure the database is not created or destroyed by Django."""
         # As per the guide here:
         # https://pytest-django.readthedocs.io/en/latest/database.html#using-an-existing-external-database-for-tests

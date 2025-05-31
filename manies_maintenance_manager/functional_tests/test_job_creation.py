@@ -15,7 +15,7 @@ from manies_maintenance_manager.functional_tests.utils.job_creation import (
 from manies_maintenance_manager.users.models import User
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_existing_agent_user_can_login_and_create_a_new_maintenance_job_and_logout(
     browser: WebDriver,
     live_server_url: str,

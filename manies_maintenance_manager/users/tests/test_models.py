@@ -115,7 +115,7 @@ def test_is_agent_valid_when_manie_user_is_present(
     _create_bob_agent_user(django_user_model)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_user_model_has_uuid_id(user: User) -> None:
     """Verify that the User model's primary key is a UUID.
 

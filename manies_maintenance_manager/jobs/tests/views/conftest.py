@@ -12,7 +12,7 @@ from manies_maintenance_manager.jobs.utils import safe_read
 from manies_maintenance_manager.users.models import User
 
 
-@pytest.fixture()
+@pytest.fixture
 def job_created_by_bob(bob_agent_user: User) -> Job:
     """Create a job instance for Bob the agent.
 
@@ -32,7 +32,7 @@ def job_created_by_bob(bob_agent_user: User) -> Job:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def job_created_by_alice(alice_agent_user: User) -> Job:
     """Create a job instance for Alice the agent.
 
@@ -52,7 +52,7 @@ def job_created_by_alice(alice_agent_user: User) -> Job:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_job_with_quote(
     bob_job_with_initial_manie_inspection: Job,
     test_pdf: SimpleUploadedFile,
@@ -75,7 +75,7 @@ def bob_job_with_quote(
     return job
 
 
-@pytest.fixture()
+@pytest.fixture
 def job_rejected_by_bob(bob_job_with_quote: Job) -> Job:
     """Return a job where Bob has rejected the quote.
 
@@ -93,7 +93,7 @@ def job_rejected_by_bob(bob_job_with_quote: Job) -> Job:
     return job
 
 
-@pytest.fixture()
+@pytest.fixture
 def job_accepted_by_bob(bob_job_with_quote: Job) -> Job:
     """Return a job where Bob has accepted the quote.
 
@@ -110,7 +110,7 @@ def job_accepted_by_bob(bob_job_with_quote: Job) -> Job:
     return job
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_job_with_deposit_pop(
     job_accepted_by_bob: Job,
     test_pdf: SimpleUploadedFile,
@@ -139,7 +139,7 @@ def bob_job_with_deposit_pop(
 BOB_JOB_COMPLETED_BY_MANIE_NUM_PHOTOS = 2
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_job_with_onsite_work_completed_by_manie(
     bob_job_with_deposit_pop: Job,
 ) -> Job:
@@ -169,7 +169,7 @@ def bob_job_with_onsite_work_completed_by_manie(
     return job
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_job_with_manie_final_documentation(
     bob_job_with_onsite_work_completed_by_manie: Job,
     test_pdf: SimpleUploadedFile,
@@ -213,7 +213,7 @@ def bob_job_with_manie_final_documentation(
     return job
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_job_with_final_payment_pop(
     bob_job_with_manie_final_documentation: Job,
     test_pdf: SimpleUploadedFile,

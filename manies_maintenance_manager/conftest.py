@@ -34,7 +34,7 @@ def _media_storage(
 
 
 # noinspection PyUnusedLocal
-@pytest.fixture()
+@pytest.fixture
 def user(db: None) -> User:  # pylint: disable=unused-argument
     """Provide a User instance from the UserFactory for use in tests.
 
@@ -50,7 +50,7 @@ def user(db: None) -> User:  # pylint: disable=unused-argument
     return UserFactory()  # type: ignore[return-value, no-untyped-call]
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_agent_user(django_user_model: type[User]) -> User:
     """Create a user fixture named 'bob' for testing job creation and login.
 
@@ -63,7 +63,7 @@ def bob_agent_user(django_user_model: type[User]) -> User:
     return make_test_user(django_user_model, "bob", is_agent=True)
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_agent_user_without_verified_email(django_user_model: type[User]) -> User:
     """Create a user fixture named 'bob' for testing job creation and login.
 
@@ -76,7 +76,7 @@ def bob_agent_user_without_verified_email(django_user_model: type[User]) -> User
     return make_test_user(django_user_model, "bob", is_agent=True, email_verified=False)
 
 
-@pytest.fixture()
+@pytest.fixture
 def alice_agent_user(django_user_model: type[User]) -> User:
     """Create a user fixture named 'alice' for testing job creation and login.
 
@@ -89,7 +89,7 @@ def alice_agent_user(django_user_model: type[User]) -> User:
     return make_test_user(django_user_model, "alice", is_agent=True)
 
 
-@pytest.fixture()
+@pytest.fixture
 def manie_user(django_user_model: type[User]) -> User:
     """Create a user fixture named 'manie' for testing job creation and login.
 
@@ -102,7 +102,7 @@ def manie_user(django_user_model: type[User]) -> User:
     return make_test_user(django_user_model, "manie", is_manie=True)
 
 
-@pytest.fixture()
+@pytest.fixture
 def manie_user_without_verified_email(django_user_model: type[User]) -> User:
     """Create a user fixture named 'manie' for testing job creation and login.
 
@@ -120,7 +120,7 @@ def manie_user_without_verified_email(django_user_model: type[User]) -> User:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def superuser_user(django_user_model: type[User]) -> User:
     """Create a superuser fixture for testing administrative privileges.
 
@@ -133,7 +133,7 @@ def superuser_user(django_user_model: type[User]) -> User:
     return make_test_user(django_user_model, "admin", is_superuser=True)
 
 
-@pytest.fixture()
+@pytest.fixture
 def manie_user_client(manie_user: User) -> Client:
     """Generate a logged-in test client for user Manie.
 
@@ -149,7 +149,7 @@ def manie_user_client(manie_user: User) -> Client:
     return client
 
 
-@pytest.fixture()
+@pytest.fixture
 def unknown_user(django_user_model: type[User]) -> User:
     """Create a user fixture named 'unknown' for testing job creation and login.
 
@@ -162,7 +162,7 @@ def unknown_user(django_user_model: type[User]) -> User:
     return make_test_user(django_user_model, "unknown")
 
 
-@pytest.fixture()
+@pytest.fixture
 def unknown_user_client(unknown_user: User) -> Client:
     """Generate a logged-in test client for an unknown user.
 
@@ -178,7 +178,7 @@ def unknown_user_client(unknown_user: User) -> Client:
     return client
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_agent_user_client(bob_agent_user: User) -> Client:
     """Provide a logged-in test client for agent user Bob.
 

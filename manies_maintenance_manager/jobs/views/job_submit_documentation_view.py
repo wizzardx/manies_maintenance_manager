@@ -72,7 +72,7 @@ class JobSubmitDocumentationView(
         photo_formset = context["photo_formset"]
 
         if not (form.is_valid() and photo_formset.is_valid()):
-            form2 = cast(dict[str, Any], form)
+            form2 = cast("dict[str, Any]", form)
             return self.render_to_response(self.get_context_data(form=form2))
 
         # Associate each photo with the job before saving the formset

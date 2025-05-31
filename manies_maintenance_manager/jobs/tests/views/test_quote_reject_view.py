@@ -23,7 +23,7 @@ from manies_maintenance_manager.jobs.tests.views.utils import (
 from manies_maintenance_manager.users.models import User
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_gets_redirected_to_login_for_anonymous_user(client: Client) -> None:
     """Ensure that an anonymous user is redirected to the login page.
 

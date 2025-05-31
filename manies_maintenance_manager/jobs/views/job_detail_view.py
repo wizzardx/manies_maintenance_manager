@@ -85,16 +85,12 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):  # typ
         # done at the job site. This link only shows up when the agent has uploaded a
         # proof of payment for the deposit.
         complete_onsite_work_link_present = (
-            job.status == Job.Status.DEPOSIT_POP_UPLOADED.value
-            and user.is_manie
-            or user.is_superuser
-        )
+            job.status == Job.Status.DEPOSIT_POP_UPLOADED.value and user.is_manie
+        ) or user.is_superuser
 
         submit_job_documentation_link_present = (
-            job.status == Job.Status.MANIE_COMPLETED_ONSITE_WORK.value
-            and user.is_manie
-            or user.is_superuser
-        )
+            job.status == Job.Status.MANIE_COMPLETED_ONSITE_WORK.value and user.is_manie
+        ) or user.is_superuser
 
         upload_final_payment_pop_link_present = (
             job.status == Job.Status.MANIE_SUBMITTED_DOCUMENTATION.value

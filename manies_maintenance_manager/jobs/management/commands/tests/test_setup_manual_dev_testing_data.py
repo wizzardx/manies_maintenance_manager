@@ -13,7 +13,7 @@ from manies_maintenance_manager.users.models import User
 Command = setup_manual_dev_testing_data.Command
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_create_admin_user_creates_david_with_admin_panel_access() -> None:
     """Ensure the 'david' user is created with access to the admin panel."""
     # Simulate running the admin command:
@@ -28,7 +28,7 @@ def test_create_admin_user_creates_david_with_admin_panel_access() -> None:
     assert david.is_staff is True
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_running_command_twice_causes_user_already_exists_messages_to_be_logged(
     caplog: LogCaptureFixture,
 ) -> None:

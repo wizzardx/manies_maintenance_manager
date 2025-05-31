@@ -92,7 +92,7 @@ class TestAssertNoFormErrors:
         utils.assert_no_form_errors(mock_response)  # Should not raise
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_prepare_and_send_email_with_unknown_attachment_type(
     mocker: pytest_mock.MockFixture,
     manie_user: User,  # pylint: disable=unused-argument
@@ -118,7 +118,7 @@ def test_prepare_and_send_email_with_unknown_attachment_type(
         )
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_prepare_and_send_email_quote(mocker: pytest_mock.MockFixture) -> None:
     """Test the 'QUOTE' branch of the prepare_and_send_email function.
 
@@ -159,7 +159,7 @@ def test_prepare_and_send_email_quote(mocker: pytest_mock.MockFixture) -> None:
     views_utils.safe_read.assert_called_once()  # type: ignore[attr-defined]
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_prepare_and_send_email_none(mocker: pytest_mock.MockFixture) -> None:
     """Test the 'NONE' branch of the prepare_and_send_email function.
 
@@ -195,7 +195,7 @@ def test_prepare_and_send_email_none(mocker: pytest_mock.MockFixture) -> None:
     views_utils.get_manie_email.assert_called_once()  # type: ignore[attr-defined]  # pylint: disable=no-member
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_prepare_and_send_email_invoice_and_photos(
     mocker: pytest_mock.MockFixture,
 ) -> None:

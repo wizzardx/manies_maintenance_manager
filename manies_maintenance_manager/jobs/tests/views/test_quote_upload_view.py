@@ -367,7 +367,7 @@ def test_clicking_save_redirects_to_job_listing_page(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_response_to_manie_uploading_a_quote(
     bob_job_with_initial_manie_inspection: Job,
     bob_job_upload_quote_url: str,
@@ -411,7 +411,7 @@ def http_response_to_manie_uploading_a_quote(
     return response
 
 
-@pytest.fixture()
+@pytest.fixture
 def flashed_message_after_uploading_a_quote(
     http_response_to_manie_uploading_a_quote: TemplateResponse,
 ) -> Message:

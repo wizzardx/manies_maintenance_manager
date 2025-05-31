@@ -27,7 +27,7 @@ from manies_maintenance_manager.jobs.views.utils import send_quote_update_email
 from manies_maintenance_manager.users.models import User
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestGetManieEmail:
     """Tests for the get_manie_email utility function."""
 
@@ -72,7 +72,7 @@ class TestGetManieEmail:
             utils.get_manie_email()
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestGetSystemAdministratorEmail:
     """Tests for the get_sysadmin_email utility function."""
 
@@ -195,7 +195,7 @@ class TestGetTestUserPassword:
             utils.get_test_user_password(key=varname)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestMakeTestUser:
     """Tests for the make_test_user utility function."""
 
@@ -269,7 +269,7 @@ class TestMakeTestUser:
         assert returned_user == user
 
 
-@pytest.fixture()
+@pytest.fixture
 def job() -> mock.Mock:
     """Return a mock of the Job object.
 
@@ -282,7 +282,7 @@ def job() -> mock.Mock:
     return job
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_request() -> HttpRequest:
     """Return a mock of the HttpRequest object.
 
@@ -485,7 +485,7 @@ class TestSuppressFastdevStrictIfDeprecationWarning:
             assert len(record) == 1
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 @mock.patch("manies_maintenance_manager.jobs.utils.get_object_or_404")
 @mock.patch("manies_maintenance_manager.jobs.utils.get_manie_email")
 @mock.patch("manies_maintenance_manager.jobs.utils.generate_email_body")

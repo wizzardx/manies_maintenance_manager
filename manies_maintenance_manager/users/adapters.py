@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
     from allauth.socialaccount.models import SocialLogin
     from django.http import HttpRequest
 
-    from manies_maintenance_manager.users.models import User  # noqa: TCH004
+    from manies_maintenance_manager.users.models import User  # noqa: TC004
 
 
 class AccountAdapter(DefaultAccountAdapter):  # type: ignore[misc]

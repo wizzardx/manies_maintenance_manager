@@ -21,7 +21,7 @@ from manies_maintenance_manager.jobs.utils import safe_read
 from manies_maintenance_manager.users.models import User
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_gets_are_not_permitted_for_anonymous_user(client: Client) -> None:
     """Test permission denied for anonymous user access to private media files.
 

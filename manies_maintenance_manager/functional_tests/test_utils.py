@@ -18,7 +18,7 @@ from manies_maintenance_manager.functional_tests.utils.date_utils import (
 
 # Mock the subprocess.run function to simulate different command outputs and return
 # codes
-@pytest.fixture()
+@pytest.fixture
 def mock_subprocess_run(mocker: MockerFixture) -> Callable[..., MagicMock]:
     """Fixture to mock the subprocess.run function.
 

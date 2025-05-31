@@ -280,7 +280,7 @@ def test_clicking_save_redirects_to_job_listing_page(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_response_to_manie_inspecting_site_of_job_by_bob(
     job_created_by_bob: Job,
     bob_job_complete_inspection_url: str,
@@ -319,7 +319,7 @@ def http_response_to_manie_inspecting_site_of_job_by_bob(
     return response
 
 
-@pytest.fixture()
+@pytest.fixture
 def flashed_message_after_inspecting_a_site(
     http_response_to_manie_inspecting_site_of_job_by_bob: TemplateResponse,
 ) -> Message:
@@ -398,7 +398,7 @@ def test_manie_clicking_save_sends_an_email_to_agent(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def log_capture(caplog: pytest.LogCaptureFixture) -> Iterator[pytest.LogCaptureFixture]:
     """Capture logs for testing.
 

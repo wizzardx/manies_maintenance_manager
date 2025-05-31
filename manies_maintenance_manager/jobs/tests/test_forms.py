@@ -89,7 +89,7 @@ class TestQuoteUploadForm:
         assert not job.quote
         assert job.quote.name == ""
 
-        file_data = cast(MultiValueDict[str, UploadedFile], {"quote": test_pdf})
+        file_data = cast("MultiValueDict[str, UploadedFile]", {"quote": test_pdf})
         form = QuoteUploadForm(instance=job, files=file_data)
         assert form.is_valid(), form.errors
         with safe_read(test_pdf):

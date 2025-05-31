@@ -43,7 +43,7 @@ USER_EMAIL_PROBLEM_TEMPLATE_MESSAGES = {
 class TestBasicHomePageText:
     """Test the basic welcome text on the home page."""
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_basic_welcome_text(self, client: Client) -> None:
         """Test the basic welcome text on the home page.
 
@@ -56,7 +56,7 @@ class TestBasicHomePageText:
             response.content.decode(),
         )
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_generic_django_cookicutter_text_not_displayed(
         self,
         client: Client,
@@ -73,7 +73,7 @@ class TestBasicHomePageText:
             not in response.content.decode()
         )
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_not_signed_in(self, client: Client) -> None:
         """Test the home page for an unknown user.
 
@@ -91,7 +91,7 @@ class TestBasicHomePageText:
             in response.content.decode()
         )
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_manie_signed_in(self, manie_user_client: Client) -> None:
         """Test the home page for Manie.
 
@@ -106,7 +106,7 @@ class TestBasicHomePageText:
             in response.content.decode()
         )
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_agent_signed_in(self, bob_agent_user_client: Client) -> None:
         """Test the home page for an agent user.
 
@@ -121,7 +121,7 @@ class TestBasicHomePageText:
             in response.content.decode()
         )
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_unknown_user_signed_in(self, unknown_user_client: Client) -> None:
         """Test the home page for an unknown user.
 
@@ -157,7 +157,7 @@ def test_limited_number_of_queries_on_home_page_for_admin_user(
         superuser_client.get(reverse("home"))
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_home_page_returns_correct_html(client: Client) -> None:
     """Verify that the home page renders correctly.
 
@@ -476,7 +476,7 @@ class TestAdminSpecificHomePageWarnings:
             not in response.content.decode()
         )
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_no_warning_for_no_agent_users_when_i_am_not_admin(
         self,
         client: Client,
@@ -521,7 +521,7 @@ class TestAdminSpecificHomePageWarnings:
         expected_msg = expected_msg_template.format(username=username)
         assert expected_msg in response.content.decode()
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_no_missing_email_warning_for_users_with_email(
         self,
         admin_client: Client,
@@ -540,7 +540,7 @@ class TestAdminSpecificHomePageWarnings:
         expected_msg = expected_msg_template.format(username=username)
         assert expected_msg not in response.content.decode()
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_no_warning_for_users_with_no_email_addresses_when_i_am_not_admin(
         self,
         client: Client,
@@ -615,7 +615,7 @@ class TestAdminSpecificHomePageWarnings:
 
         assert expected_msg not in response.content.decode()
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_no_warning_verified_email_non_admin(self, client: Client) -> None:
         """Test warning for users with verified email addresses.
 
@@ -702,7 +702,7 @@ class TestAdminSpecificHomePageWarnings:
         expected_msg = expected_msg_template.format(username=username)
         assert expected_msg not in response.content.decode()
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_no_warning_for_no_primary_email_address_when_non_admin(
         self,
         client: Client,
@@ -794,7 +794,7 @@ def _create_user_and_check_no_primary_email_warning(
     return expected_msg, response2
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_maintenance_jobs_link_in_navbar_is_present_for_logged_in_agent_users(
     client: Client,
     bob_agent_user: User,
@@ -813,7 +813,7 @@ def test_maintenance_jobs_link_in_navbar_is_present_for_logged_in_agent_users(
     assert _maintenance_jobs_link_in_navbar_is_present(client)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_maintenance_jobs_link_in_navbar_is_not_present_for_logged_out_users(
     client: Client,
 ) -> None:

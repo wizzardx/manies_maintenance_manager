@@ -27,7 +27,7 @@ HTML_FOR_FINAL_PAYMENT_POP_DOWNLOAD_TEMPLATE = (
 )
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestOnlySomeUsersCanAccessJobListView:
     """Test access levels to the job list view based on user roles."""
 
@@ -564,7 +564,7 @@ def get_job_list_response(
     assert response.status_code == status.HTTP_200_OK
     job_list = response.context["job_list"]
     retval = (response, job_list)
-    return cast(tuple[TemplateResponse, QuerySet[Job]], retval)
+    return cast("tuple[TemplateResponse, QuerySet[Job]]", retval)
 
 
 def test_download_link_is_not_present_when_final_payment_pop_is_not_set(

@@ -46,7 +46,7 @@ def test_none_manie_user_cannot_reach_agents_view(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_anonymous_user_cannot_reach_agents_view(client: Client) -> None:
     """Ensure anonymous users cannot access the agents view.
 

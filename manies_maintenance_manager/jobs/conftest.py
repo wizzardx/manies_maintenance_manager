@@ -15,7 +15,7 @@ from manies_maintenance_manager.jobs.utils import get_test_user_password
 from manies_maintenance_manager.users.models import User
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_agent_user_without_verified_email_client(
     client: Client,
     bob_agent_user_without_verified_email: User,
@@ -36,7 +36,7 @@ def bob_agent_user_without_verified_email_client(
     return client
 
 
-@pytest.fixture()
+@pytest.fixture
 def alice_agent_user_client(client: Client, alice_agent_user: User) -> Client:
     """Supply a logged-in test client for agent user Alice.
 
@@ -52,7 +52,7 @@ def alice_agent_user_client(client: Client, alice_agent_user: User) -> Client:
     return client
 
 
-@pytest.fixture()
+@pytest.fixture
 def superuser_client(client: Client, superuser_user: User) -> Client:
     """Create a logged-in test client for a superuser.
 
@@ -68,7 +68,7 @@ def superuser_client(client: Client, superuser_user: User) -> Client:
     return client
 
 
-@pytest.fixture()
+@pytest.fixture
 def job_created_by_bob(bob_agent_user: User) -> Job:
     """Create a job instance, itself created by Bob.
 
@@ -91,7 +91,7 @@ def job_created_by_bob(bob_agent_user: User) -> Job:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_job_with_initial_manie_inspection(
     job_created_by_bob: Job,
     manie_user_client: Client,
@@ -138,7 +138,7 @@ def bob_job_with_initial_manie_inspection(
     return job
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_job_complete_inspection_url(job_created_by_bob: Job) -> str:
     """Return the URL for "site inspection complete" view for the job created by Bob.
 
@@ -151,7 +151,7 @@ def bob_job_complete_inspection_url(job_created_by_bob: Job) -> str:
     return reverse("jobs:job_complete_inspection", kwargs={"pk": job_created_by_bob.pk})
 
 
-@pytest.fixture()
+@pytest.fixture
 def bob_job_upload_quote_url(bob_job_with_initial_manie_inspection: Job) -> str:
     """Return the URL for "upload quote" view for the job created by Bob.
 
