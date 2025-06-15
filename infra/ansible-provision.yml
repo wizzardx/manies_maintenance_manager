@@ -1,6 +1,8 @@
 ---
 - name: Perform local operations
   hosts: localhost
+  connection: local
+  gather_facts: yes
   vars:
     images:
       - name: manies_maintenance_manager_{{ deploy_env }}_django
