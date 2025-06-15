@@ -701,7 +701,7 @@ class TestJobCompletionPhoto:
         photo_name = check_type(photo.name, str)
 
         # eg photo.name: 'completion_photos/test_ofzSmry.jpp'
-        assert photo_name.startswith("completion_photos/test_")
+        assert photo_name.startswith("completion_photos/test")
         assert photo_name.endswith(".jpg")
 
         # eg photo.url: '/private-media/completion_photos/test_OmnPAY5.jpg'

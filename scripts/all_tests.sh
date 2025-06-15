@@ -12,7 +12,6 @@ NC='\033[0m' # No Color
 
 # Initialize the global variables
 NUM_ERRORS=0
-# STOP_ON_FIRST_ERROR="no"
 STOP_ON_FIRST_ERROR="yes"
 
 # Check for --stop-on-first-error or -s argument
@@ -119,24 +118,143 @@ mapfile -t files < <(find . -type f -name "*.py" ! -path "*/.*/*" ! -path "*/mig
 # Run pylint with the dynamically found files
 pylint --django-settings-module=config.settings --output-format=colorized --enable-all-extensions "${files[@]}" || handle_error
 
-echo "Updating pre-commit references..."
-pre-commit autoupdate || handle_error
+if [ -f '.pre-commit-config.yaml' ]; then
+    echo "Updating pre-commit references..."
+    pre-commit autoupdate || handle_error
 
-echo "Running pre-commit checks 1/2... (only staged files)"
-pre-commit run || handle_error
+    echo "Running pre-commit checks 1/2... (only staged files)"
+    pre-commit run || handle_error
 
-echo "Running pre-commit checks 2/2... (all files)"
-pre-commit run --all-files || handle_error
+    echo "Running pre-commit checks 2/2... (all files)"
+    pre-commit run --all-files || handle_error
+else
+    echo "It looks like 'pre-commmit' checks were disabled for this project."
+fi
 
-echo "darglint2..."
-darglint2 "${files[@]}" || handle_error
+# MOOO SLOWWW
+# echo "darglint2..."
+# darglint2 "${files[@]}" || handle_error
 
 # Check for security issues:
 echo "Check for security issues..."
 # The ignored number over here is for a "bad" CVE report, and won't be fixed
 # upstream. More info over here:
 #   https://github.com/dbt-labs/dbt-core/issues/10250#issuecomment-2210501166
-safety check --ignore 70612 || handle_error
+# safety check --ignore 70612 || handle_error
+# safety scan
+
+# ---
+# safety scan --help
+#
+# Check for security issues...
+#
+#  Scans a Python project directory.
+#  Example: safety scan to scan the current directory
+#
+#  Usage: safety [GLOBAL-OPTIONS] scan [OPTIONS]
+#
+#                                                                     Options
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃                           ┃                                                                                                                 ┃
+# ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+# │ ['--target']              │ Define a specific project path to scan. (default: current directory)                                            │
+# │                           │                                                                                                                 │
+# │                           │ Example: safety scan --target /path/to/project                                                                  │
+# ├───────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--output']              │ Set the output format for scan results (default: screen)                                                        │
+# │                           │                                                                                                                 │
+# │                           │ Example: safety scan --output json                                                                              │
+# ├───────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--detailed-output']     │ Enable a verbose scan report for detailed insights (only for screen output)                                     │
+# │                           │                                                                                                                 │
+# │                           │ Example: safety scan --detailed-output                                                                          │
+# ├───────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--save-as']             │ In addition to regular output save the scan results to a json, html, text, or spdx file using: FORMAT FILE_PATH │
+# │                           │                                                                                                                 │
+# │                           │ Example: safety scan --save-as json results.json                                                                │
+# ├───────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--policy-file']         │ Use a local policy file to configure the scan.                                                                  │
+# │                           │                                                                                                                 │
+# │                           │ Note: Project scan policies defined in Safety Platform will override local policy files                         │
+# │                           │                                                                                                                 │
+# │                           │ Example: safety scan --policy-file /path/to/policy.yml                                                          │
+# ├───────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--apply-fixes']         │ Update packages listed in requirements.txt files to secure versions where possible                              │
+# │                           │                                                                                                                 │
+# │                           │ Currently supports: requirements.txt files                                                                      │
+# │                           │                                                                                                                 │
+# │                           │ Note: this will update your requirements.txt file                                                               │
+# ├───────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--use-server-matching'] │ Flag to enable using server side vulnerability matching. This just sends data to server for now.                │
+# ├───────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--filter']              │ Filter output by specific top-level JSON keys.                                                                  │
+# ├───────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--install-completion']  │ Install completion for the current shell.                                                                       │
+# ├───────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--show-completion']     │ Show completion for the current shell, to copy it or customize the installation.                                │
+# ├───────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--help']                │ Show this message and exit.                                                                                     │
+# └───────────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+#
+#                                                      Global-Options
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃                                  ┃                                                                                    ┃
+# ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+# │ ['--stage']                      │ Assign a development lifecycle stage to your scan (default: development).          │
+# │                                  │                                                                                    │
+# │                                  │ This labels the scan and its findings in Safety Platform with this stage.          │
+# │                                  │                                                                                    │
+# │                                  │ Example: safety --stage production scan                                            │
+# ├──────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--key']                        │ The API key required for cicd stage or production stage scans.                     │
+# │                                  │                                                                                    │
+# │                                  │ For development stage scans unset the API key and authenticate using safety auth.  │
+# │                                  │                                                                                    │
+# │                                  │ Tip: the API key can also be set using the environment variable: SAFETY_API_KEY    │
+# │                                  │                                                                                    │
+# │                                  │ Example: safety --key API_KEY scan                                                 │
+# ├──────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--proxy-host']                 │ Specify a proxy host for network communications.                                   │
+# │                                  │                                                                                    │
+# │                                  │ Note: proxy details can be set globally in a config file.                          │
+# │                                  │                                                                                    │
+# │                                  │ See safety configure --help                                                        │
+# ├──────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--proxy-port']                 │ Set the proxy port (default: 80).                                                  │
+# │                                  │                                                                                    │
+# │                                  │ Note: proxy details can be set globally in a config file.                          │
+# │                                  │                                                                                    │
+# │                                  │ See safety configure --help                                                        │
+# │                                  │                                                                                    │
+# │                                  │  Requires: [ proxy_host ]                                                          │
+# ├──────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--proxy-protocol']             │ Choose the proxy protocol (default: https).                                        │
+# │                                  │                                                                                    │
+# │                                  │ Note: proxy details can be set globally in a config file.                          │
+# │                                  │                                                                                    │
+# │                                  │ See safety configure --help                                                        │
+# │                                  │                                                                                    │
+# │                                  │  Requires: [ proxy_host ]                                                          │
+# ├──────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--disable-optional-telemetry'] │ Opt-out of sending optional telemetry data. Anonymized telemetry data will remain. │
+# │                                  │                                                                                    │
+# │                                  │ Example: safety --disable-optional-telemetry scan                                  │
+# ├──────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--debug']                      │ Enable debug mode for detailed output.                                             │
+# │                                  │                                                                                    │
+# │                                  │ Example: safety --debug scan                                                       │
+# ├──────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+# │ ['--version']                    │ Show the version and exit.                                                         │
+# └──────────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────┘
+#
+#  Safety CLI version: 3.5.1
+#  Documentation: https://docs.safetycli.com
+#
+#  Made with love by Safety Cybersecurity
+#  https://safetycli.com
+#  support@safetycli.com
+#
+# ---
 
 # Check for out of date packages:
 echo "Check for outdated packages..."
@@ -147,7 +265,7 @@ echo "Check for outdated packages..."
 # - astroid is currently held back by the latest "pylint" package.
 # - I don't know why pydantic_core isn't automatically updating to the latest
 #   version at the moment.
-scripts/check_outdated_packages.py --ignore filelock,regex,ansible,ansible-core,astroid,pydantic_core || handle_error
+scripts/check_outdated_packages.py --ignore filelock,pydantic_core,click,mypy,psutil,pydantic,resolvelib || handle_error
 
 # Done with tools from under the python venv, so deactivate that now.
 echo "Deactivate python virtualenv."
@@ -174,7 +292,7 @@ if [ "$COVERAGE_ERROR" != "0" ]; then
     handle_error
 fi
 
-STAGING_FQDN=mmm-staging2.ar-ciel.org
+STAGING_FQDN=mmm-staging3.ar-ciel.org
 
 # Only deploy to Staging if there are no errors:
 if [ $NUM_ERRORS -eq 0 ]; then

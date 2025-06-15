@@ -179,6 +179,14 @@
         dest: /opt/docker/.envs/.{{ deploy_env }}/.testing
       become: true
 
+    - name: Update ALLOWED_HOSTS in Django environment file
+      ansible.builtin.lineinfile:
+        path: /opt/docker/.envs/.{{ deploy_env }}/.django
+        regexp: '^DJANGO_ALLOWED_HOSTS='
+        line: "DJANGO_ALLOWED_HOSTS=.{{ inventory_hostname }},localhost,127.0.0.1,[::1]"
+        state: present
+      become: true
+
     - name: Remove existing tar files if they exist
       ansible.builtin.command:
         cmd: rm -f /opt/docker/{{ item.name }}-img.tar
@@ -315,3 +323,10 @@
       become: true
       args:
         _uses_shell: true
+
+    - name: Add user to docker group
+      ansible.builtin.user:
+        name: david
+        groups: docker
+        append: yes
+      become: true
