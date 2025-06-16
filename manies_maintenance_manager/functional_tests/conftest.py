@@ -156,7 +156,7 @@ else:
 
     @pytest.fixture
     # pylint: disable=redefined-outer-name
-    def live_server_url(  # type: ignore[misc]
+    def live_server_url(
         live_server: LiveServer,
         _tidy_test_records: None,
     ) -> str:  # type ignore[misc]

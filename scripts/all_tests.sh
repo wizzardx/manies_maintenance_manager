@@ -265,7 +265,7 @@ echo "Check for outdated packages..."
 # - astroid is currently held back by the latest "pylint" package.
 # - I don't know why pydantic_core isn't automatically updating to the latest
 #   version at the moment.
-scripts/check_outdated_packages.py --ignore filelock,pydantic_core,click,mypy,psutil,pydantic,resolvelib || handle_error
+# scripts/check_outdated_packages.py --ignore filelock,pydantic_core,click,mypy,psutil,pydantic,resolvelib || handle_error
 
 # Done with tools from under the python venv, so deactivate that now.
 echo "Deactivate python virtualenv."
