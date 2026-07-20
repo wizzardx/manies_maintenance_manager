@@ -63,9 +63,9 @@ def check_basic_page_html_structure(  # noqa: PLR0913
         HttpResponse: The response object from the client.
     """
     response = client.get(url)
-    assert (
-        response.status_code == HTTP_SUCCESS_STATUS_CODE
-    ), f"Expected HTTP code 200, but got {response.status_code}"
+    assert response.status_code == HTTP_SUCCESS_STATUS_CODE, (
+        f"Expected HTTP code 200, but got {response.status_code}"
+    )
 
     # Parse HTML so that we can check for specific elements
     response_text = response.content.decode()
@@ -75,9 +75,9 @@ def check_basic_page_html_structure(  # noqa: PLR0913
     title_tag = soup.find("title")
     assert title_tag, "Title tag should exist in the HTML"
     title_tag_text = title_tag.get_text(strip=True)
-    assert (
-        title_tag_text == expected_title
-    ), f"Expected title {expected_title!r}, got {title_tag_text!r}"
+    assert title_tag_text == expected_title, (
+        f"Expected title {expected_title!r}, got {title_tag_text!r}"
+    )
 
     # Check a h1 tag
     if expected_h1_text is not None:
@@ -91,23 +91,23 @@ def check_basic_page_html_structure(  # noqa: PLR0913
     assert "</html>" in response_text
 
     # Verify that the correct template was used
-    assert expected_template_name in [
-        t.name for t in response.templates
-    ], f"Expected template {expected_template_name} not used"
+    assert expected_template_name in [t.name for t in response.templates], (
+        f"Expected template {expected_template_name} not used"
+    )
 
     # Validate details about the view function used to handle the route
-    assert (
-        response.resolver_match.func.__name__ == expected_func_name
-    ), f"Found {response.resolver_match.func.__name__} instead of {expected_func_name}"
-    assert (
-        response.resolver_match.url_name == expected_url_name
-    ), f"Found {response.resolver_match.url_name} instead of {expected_url_name}"
+    assert response.resolver_match.func.__name__ == expected_func_name, (
+        f"Found {response.resolver_match.func.__name__} instead of {expected_func_name}"
+    )
+    assert response.resolver_match.url_name == expected_url_name, (
+        f"Found {response.resolver_match.url_name} instead of {expected_url_name}"
+    )
     if expected_view_class is not None:
         func = response.resolver_match.func
         view_class = func.view_class  # type: ignore[attr-defined]
-        assert (
-            view_class == expected_view_class
-        ), f"Found {view_class} instead of {expected_view_class}"
+        assert view_class == expected_view_class, (
+            f"Found {view_class} instead of {expected_view_class}"
+        )
 
     return check_type(response, HttpResponse)
 
@@ -272,9 +272,9 @@ def post_update_request_and_check_errors(
     assert response.status_code == status.HTTP_200_OK
 
     # Check the redirect chain that leads things up to here:
-    assert (
-        response.redirect_chain == []
-    ), "There is a redirect chain, so there wasn't an error?"
+    assert response.redirect_chain == [], (
+        "There is a redirect chain, so there wasn't an error?"
+    )
 
     # Check that the expected error is present.
     form_errors = response.context["form"].errors

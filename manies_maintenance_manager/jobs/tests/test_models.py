@@ -91,9 +91,9 @@ def test_agent_field_is_not_editable(bob_agent_user: User) -> None:
     form = JobForm(instance=job)
 
     # Check that the 'agent' field is not present:
-    assert (
-        "agent" not in form.fields
-    ), "The 'agent' field should not be present in the form"
+    assert "agent" not in form.fields, (
+        "The 'agent' field should not be present in the form"
+    )
 
 
 class TestJobAgentMustBeAUserOfTypeAgent:

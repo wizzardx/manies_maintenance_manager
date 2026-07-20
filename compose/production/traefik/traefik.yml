@@ -37,6 +37,15 @@ http:
       tls:
         # https://doc.traefik.io/traefik/routing/routers/#certresolver
         certResolver: letsencrypt
+    static-files:
+      rule: "Host(`metasophia.ar-ciel.org`)"
+      service: static-files
+      entrypoints: web
+  services:
+    static-files:
+      loadBalancer:
+        servers:
+          - url: "http://static-files:80"
 
   middlewares:
     csrf:
@@ -50,6 +59,10 @@ http:
       loadBalancer:
         servers:
           - url: http://django:5000
+    static-files:
+      loadBalancer:
+        servers:
+          - url: "http://static-files:80"
 
 providers:
   # https://doc.traefik.io/traefik/master/providers/file/

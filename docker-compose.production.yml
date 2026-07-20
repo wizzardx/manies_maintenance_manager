@@ -1,36 +1,4 @@
-volumes:
-  production_postgres_data: {}
-  production_postgres_data_backups: {}
-  production_traefik: {}
-  production_django_private_media: {}
-
 services:
-  django:
-    build:
-      context: .
-      dockerfile: ./compose/production/django/Dockerfile
-
-    image: manies_maintenance_manager_production_django
-    volumes:
-      - production_django_private_media:/app/manies_maintenance_manager/private-media
-    depends_on:
-      - postgres
-    env_file:
-      - ./.envs/.production/.django
-      - ./.envs/.production/.postgres
-    command: /start
-
-  postgres:
-    build:
-      context: .
-      dockerfile: ./compose/production/postgres/Dockerfile
-    image: manies_maintenance_manager_production_postgres
-    volumes:
-      - production_postgres_data:/var/lib/postgresql/data
-      - production_postgres_data_backups:/backups
-    env_file:
-      - ./.envs/.production/.postgres
-
   traefik:
     build:
       context: .
@@ -39,7 +7,24 @@ services:
     depends_on:
       - django
     volumes:
-      - production_traefik:/etc/traefik/acme
+      - production_traefik:/etc/traefik/acme  # ✅ Removed unnecessary /var/www/metasophia mount
     ports:
       - '0.0.0.0:80:80'
       - '0.0.0.0:443:443'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.static-files.rule=Host(`metasophia.ar-ciel.org`)"
+      - "traefik.http.routers.static-files.entrypoints=web"
+      - "traefik.http.middlewares.static-headers.headers.accesscontrolalloworigin=*"
+
+  static-files:
+    image: nginx:latest
+    container_name: static-files
+    volumes:
+      - /var/www/metasophia:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.static-files.rule=Host(`metasophia.ar-ciel.org`)"
+      - "traefik.http.routers.static-files.entrypoints=web"
+      - "traefik.http.services.static-files.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.static-headers.headers.accesscontrolalloworigin=*"
