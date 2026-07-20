@@ -143,6 +143,15 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
+# FORMS
+# ------------------------------------------------------------------------------
+# Opt into the Django 6.0 default of assuming 'https' for scheme-less URLField
+# values. This covers every ModelForm/admin form built over a URLField at once
+# and silences the RemovedInDjango60Warning. Remove this (along with the matching
+# filterwarnings entry in pytest.ini) when upgrading to Django 6.0.
+# https://docs.djangoproject.com/en/dev/ref/settings/#forms-urlfield-assume-https
+FORMS_URLFIELD_ASSUME_HTTPS = True
+
 # STATIC
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root

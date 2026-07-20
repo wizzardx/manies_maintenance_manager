@@ -107,6 +107,6 @@ class TestUpdateLinkVisibility:
         link = soup.find("a", string="Update")
 
         # Confirm that we couldn't find it:
-        assert link is None, (
-            "The link to update the job should not be visible to Manie."
-        )
+        assert (
+            link is None
+        ), "The link to update the job should not be visible to Manie."

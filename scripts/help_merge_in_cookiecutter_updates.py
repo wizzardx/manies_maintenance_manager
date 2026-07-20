@@ -19,13 +19,13 @@ import subprocess  # nosec
 import sys
 import tempfile
 from pathlib import Path
-import json
 
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
+
 
 def run_command(
     command: list[str],
@@ -112,19 +112,29 @@ run_command(["git", "remote", "remove", "new_template"], ignore_errors=True)
 # Step 1: Create a new project using the latest Cookiecutter template
 logging.info("Creating a new project using the latest Cookiecutter template...")
 run_command(
-    ["pipx", "run", "cookiecutter", TEMPLATE_REPO, "--output-dir", str(NEW_TEMPLATE_DIR),
-     "--no-input", "--replay", "--extra-context", '{"project_name": "manies_maintenance_manager"}'],
+    [
+        "pipx",
+        "run",
+        "cookiecutter",
+        TEMPLATE_REPO,
+        "--output-dir",
+        str(NEW_TEMPLATE_DIR),
+        "--no-input",
+        "--replay",
+        "--extra-context",
+        '{"project_name": "manies_maintenance_manager"}',
+    ],
 )
 run_command(["ls", "-la", str(NEW_TEMPLATE_DIR)])  # Check parent dir
-
-print(f"Project dir exists: {new_template_project_dir.exists()}")
-print(f"Project dir contents: {list(new_template_project_dir.glob('*'))}")
 
 # Step 2: Initialize and commit new template
 logging.info(
     "Initializing Git in the new template directory and committing all files...",
 )
 new_template_project_dir = NEW_TEMPLATE_DIR / "manies_maintenance_manager"
+
+print(f"Project dir exists: {new_template_project_dir.exists()}")
+print(f"Project dir contents: {list(new_template_project_dir.glob('*'))}")
 os.chdir(new_template_project_dir)
 run_command(["git", "init"])
 run_command(["git", "config", "user.email", "temporary@example.com"])
@@ -148,7 +158,13 @@ run_command(["git", "fetch", "new_template"])
 
 # Get files that changed between original and new template
 result = run_command(
-    ["git", "diff", "aa12efe399784b78b8cfdfde8d79002e3bc26f50", "new_template/main", "--name-only"],
+    [
+        "git",
+        "diff",
+        "aa12efe399784b78b8cfdfde8d79002e3bc26f50",
+        "new_template/main",
+        "--name-only",
+    ],
 )
 changed_files = [p for p in result.stdout.split("\n") if p]
 
