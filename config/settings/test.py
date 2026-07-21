@@ -43,3 +43,13 @@ INSTALLED_APPS += ["django_fastdev"]  # noqa: F405
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = ["django"]
+
+# django-allauth
+# ------------------------------------------------------------------------------
+# Disable rate limiting during tests. Functional tests sign in many times from the
+# same IP (the live server / Docker container), which trips allauth's default
+# `login: 30/m/ip` limit and returns a 429 (surfacing as a "Server Error"). Note
+# that `{}` does NOT work here: allauth merges the supplied dict over its defaults,
+# so only the sentinel `False` fully disables rate limiting.
+# https://docs.allauth.org/en/latest/account/rate_limits.html
+ACCOUNT_RATE_LIMITS = False
